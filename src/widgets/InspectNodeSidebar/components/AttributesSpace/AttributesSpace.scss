@@ -1,21 +1,10 @@
 $prop-width: 30%;
 
 .AttributesSpace {
-    &__item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background-color 0.2s;
-
-        width: 100%;
-
-        &:hover {
-            background-color: #f0f0f0;
-        }
-    }
-
     &__checkbox-group {
+        display: flex;
+        align-items: center;
+
         width: $prop-width;
     }
 
@@ -30,10 +19,10 @@ $prop-width: 30%;
 
     &__type {
         width: $prop-width;
+        text-align: center;
     }
 
     &__probability {
         width: $prop-width;
-        color: #666;
     }
 }

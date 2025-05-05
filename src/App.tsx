@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { WelcomePage } from './pages/Welcome/WelcomePage';
-import { WorkingSchemaContextProvider } from './features/WorkingSchemaContext/WorkingSchemaContext';
+import { WorkingSchemaContextProvider } from './features/WorkingSchemaContext/components/WorkingSchemaContext';
 import { EditPage } from './pages/Edit/EditPage';
 
 function App() {

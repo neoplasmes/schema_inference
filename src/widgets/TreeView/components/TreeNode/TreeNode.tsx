@@ -1,9 +1,10 @@
 import { memo, useLayoutEffect, useRef } from 'react';
 import type { RefObject } from 'react';
+
 import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '../../../../model/treeModel';
-import { bem } from '../../../../shared/bem';
-import './TreeNode.scss';
+import { bem } from '../../../../shared/bem/bem';
 import { TreeNodeBody } from './components/TreeNodeBody';
+import './TreeNode.scss';
 
 const block = bem('TreeNode');
 

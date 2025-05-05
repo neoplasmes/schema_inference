@@ -1,19 +1,18 @@
 import { useMemo } from 'react';
-import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/WorkingSchemaContext';
-import { useReactiveState } from '../../interfaces/Reactive/useReactiveState';
-import { bem } from '../../shared/bem';
-import './InspectNodeSidebar.scss';
-import { NodeNameSpace } from './components/NodeNameSpace/NodeNameSpace';
+
+import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext';
+import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
+import { bem } from '@shared/bem/bem';
+
 import { AttributesSpace } from './components/AttributesSpace/AttributesSpace';
+import { NodeNameSpace } from './components/NodeNameSpace/NodeNameSpace';
+import { XSDTypesSpace } from './components/XSDTypesSpace';
+import './InspectNodeSidebar.scss';
 
 const block = bem('InspectNodeSidebar');
 
 export const InspectNodeSidebar = () => {
-    const { workingSchemaController } = useWorkingSchemaContext();
-
-    if (!workingSchemaController) {
-        throw new Error('controller unprovided');
-    }
+    const workingSchemaController = useSafelyWorkingSchemaController();
 
     const inspectableNode = useReactiveState(workingSchemaController.getWorkspace(), state => state.inspectableNode);
 
@@ -45,6 +44,9 @@ export const InspectNodeSidebar = () => {
             </div>
             <div className={block('section')}>
                 <AttributesSpace node={nodeNativeData} />
+            </div>
+            <div className={block('section')}>
+                <XSDTypesSpace node={nodeNativeData} />
             </div>
         </div>
     );

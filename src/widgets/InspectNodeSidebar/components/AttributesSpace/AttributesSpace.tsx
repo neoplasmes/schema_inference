@@ -1,8 +1,9 @@
-import { useWorkingSchemaContext } from '../../../../features/WorkingSchemaContext/WorkingSchemaContext';
 import { useCallback, useMemo } from 'react';
-import { bem } from '../../../../shared/bem';
-import { SchemaNode, SchemaNodeModel } from '../../../../model/treeModel';
-import { useReactiveState } from '../../../../interfaces/Reactive/useReactiveState';
+
+import { useWorkingSchemaContext } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
+import { SchemaNode, SchemaNodeModel } from '@model/treeModel';
+import { bem } from '@shared/bem/bem';
 
 import './AttributesSpace.scss';
 
@@ -61,30 +62,29 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
         return result;
     }, [node]);
 
-    const onAttributeChoose = useCallback(
-        (event: React.ChangeEvent<HTMLInputElement>) => {
-            const attrName = event.target.value;
-            const chosen = event.target.checked;
+    const onAttributeChoose = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const attrName = event.target.value;
+        const chosen = event.target.checked;
 
-            console.log(attrName, chosen);
+        console.log(attrName, chosen);
 
-            let newChosenAttributes = [];
-            if (chosen) {
-                const temp = new Set(chosenAttributes);
-                temp.add(attrName);
-                newChosenAttributes = Array.from(temp);
-            } else {
-                const temp = new Set(chosenAttributes);
-                temp.delete(attrName);
-                newChosenAttributes = Array.from(temp);
-            }
+        let newChosenAttributes = [];
+        if (chosen) {
+            const temp = new Set(chosenAttributes);
+            temp.add(attrName);
+            newChosenAttributes = Array.from(temp);
+        } else {
+            const temp = new Set(chosenAttributes);
+            temp.delete(attrName);
+            newChosenAttributes = Array.from(temp);
+        }
 
-            node.update({
-                chosenAttributes: newChosenAttributes,
-            });
-        },
-        [node]
-    );
+        node.update({
+            chosenAttributes: newChosenAttributes,
+        });
+    };
+
+    console.log(chosenAttributes);
 
     return (
         <div className={block()}>
@@ -93,7 +93,7 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
                 {attributesList.map(attr => {
                     return (
                         <li key={attr.name}>
-                            <div className={block('item')}>
+                            <div className="item">
                                 <div className={block('checkbox-group')}>
                                     <input
                                         type="checkbox"
@@ -103,15 +103,15 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
                                         value={attr.name}
                                     />
                                     <label
-                                        className={block('name')}
+                                        className={`${block('name')} name`}
                                         htmlFor={`checkbox-${attr.name}`}
                                     >
                                         {attr.name}
                                     </label>
                                 </div>
                                 <span className={block('type')}>{attr.XSDTypes}</span>
-                                <span className={block('probability')}>
-                                    {(attr.probability * 100).toFixed(2) + '%'}
+                                <span className={`${block('probability')} probability`}>
+                                    {(attr.probability * 100).toFixed(0) + '%'}
                                 </span>
                             </div>
                         </li>

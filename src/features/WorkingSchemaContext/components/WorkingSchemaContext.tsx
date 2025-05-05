@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
-import { SchemaDataEntry } from '../../model/treeModel';
-import { WorkingSchemaController } from './model/WorkingSchemaController';
-import { createVirtualModelFromSchemaData } from './helpers/createVirtualModelFromSchemaData';
-import { WorkingSchemaWorkspace, WorkingSchemaWorkspaceData } from './model/WorkingSchemaWorkspace';
+import { SchemaDataEntry } from '../../../model/treeModel';
+import { WorkingSchemaController } from '../model/WorkingSchemaController';
+import { createVirtualModelFromSchemaData } from '../helpers/createVirtualModelFromSchemaData';
+import { WorkingSchemaWorkspace, WorkingSchemaWorkspaceData } from '../model/WorkingSchemaWorkspace';
 
 type WorkingSchemaContextType = {
     workingSchemaController: WorkingSchemaController | null;

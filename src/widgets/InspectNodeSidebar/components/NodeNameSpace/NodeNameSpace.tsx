@@ -1,5 +1,5 @@
 import { SchemaDataEntry } from '../../../../model/treeModel';
-import { bem } from '../../../../shared/bem';
+import { bem } from '../../../../shared/bem/bem';
 import './NodeNameSpace.scss';
 
 const block = bem('NodeNameSpace');
@@ -10,11 +10,11 @@ type NodeNameSpaceProps = {
 };
 
 const NamePercentageItem = ({ name, percentage }: { name: string; percentage: number }) => {
-    const percentageDisplay = (percentage * 100).toFixed(2) + '%';
+    const percentageDisplay = (percentage * 100).toFixed(0) + '%';
     return (
         <div className={block('item')}>
             <span className="name">{name}</span>
-            <span className="percentage">{percentageDisplay}</span>
+            <span className="probability">{percentageDisplay}</span>
         </div>
     );
 };

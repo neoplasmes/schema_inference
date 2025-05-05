@@ -5,7 +5,7 @@ import {
     SchemaNodeModel,
     VirtualSchemaModel,
 } from '../../../model/treeModel';
-import { assignObjectSkippingProperties } from '../../../shared/assignWithOmit';
+import { assignObjectSkippingProperties } from '../../../shared/assignWithOmit/assignWithOmit';
 
 export type FinalSchemaNodeModel = Pick<SchemaNodeModel, 'type' | 'value' | 'minOccurs' | 'maxOccurs'> & {
     /**

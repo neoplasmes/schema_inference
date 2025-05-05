@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import './WelcomePage.scss';
-import { bem } from '../../shared/bem';
-import { useNavigate } from 'react-router';
-import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/WorkingSchemaContext';
-import { SchemaDataEntry } from '../../model/treeModel';
 
+import { useNavigate } from 'react-router';
+
+import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { SchemaDataEntry } from '../../model/treeModel';
 import mockData from '../../sample.json';
+import { bem } from '../../shared/bem/bem';
+import './WelcomePage.scss';
 
 const block = bem('GeneratePage');
 // Интерфейс для ответа от POST-запроса

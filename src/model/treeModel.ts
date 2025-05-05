@@ -1,5 +1,7 @@
+import { XSDType } from '@entities/node';
+
 import { Reactive } from '../interfaces/Reactive/Reactive';
-import { assignObjectSkippingProperties } from '../shared/assignWithOmit';
+import { assignObjectSkippingProperties } from '../shared/assignWithOmit/assignWithOmit';
 
 export enum ExpressionNodeType {
     LEAF = 'LEAF',
@@ -20,7 +22,7 @@ export type SchemaDataEntry = {
             XSDTypes: Record<string, number>;
         };
     };
-    XSDTypes: Record<string, number>;
+    XSDTypes: Record<XSDType, number>;
 } & SchemaDataEntryBase;
 
 export type ExpressionNode = {

@@ -1,5 +1,5 @@
-import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/WorkingSchemaContext';
-import { bem } from '../../shared/bem';
+import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { bem } from '../../shared/bem/bem';
 import { TreeView } from '../../widgets/TreeView/TreeView';
 import './EditPage.scss';
 

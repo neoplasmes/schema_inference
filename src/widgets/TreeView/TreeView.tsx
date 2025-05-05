@@ -1,12 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
-import { TreeNode } from './components/TreeNode/TreeNode';
-import { ExpressionNode } from '../../model/treeModel';
-import { bem } from '../../shared/bem';
 
-import './TreeView.scss';
-import { InspectNodeSidebar } from '../InspectNodeSidebar/InspectNodeSidebar';
-import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/WorkingSchemaContext';
 import { Navigate } from 'react-router';
+
+import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { ExpressionNode } from '../../model/treeModel';
+import { bem } from '../../shared/bem/bem';
+import { InspectNodeSidebar } from '../InspectNodeSidebar/InspectNodeSidebar';
+import { TreeNode } from './components/TreeNode/TreeNode';
+import './TreeView.scss';
 
 const block = bem('TreeView');
 

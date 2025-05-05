@@ -1,0 +1,1 @@
+export { XSDTypesSpace } from './XSDTypesSpace';
