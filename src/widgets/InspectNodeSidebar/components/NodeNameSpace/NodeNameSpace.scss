@@ -1,0 +1,33 @@
+.NodeNameSpace {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+
+        gap: 8px;
+    }
+
+    &__item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: #f0f0f0;
+        }
+
+        .name {
+            font-weight: 500;
+        }
+
+        .percentage {
+            color: #666;
+        }
+    }
+}

@@ -1,0 +1,30 @@
+$connector-weight: 2px;
+
+.TreeNode {
+    position: relative;
+
+    &__tree {
+        display: flex;
+        flex-direction: row;
+        padding: 10px;
+        gap: 64px;
+    }
+
+    &__connector {
+        background-color: grey;
+
+        &_horizontal {
+            height: $connector-weight;
+            position: absolute;
+        }
+
+        &_vertical {
+            width: $connector-weight;
+        }
+    }
+
+    &__children {
+        display: flex;
+        flex-direction: column;
+    }
+}

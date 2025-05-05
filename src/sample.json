@@ -1,0 +1,432 @@
+{
+  "begin-c/root-c": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {
+      "type": "LEAF",
+      "value": "person-c",
+      "probability": 1.0,
+      "minOccurs": 1,
+      "maxOccurs": 7,
+      "children": []
+    },
+    "XSDTypes": {
+      "parent": 1.0
+    },
+    "attributes": {
+      "id": {
+        "probability": 1.0,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "root-c/person-c": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {
+      "type": "OR",
+      "value": "OR",
+      "probability": 1.0,
+      "minOccurs": 1,
+      "maxOccurs": 1,
+      "children": [
+        {
+          "type": "AND",
+          "value": "AND",
+          "probability": 0.7142857142857143,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": [
+            {
+              "type": "LEAF",
+              "value": "name-c",
+              "probability": 1.0,
+              "minOccurs": 1,
+              "maxOccurs": 1,
+              "children": []
+            },
+            {
+              "type": "OR",
+              "value": "OR",
+              "probability": 1.0,
+              "minOccurs": 1,
+              "maxOccurs": 1,
+              "children": [
+                {
+                  "type": "LEAF",
+                  "value": "contacts-c",
+                  "probability": 0.6,
+                  "minOccurs": 1,
+                  "maxOccurs": 1,
+                  "children": []
+                },
+                {
+                  "type": "AND",
+                  "value": "AND",
+                  "probability": 0.4,
+                  "minOccurs": 1,
+                  "maxOccurs": 1,
+                  "children": [
+                    {
+                      "type": "LEAF",
+                      "value": "email-s",
+                      "probability": 1.0,
+                      "minOccurs": 1,
+                      "maxOccurs": 2,
+                      "children": []
+                    },
+                    {
+                      "type": "LEAF",
+                      "value": "phone-s",
+                      "probability": 1.0,
+                      "minOccurs": 1,
+                      "maxOccurs": 1,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "AND",
+          "value": "AND",
+          "probability": 0.2857142857142857,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": [
+            {
+              "type": "LEAF",
+              "value": "email-s",
+              "probability": 1.0,
+              "minOccurs": 1,
+              "maxOccurs": 2,
+              "children": []
+            },
+            {
+              "type": "LEAF",
+              "value": "name-s",
+              "probability": 1.0,
+              "minOccurs": 1,
+              "maxOccurs": 1,
+              "children": []
+            },
+            {
+              "type": "LEAF",
+              "value": "phone-s",
+              "probability": 1.0,
+              "minOccurs": 1,
+              "maxOccurs": 1,
+              "children": []
+            },
+            {
+              "type": "LEAF",
+              "value": "surname-s",
+              "probability": 1.0,
+              "minOccurs": 1,
+              "maxOccurs": 1,
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    "XSDTypes": {
+      "parent": 1.0
+    },
+    "attributes": {
+      "id": {
+        "probability": 0.8571428571428571,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      },
+      "role": {
+        "probability": 0.5714285714285714,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      },
+      "idd": {
+        "probability": 0.14285714285714285,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "person-c/contacts-c": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {
+      "type": "AND",
+      "value": "AND",
+      "probability": 1.0,
+      "minOccurs": 1,
+      "maxOccurs": 1,
+      "children": [
+        {
+          "type": "LEAF",
+          "value": "corporative-c",
+          "probability": 1.0,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": []
+        },
+        {
+          "type": "LEAF",
+          "value": "personal-c",
+          "probability": 1.0,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": []
+        }
+      ]
+    },
+    "XSDTypes": {
+      "parent": 1.0
+    },
+    "attributes": {}
+  },
+  "contacts-c/corporative-c": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {
+      "type": "LEAF",
+      "value": "email-s",
+      "probability": 1.0,
+      "minOccurs": 1,
+      "maxOccurs": 1,
+      "children": []
+    },
+    "XSDTypes": {
+      "parent": 1.0
+    },
+    "attributes": {
+      "status": {
+        "probability": 0.6666666666666666,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "corporative-c/email-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {
+      "statuz": {
+        "probability": 0.3333333333333333,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "contacts-c/personal-c": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {
+      "type": "AND",
+      "value": "AND",
+      "probability": 1.0,
+      "minOccurs": 1,
+      "maxOccurs": 1,
+      "children": [
+        {
+          "type": "LEAF",
+          "value": "email-s",
+          "probability": 1.0,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": []
+        },
+        {
+          "type": "LEAF",
+          "value": "phone-s",
+          "probability": 1.0,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": []
+        }
+      ]
+    },
+    "XSDTypes": {
+      "parent": 1.0
+    },
+    "attributes": {
+      "type": {
+        "probability": 0.6666666666666666,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "personal-c/email-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {
+      "status": {
+        "probability": 0.3333333333333333,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "personal-c/phone-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {
+      "type": {
+        "probability": 1.0,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "person-c/name-c": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {
+      "type": "AND",
+      "value": "AND",
+      "probability": 1.0,
+      "minOccurs": 1,
+      "maxOccurs": 1,
+      "children": [
+        {
+          "type": "LEAF",
+          "value": "first-s",
+          "probability": 1.0,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": []
+        },
+        {
+          "type": "LEAF",
+          "value": "last-s",
+          "probability": 1.0,
+          "minOccurs": 1,
+          "maxOccurs": 1,
+          "children": []
+        }
+      ]
+    },
+    "XSDTypes": {
+      "parent": 1.0
+    },
+    "attributes": {
+      "format": {
+        "probability": 1.0,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "name-c/last-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {}
+  },
+  "name-c/first-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {}
+  },
+  "person-c/email-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {
+      "type": {
+        "probability": 1.0,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      },
+      "status": {
+        "probability": 0.5,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      },
+      "statuz": {
+        "probability": 0.125,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "person-c/phone-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {
+      "type": {
+        "probability": 0.75,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  },
+  "person-c/surname-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {}
+  },
+  "person-c/name-s": {
+    "typoSpace": {},
+    "semanticSpace": {},
+    "expression": {},
+    "XSDTypes": {
+      "string": 1.0
+    },
+    "attributes": {
+      "format": {
+        "probability": 1.0,
+        "XSDTypes": {
+          "string": 1.0
+        }
+      }
+    }
+  }
+}

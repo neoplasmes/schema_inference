@@ -1,0 +1,39 @@
+$prop-width: 30%;
+
+.AttributesSpace {
+    &__item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+
+        width: 100%;
+
+        &:hover {
+            background-color: #f0f0f0;
+        }
+    }
+
+    &__checkbox-group {
+        width: $prop-width;
+    }
+
+    &__name {
+        display: inline-block;
+
+        padding-left: 4px;
+        font-weight: 500;
+
+        text-overflow: ellipsis;
+    }
+
+    &__type {
+        width: $prop-width;
+    }
+
+    &__probability {
+        width: $prop-width;
+        color: #666;
+    }
+}
