@@ -1,11 +1,16 @@
-import { ExpressionNode, ExpressionNodeType, SchemaDataEntryBase } from '../../../model/treeModel';
+import { ExpressionNode, ExpressionNodeType, SchemaDataEntryBase } from '@model/treeModel';
 
 /**
+ * Метод используемый для создания глобального дерева-выражения XSD-схемы.
+ * Возвращаемый результат используется в дальнейшем для создания вирутального дерева
  * Это надо оптимизировать 100%
  * @param schemaData
  * @returns
  */
-export const createGlobalExpressionFromSchemaData = <K extends SchemaDataEntryBase>(schemaData: Record<string, K>) => {
+export const createGlobalExpressionFromSchemaData = <K extends SchemaDataEntryBase>(
+    schemaData: Readonly<Record<string, K>>
+) => {
+    // Данные копируются потому, что мы берём изначальный объект и тупо его и модифицируем. А schemaData нам очень важна
     const datacopy: Record<string, K> = JSON.parse(JSON.stringify(schemaData));
 
     const aaa = (node: ExpressionNode, parent: string) => {
@@ -16,7 +21,9 @@ export const createGlobalExpressionFromSchemaData = <K extends SchemaDataEntryBa
                 return;
             }
 
-            node.children.push(datacopy[nodeKey].expression);
+            if (Object.keys(datacopy[nodeKey].expression).length > 0) {
+                node.children.push(datacopy[nodeKey].expression);
+            }
             parent = node.value;
             node.value = nodeKey;
         }

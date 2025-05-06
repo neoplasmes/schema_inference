@@ -1,24 +1,35 @@
-.TreeNodeData {
+.TreeNodeBody {
     position: relative;
-    padding: 8px;
     width: fit-content;
 
-    &__data {
-        opacity: 0.5;
+    display: flex;
+    align-items: center;
 
-        width: fit-content;
+    height: 32px;
 
-        &_chosen {
-            opacity: 1;
-        }
+    padding: 8px;
+
+    background-color: rgb(248, 248, 248);
+
+    border: 1.25px solid gray;
+    border-radius: 8px;
+
+    font-size: smaller;
+
+    opacity: 0.5;
+
+    &_chosen {
+        opacity: 1;
+    }
+
+    &_inspected {
+        background-color: rgb(220, 236, 223);
+
+        border-color: green;
     }
 
     &__value {
-        border: 2px solid gray;
-        border-radius: 4px;
-        padding: 8px;
         color: rgb(21, 116, 145);
-        background-color: rgb(248, 248, 248);
         user-select: none;
 
         .representation {
@@ -36,20 +47,20 @@
         font-weight: 900;
     }
 
-    &__square {
-        position: absolute;
-        visibility: hidden;
+    // &__square {
+    //     position: absolute;
+    //     visibility: hidden;
 
-        width: 100px;
-        height: 100px;
+    //     width: 100px;
+    //     height: 100px;
 
-        border: 2px solid gray;
-        background-color: #f4f4f4;
+    //     border: 2px solid gray;
+    //     background-color: #f4f4f4;
 
-        &_visible {
-            visibility: visible;
-        }
+    //     &_visible {
+    //         visibility: visible;
+    //     }
 
-        z-index: 100;
-    }
+    //     z-index: 100;
+    // }
 }

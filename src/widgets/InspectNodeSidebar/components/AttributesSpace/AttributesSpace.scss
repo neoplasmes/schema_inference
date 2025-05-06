@@ -6,9 +6,13 @@ $prop-width: 30%;
         align-items: center;
 
         width: $prop-width;
+
+        input {
+            accent-color: #333;
+        }
     }
 
-    &__name {
+    .name {
         display: inline-block;
 
         padding-left: 4px;
@@ -22,7 +26,7 @@ $prop-width: 30%;
         text-align: center;
     }
 
-    &__probability {
+    .probability {
         width: $prop-width;
     }
 }

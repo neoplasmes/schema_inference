@@ -1,8 +1,9 @@
-import { memo, useLayoutEffect, useRef } from 'react';
-import type { RefObject } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 
-import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '../../../../model/treeModel';
-import { bem } from '../../../../shared/bem/bem';
+import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
+import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@model/treeModel';
+import { bem } from '@shared/bem';
+
 import { TreeNodeBody } from './components/TreeNodeBody';
 import './TreeNode.scss';
 
@@ -10,13 +11,20 @@ const block = bem('TreeNode');
 
 export type TreeNodeProps = {
     node: SchemaNode<SchemaNodeModel>;
-    externalConnectorRef?: RefObject<HTMLDivElement | null>;
-    refToData?: RefObject<HTMLDivElement | null>;
+    ref?: React.RefObject<HTMLDivElement | null>;
+    parentBodyRef?: React.RefObject<HTMLDivElement | null>;
+    isAlternative?: boolean;
     choosable?: boolean;
 };
 
-// Вспомогательная функция для объединения ref
-function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+type ProbabilityLayout = {
+    left: number;
+    top: number;
+    width: number;
+    padding: number;
+};
+
+const mergeRefs = <T,>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> => {
     return (element: T | null) => {
         refs.forEach(ref => {
             if (typeof ref === 'function') {
@@ -26,85 +34,128 @@ function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<
             }
         });
     };
-}
+};
 
-// Главные функции - осуществить выбор. Просмотреть инфу.
+/**
+ * Path считается в HTML-DOM системе координат (X вправо и Y вниз)
+ * относительно верхнего левого угла el2.
+ * @param el1
+ * @param el2
+ */
+const calculateConnectorData = (
+    el1: HTMLDivElement,
+    el2: HTMLDivElement
+): { path: string; probabilityLayout: ProbabilityLayout } => {
+    const rect1 = el1.getBoundingClientRect();
+    const rect2 = el2.getBoundingClientRect();
 
-export const TreeNode = memo(({ node, externalConnectorRef, refToData, choosable = false }: TreeNodeProps) => {
-    const lastChildRef = useRef<HTMLDivElement>(null);
-    const dataRef = useRef<HTMLDivElement>(null);
-    const verticalConnectorRef = useRef<HTMLDivElement>(null);
-    const horizontalConnectorRef = useRef<HTMLDivElement>(null);
+    const padding = 4;
 
-    useLayoutEffect(() => {
-        if (verticalConnectorRef.current && lastChildRef.current) {
-            const connectorRect = verticalConnectorRef.current.getBoundingClientRect();
-            const lastChildRect = lastChildRef.current.getBoundingClientRect();
+    const startX = rect1.left - rect2.left - (rect1.left - rect2.left) * 0.2; // будет отрицательное число - то, что нужно
+    const startY = rect1.bottom - rect2.top; // нижний край второго элемента
 
-            const connectorHeight = lastChildRect.top + lastChildRect.height / 2 - connectorRect.top;
+    const endX = 0; // левый край второго элемента
+    const endY = rect2.height / 2; // середина второго элемента
 
-            verticalConnectorRef.current.style.height = `${connectorHeight}px`;
-        }
+    const cornerX = startX;
+    const cornerY = endY;
 
-        if (dataRef.current && externalConnectorRef?.current && horizontalConnectorRef.current) {
-            const dataRect = dataRef.current.getBoundingClientRect();
-            const externalConRect = externalConnectorRef.current.getBoundingClientRect();
+    const curveRadius = 6;
+    const curveStartX = cornerX;
+    const curveStartY = cornerY - curveRadius;
+    const curveEndX = cornerX + curveRadius;
+    const curveEndY = cornerY;
 
-            const horizontalConnectorWidth = dataRect.left - externalConRect.right;
+    const pathData = `
+        M ${startX},${startY + padding}
+        V ${curveStartY}
+        Q ${cornerX},${cornerY} ${curveEndX},${curveEndY}
+        H ${endX - padding}
+    `;
 
-            horizontalConnectorRef.current.style.width = `${horizontalConnectorWidth}px`;
-            horizontalConnectorRef.current.style.left = `-${horizontalConnectorWidth + externalConRect.width}px`;
-            horizontalConnectorRef.current.style.top = `${dataRect.height / 2}px`;
-        }
-    }, [
-        node.children,
-        verticalConnectorRef.current,
-        lastChildRef.current,
-        dataRef.current,
-        externalConnectorRef?.current,
-        horizontalConnectorRef.current,
-    ]);
+    return {
+        path: pathData.trim().replace(/\s+/g, ' '),
+        probabilityLayout: {
+            left: startX,
+            top: 0,
+            width: endX - startX,
+            padding: curveRadius,
+        },
+    };
+};
 
-    return (
-        <div className={block()}>
-            <div className={block('data-wrapper')}>
+export const TreeNode = memo(
+    ({ node, parentBodyRef, ref, isAlternative = false, choosable = false }: TreeNodeProps) => {
+        const [connectorPath, setConnectorPath] = useState('');
+        const [probabilityLayout, setProbabilityLayout] = useState<ProbabilityLayout>();
+        const currentBodyRef = useRef<HTMLDivElement>(null);
+
+        const isChosen = useReactiveState(node, state => state.chosen);
+
+        useLayoutEffect(() => {
+            if (!parentBodyRef?.current || !currentBodyRef.current) {
+                return;
+            }
+
+            const data = calculateConnectorData(parentBodyRef.current, currentBodyRef.current);
+            setConnectorPath(data.path);
+            setProbabilityLayout(data.probabilityLayout);
+        }, [parentBodyRef, currentBodyRef, node.children]);
+
+        return (
+            <div className={block(undefined, { skipped: !isChosen })}>
                 {/*Сюда надо лейбл для OR и AND и норм данные для LEAF */}
+                {parentBodyRef && (
+                    <svg className={block('connector')}>
+                        <path
+                            d={connectorPath}
+                            fill="none"
+                        />
+                    </svg>
+                )}
+                {parentBodyRef && probabilityLayout && isAlternative && (
+                    <div
+                        className={block('probability')}
+                        style={{
+                            left: probabilityLayout.left,
+                            top: probabilityLayout.top,
+                            width: probabilityLayout.width,
+                            padding: probabilityLayout.padding,
+                        }}
+                    >
+                        <span>{(node.getInternalData().probability * 100).toFixed(0) + '%'}</span>
+                    </div>
+                )}
                 <TreeNodeBody
-                    ref={mergeRefs(refToData, dataRef)}
+                    ref={mergeRefs(ref, currentBodyRef)}
                     node={node}
                     choosable={choosable}
                 />
-                <div
-                    className={block('connector', { horizontal: true })}
-                    ref={horizontalConnectorRef}
-                />
-            </div>
-            <div className={block('tree')}>
-                <div
-                    className={block('connector', { vertical: true })}
-                    ref={verticalConnectorRef}
-                />
-                <div className={block('children')}>
-                    {node.children.map(childNode => {
-                        const childNodeData = childNode.getInternalData();
-                        const parentNodeData = node.getInternalData();
+                {node.children.length > 0 && (
+                    <div className={block('tree')}>
+                        <div className={block('children')}>
+                            {node.children.map(childNode => {
+                                const childNodeData = childNode.getInternalData();
+                                const parentNodeData = node.getInternalData();
 
-                        if (!childNodeData.value) {
-                            return null;
-                        }
+                                if (!childNodeData.value) {
+                                    return null;
+                                }
 
-                        return (
-                            <TreeNode
-                                key={childNode.id}
-                                refToData={lastChildRef}
-                                node={childNode}
-                                externalConnectorRef={verticalConnectorRef}
-                                choosable={parentNodeData.type === ExpressionNodeType.OR}
-                            />
-                        );
-                    })}
-                </div>
+                                return (
+                                    <TreeNode
+                                        key={childNode.id}
+                                        parentBodyRef={currentBodyRef}
+                                        node={childNode}
+                                        isAlternative={parentNodeData.type === ExpressionNodeType.OR}
+                                        choosable={true}
+                                    />
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
-    );
-});
+        );
+    }
+);

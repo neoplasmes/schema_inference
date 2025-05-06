@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
+
 import { SchemaDataEntry } from '../../../model/treeModel';
-import { WorkingSchemaController } from '../model/WorkingSchemaController';
 import { createVirtualModelFromSchemaData } from '../helpers/createVirtualModelFromSchemaData';
+import { WorkingSchemaController } from '../model/WorkingSchemaController';
 import { WorkingSchemaWorkspace, WorkingSchemaWorkspaceData } from '../model/WorkingSchemaWorkspace';
 
 type WorkingSchemaContextType = {
@@ -33,7 +34,9 @@ export const WorkingSchemaContextProvider = ({ children }: WorkingSchemaContextP
     const [controller, setController] = useState<WorkingSchemaController | null>(null);
 
     const initialize = (schemaData: Record<string, SchemaDataEntry>) => {
-        const virtualSchemaModel = createVirtualModelFromSchemaData(schemaData);
+        const frozenSchemaData = Object.freeze(schemaData);
+
+        const virtualSchemaModel = createVirtualModelFromSchemaData(frozenSchemaData);
 
         const initialWorkspaceData: WorkingSchemaWorkspaceData = {
             inspectableNode: virtualSchemaModel.getRoot().id,
@@ -41,7 +44,7 @@ export const WorkingSchemaContextProvider = ({ children }: WorkingSchemaContextP
 
         const newController = new WorkingSchemaController(
             virtualSchemaModel,
-            schemaData,
+            frozenSchemaData,
             new WorkingSchemaWorkspace(initialWorkspaceData)
         );
 

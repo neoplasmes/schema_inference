@@ -38,9 +38,26 @@ export type ExpressionNode = {
  * Представление узла в Virtual Schema Model
  */
 export type SchemaNodeModel = Omit<ExpressionNode, 'children'> & {
+    /**
+     * включена ли нода в итоговое XSD-дерево.
+     * @default false но переписывается методом selectMostProbableSubtree применённым к корню дерева
+     */
     chosen: boolean;
+    /**
+     * Аттрибуты, которые будут включены в итоговое XSD-дерево
+     */
     chosenAttributes: Array<string>;
+    /**
+     * выбранный тип данных
+     */
     chosenType: string;
+    /**
+     * Имя тэга. Отличается от {@link ExpressionNode.value} тем, что это то,
+     * что отображается на экране и как по итогу будет назван тэг.
+     * {@link ExpressionNode.value} же это просто ключ, связывающий узел из дерева с его метаданными
+     * из {@link SchemaDataEntry}
+     */
+    name: string;
 };
 
 /**

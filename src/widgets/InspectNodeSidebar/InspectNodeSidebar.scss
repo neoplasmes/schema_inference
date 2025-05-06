@@ -2,22 +2,56 @@ $delimiter-color: #c8c8c8;
 
 .InspectNodeSidebar {
     height: 100%;
-    width: 300px;
+    width: max(25%, 300px);
 
-    border: 1px solid #ddd;
-    border-radius: 8px;
     padding: 16px;
-    background-color: #fff;
+
+    border: 1px solid #b6b6b6;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.352);
+
+    backdrop-filter: blur(10px);
 
     display: flex;
     flex-direction: column;
 
+    z-index: 2;
+
     &__header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
         font-weight: 500;
         padding-bottom: 8px;
 
-        span {
+        input {
+            width: 50%;
+            padding: 0px 4px;
+
+            outline: none;
+            border-radius: 8px;
+            border-color: transparent;
+
+            font-size: large;
             font-weight: 300;
+
+            transition: border-color 0.1s ease-in-out;
+
+            cursor: pointer;
+
+            &:focus {
+                outline: none;
+
+                cursor: text;
+
+                border-color: #333;
+            }
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
         }
     }
 
@@ -41,6 +75,8 @@ $delimiter-color: #c8c8c8;
         }
 
         .no-data {
+            padding-left: 8px;
+
             color: #7b7b7b;
             font-weight: 300;
             font-size: smaller;

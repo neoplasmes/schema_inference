@@ -1,10 +1,5 @@
-import {
-    ExpressionNodeType,
-    SchemaDataEntry,
-    SchemaNode,
-    SchemaNodeModel,
-    VirtualSchemaModel,
-} from '../../../model/treeModel';
+import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel, VirtualSchemaModel } from '@model/treeModel';
+
 import { selectMostProbableSubtrees } from './selectMostProbableSubtrees';
 
 const updateSubtreeSelection = (

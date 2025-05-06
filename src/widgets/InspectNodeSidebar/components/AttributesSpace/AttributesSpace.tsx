@@ -1,6 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
-import { useWorkingSchemaContext } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
 import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
 import { SchemaNode, SchemaNodeModel } from '@model/treeModel';
 import { bem } from '@shared/bem/bem';
@@ -22,11 +22,7 @@ type NormalizedAttributeData = {
 export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
     const chosenAttributes = useReactiveState(node, state => state.chosenAttributes);
 
-    const { workingSchemaController } = useWorkingSchemaContext();
-
-    if (!workingSchemaController) {
-        throw new Error('controller unprovided');
-    }
+    const workingSchemaController = useSafelyWorkingSchemaController();
 
     const attributesList = useMemo(() => {
         const key = node.getInternalData().value;
@@ -84,11 +80,11 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
         });
     };
 
-    console.log(chosenAttributes);
-
-    return (
-        <div className={block()}>
-            <h4>Аттрибуты</h4>
+    let content;
+    if (attributesList.length === 0) {
+        content = <span className="no-data">Нет информации</span>;
+    } else {
+        content = (
             <ul>
                 {attributesList.map(attr => {
                     return (
@@ -103,21 +99,26 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
                                         value={attr.name}
                                     />
                                     <label
-                                        className={`${block('name')} name`}
+                                        className="name"
                                         htmlFor={`checkbox-${attr.name}`}
                                     >
                                         {attr.name}
                                     </label>
                                 </div>
                                 <span className={block('type')}>{attr.XSDTypes}</span>
-                                <span className={`${block('probability')} probability`}>
-                                    {(attr.probability * 100).toFixed(0) + '%'}
-                                </span>
+                                <span className="probability">{(attr.probability * 100).toFixed(0) + '%'}</span>
                             </div>
                         </li>
                     );
                 })}
             </ul>
+        );
+    }
+
+    return (
+        <div className={block()}>
+            <h4>Аттрибуты</h4>
+            {content}
         </div>
     );
 };

@@ -1,4 +1,27 @@
 .EditPage {
     height: 100%;
     width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    &__panel {
+        padding: 16px;
+
+        border: 1px solid #b6b6b6;
+        border-radius: 16px;
+
+        background-color: (255, 255, 255, 0.352);
+        backdrop-filter: blur(10px);
+
+        z-index: 2;
+    }
+
+    &__workspace {
+        height: 100%;
+        width: 100%;
+        display: flex;
+    }
 }

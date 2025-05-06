@@ -291,7 +291,8 @@
     "semanticSpace": {},
     "expression": {},
     "XSDTypes": {
-      "string": 1.0
+      "string": 0.75,
+      "integer": 0.25
     },
     "attributes": {
       "type": {

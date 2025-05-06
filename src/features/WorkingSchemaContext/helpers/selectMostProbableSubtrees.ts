@@ -1,4 +1,5 @@
-import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel } from '../../../model/treeModel';
+import { XSDType } from '@entities/node';
+import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@model/treeModel';
 
 export const selectMostProbableSubtrees = (
     startNode: SchemaNode<SchemaNodeModel>,
@@ -30,7 +31,7 @@ export const selectMostProbableSubtrees = (
 
         if (node.getInternalData().type === ExpressionNodeType.LEAF) {
             //Выбираем наиболее вероятные атрибуты для листьев
-            const nodeValue = node.getInternalData().value;
+            const nodeValue = nodeData.value;
             const attributes = schemaData[nodeValue].attributes;
 
             const chosenAttributes = [];
@@ -40,7 +41,20 @@ export const selectMostProbableSubtrees = (
                 }
             }
 
-            node.update({ chosenAttributes });
+            // выбираем наиболее вероятный тип.
+            const xsdtypes = schemaData[nodeValue].XSDTypes;
+            let bestType = XSDType.STRING;
+            let bestProb = -Infinity;
+            for (const name in xsdtypes) {
+                const nameCast = name as XSDType;
+
+                if (xsdtypes[nameCast] > bestProb) {
+                    bestProb = xsdtypes[nameCast];
+                    bestType = nameCast;
+                }
+            }
+
+            node.update({ chosenAttributes, chosenType: bestType });
         }
 
         // Добавляем дочерние узлы в стек (в обратном порядке, чтобы сохранить порядок обхода)

@@ -2,20 +2,15 @@ import { useCallback, useRef, useState } from 'react';
 
 import { Navigate } from 'react-router';
 
-import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/components/WorkingSchemaContext';
-import { ExpressionNode } from '../../model/treeModel';
-import { bem } from '../../shared/bem/bem';
-import { InspectNodeSidebar } from '../InspectNodeSidebar/InspectNodeSidebar';
+import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { bem } from '@shared/bem/bem';
+
 import { TreeNode } from './components/TreeNode/TreeNode';
 import './TreeView.scss';
 
 const block = bem('TreeView');
 
-type TreeViewProps = {
-    data: ExpressionNode;
-};
-
-export type Position = {
+type Position = {
     left: number;
     top: number;
 };
@@ -34,7 +29,7 @@ export const TreeView = () => {
     const treeOffsetOnDragStart = useRef<Position>(initialTreeContentOffset);
     const rootNodeRef = useRef<HTMLDivElement>(null);
 
-    const { workingSchemaController } = useWorkingSchemaContext();
+    const workingSchemaController = useSafelyWorkingSchemaController();
 
     // Обработчик события onWheel
     const handleWheel = useCallback((event: React.WheelEvent<HTMLDivElement>) => {
@@ -67,7 +62,8 @@ export const TreeView = () => {
             return;
         }
 
-        const treeNodeBodyClassName = rootNodeRef.current.className;
+        const treeNodeBodyClassName = rootNodeRef.current.className.split(' ')[0];
+        console.log(treeNodeBodyClassName);
         const isTreeNode = (event.target as HTMLElement).closest(`.${treeNodeBodyClassName}`);
         if (isTreeNode) {
             return;
@@ -105,100 +101,41 @@ export const TreeView = () => {
         setIsDragging(false);
     };
 
-    const selectMostProbableSchema = () => {
-        if (!workingSchemaController) {
-            throw new Error('impossible');
-        }
-
-        workingSchemaController.selectMostProbableTree();
-    };
-
-    const handleSchemaConfirmation = async () => {
-        if (!workingSchemaController) {
-            throw new Error('impossible');
-        }
-
-        const finalSchema = workingSchemaController.buildFinalSchema();
-        const result = finalSchema.toJson();
-
-        // try {
-        //     const response = await fetch('http://localhost:8000/schema/generatexsd/', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify(result),
-        //     });
-
-        //     if (!response.ok) {
-        //         throw new Error('Failed to generate XSD');
-        //     }
-
-        //     const blob = await response.blob();
-        //     const url = window.URL.createObjectURL(blob);
-        //     const a = document.createElement('a');
-        //     a.href = url;
-        //     a.download = `schema.xsd`;
-        //     document.body.appendChild(a);
-        //     a.click();
-        //     a.remove();
-        //     window.URL.revokeObjectURL(url);
-        // } catch (error) {
-        //     console.error('Error:', error);
-        // }
-        const jsonString = JSON.stringify(result, null, 4);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'data.json';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    };
-
     if (!workingSchemaController) {
         return <Navigate to="/" />;
     }
 
     return (
         <div className={block()}>
-            <div className={block('panel')}>
-                <button onClick={selectMostProbableSchema}>Выбрать наиболее вероятный вариант</button>
-                <button onClick={handleSchemaConfirmation}>Подтвердить</button>
-            </div>
-            <div className={block('workflow')}>
+            <div
+                className={block('canvas')}
+                onWheel={handleWheel}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseLeave}
+                style={{
+                    cursor: isDragging ? 'grabbing' : 'default',
+                }}
+            >
                 <div
-                    className={block('canvas')}
-                    onWheel={handleWheel}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseLeave}
+                    className={block('content')}
                     style={{
-                        cursor: isDragging ? 'grabbing' : 'default',
+                        transform: `translate(${treeContentOffset.left}px, ${treeContentOffset.top}px)`,
+                        transformOrigin: 'left top',
                     }}
                 >
                     <div
-                        className={block('content')}
-                        style={{
-                            transform: `translate(${treeContentOffset.left}px, ${treeContentOffset.top}px)`,
-                            transformOrigin: 'left top',
-                        }}
+                        className={block('scale-wrapper')}
+                        style={{ transform: `scale(${zoom})` }}
                     >
-                        <div
-                            className={block('scale-wrapper')}
-                            style={{ transform: `scale(${zoom})` }}
-                        >
-                            <TreeNode
-                                node={workingSchemaController.getVirtualSchemaModel().getRoot()}
-                                refToData={rootNodeRef}
-                            />
-                        </div>
+                        <TreeNode
+                            node={workingSchemaController.getVirtualSchemaModel().getRoot()}
+                            ref={rootNodeRef}
+                            parentBodyRef={undefined}
+                        />
                     </div>
                 </div>
-                <InspectNodeSidebar />
             </div>
         </div>
     );

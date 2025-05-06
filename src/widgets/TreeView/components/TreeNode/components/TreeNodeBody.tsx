@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { XSDType } from '@entities/node';
 import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext';
+import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
+import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@model/treeModel';
+import { bem } from '@shared/bem';
 
-import { useReactiveState } from '../../../../../interfaces/Reactive/useReactiveState';
-import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '../../../../../model/treeModel';
-import { bem } from '../../../../../shared/bem/bem';
 import './TreeNodeBody.scss';
 
-const block = bem('TreeNodeData');
+const block = bem('TreeNodeBody');
 
 type TreeNodeBodyProps = {
     ref?: React.Ref<HTMLDivElement>;
@@ -20,15 +20,13 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
     const nodeData = node.getInternalData();
     const workingSchemaController = useSafelyWorkingSchemaController();
 
+    const inspectableNode = useReactiveState(workingSchemaController.getWorkspace(), state => state.inspectableNode);
+
     const isChosen = useReactiveState(node, state => state.chosen);
     const chosenAttributes = useReactiveState(node, state => state.chosenAttributes);
+    const nodeName = useReactiveState(node, state => state.name);
 
     const accentIsVisible = nodeData.type === ExpressionNodeType.LEAF;
-
-    let valueToDisplay = nodeData.value;
-    if (nodeData.type === ExpressionNodeType.LEAF) {
-        valueToDisplay = nodeData.value.split('/')[1].split('-')[0];
-    }
 
     const attributesToDisplay = useMemo(() => {
         const result: Array<{ name: string; type: XSDType; probability: number }> = [];
@@ -74,7 +72,7 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
                 return;
             }
 
-            workingSchemaController?.selectSubtree(node.id);
+            workingSchemaController.selectSubtree(node.id);
         },
         [node, choosable]
     );
@@ -85,31 +83,27 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
 
     return (
         <div
-            className={block()}
             ref={ref}
+            className={block(undefined, { chosen: isChosen, inspected: node.id === inspectableNode })}
+            onContextMenu={chooseThisNodeSubtree}
+            onClick={inspectThisNode}
         >
-            <div
-                className={block('data', { chosen: isChosen })}
-                onContextMenu={chooseThisNodeSubtree}
-                onClick={inspectThisNode}
-            >
-                <span className={block('value')}>
-                    {accentIsVisible && <span className={block('value-accent')}>{'<'}</span>}
-                    <span className="representation">
-                        <b>{valueToDisplay}</b>
-                        {attributesToDisplay.map(attr => (
-                            <span
-                                key={attr.name}
-                                className="attribute"
-                                style={{ opacity: Math.max(attr.probability, 0.5) }}
-                            >
-                                {attr.name}="<u>{attr.type}</u>"
-                            </span>
-                        ))}
-                    </span>
-                    {accentIsVisible && <span className={block('value-accent')}>{' />'}</span>}
+            <span className={block('value')}>
+                {accentIsVisible && <span className={block('value-accent')}>{'<'}</span>}
+                <span className="representation">
+                    <b>{nodeName}</b>
+                    {attributesToDisplay.map(attr => (
+                        <span
+                            key={attr.name}
+                            className="attribute"
+                            style={{ opacity: Math.max(attr.probability, 0.5) }}
+                        >
+                            {attr.name}="<u>{attr.type}</u>"
+                        </span>
+                    ))}
                 </span>
-            </div>
+                {accentIsVisible && <span className={block('value-accent')}>{' />'}</span>}
+            </span>
         </div>
     );
 };
