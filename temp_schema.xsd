@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="root">
+	    <xs:complexType>
+		    <xs:sequence>
+                <xs:element name="Person" minOccurs="10" maxOccurs="15">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Name" type="xs:string"/>
+                            <xs:element name="Age" type="xs:integer"/>
+                            <xs:element name="Salary" type="xs:decimal"/>
+                            <xs:element name="IsActive" type="xs:boolean"/>
+                            <xs:element name="BirthDate" type="xs:date"/>
+                            <xs:element name="Address" maxOccurs="2">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Street" type="xs:string"/>
+                                        <xs:element name="City" type="xs:string"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="id" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+		    </xs:sequence>
+	    </xs:complexType>
+	</xs:element>
+</xs:schema>
+    
