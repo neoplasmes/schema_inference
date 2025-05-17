@@ -1,0 +1,118 @@
+{
+    "chosenType": "parent",
+    "name": "root",
+    "type": "LEAF",
+    "minOccurs": 1,
+    "maxOccurs": 1,
+    "children": [
+        {
+            "chosenType": "parent",
+            "name": "person",
+            "type": "LEAF",
+            "minOccurs": 1,
+            "maxOccurs": 7,
+            "children": [
+                {
+                    "chosenType": "parent",
+                    "name": "contacts",
+                    "type": "LEAF",
+                    "minOccurs": 1,
+                    "maxOccurs": 1,
+                    "children": [
+                        {
+                            "chosenType": "parent",
+                            "name": "personal",
+                            "type": "LEAF",
+                            "minOccurs": 1,
+                            "maxOccurs": 1,
+                            "children": [
+                                {
+                                    "chosenType": "string",
+                                    "name": "phone",
+                                    "type": "LEAF",
+                                    "minOccurs": 1,
+                                    "maxOccurs": 1,
+                                    "children": [],
+                                    "attributes": {
+                                        "type": "string"
+                                    }
+                                },
+                                {
+                                    "chosenType": "string",
+                                    "name": "email",
+                                    "type": "LEAF",
+                                    "minOccurs": 1,
+                                    "maxOccurs": 1,
+                                    "children": [],
+                                    "attributes": {}
+                                }
+                            ],
+                            "attributes": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "chosenType": "parent",
+                            "name": "corporative",
+                            "type": "LEAF",
+                            "minOccurs": 1,
+                            "maxOccurs": 1,
+                            "children": [
+                                {
+                                    "chosenType": "string",
+                                    "name": "email",
+                                    "type": "LEAF",
+                                    "minOccurs": 1,
+                                    "maxOccurs": 1,
+                                    "children": [],
+                                    "attributes": {}
+                                }
+                            ],
+                            "attributes": {
+                                "status": "string"
+                            }
+                        }
+                    ],
+                    "attributes": {}
+                },
+                {
+                    "chosenType": "parent",
+                    "name": "name",
+                    "type": "LEAF",
+                    "minOccurs": 1,
+                    "maxOccurs": 1,
+                    "children": [
+                        {
+                            "chosenType": "string",
+                            "name": "last",
+                            "type": "LEAF",
+                            "minOccurs": 1,
+                            "maxOccurs": 1,
+                            "children": [],
+                            "attributes": {}
+                        },
+                        {
+                            "chosenType": "string",
+                            "name": "first",
+                            "type": "LEAF",
+                            "minOccurs": 1,
+                            "maxOccurs": 1,
+                            "children": [],
+                            "attributes": {}
+                        }
+                    ],
+                    "attributes": {
+                        "format": "string"
+                    }
+                }
+            ],
+            "attributes": {
+                "id": "string",
+                "role": "string"
+            }
+        }
+    ],
+    "attributes": {
+        "id": "string"
+    }
+}

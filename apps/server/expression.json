@@ -1,0 +1,37 @@
+{
+  "name": "person-c",
+  "children": [
+    {
+      "name": "AND",
+      "children": [
+        {
+          "name": "email-s",
+          "children": [
+            {
+              "name": "STRING",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "phone-s",
+          "children": [
+            {
+              "name": "STRING",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "name-s",
+          "children": [
+            {
+              "name": "STRING",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

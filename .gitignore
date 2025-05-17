@@ -1,2 +1,17 @@
+# JavaScript dependencies
 package-lock.json
-node_modules
+node_modules/
+
+# Python dependencies and cache
+__pycache__/
+poetry.lock
+
+# Backend models and generated data
+apps/server/**/fineTuning
+apps/server/**/FinetunedModel
+apps/server/**/generated_xml
+apps/server/**/cornerCases
+apps/server/**/uploaded_files
+apps/server/**/brown_differing_nouns.*
+apps/server/**/similarity_dataset.csv
+apps/server/**/temp_schema.xsd

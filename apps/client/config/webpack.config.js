@@ -681,6 +681,7 @@ module.exports = function (webpackEnv) {
         new ForkTsCheckerWebpackPlugin({
           async: isEnvDevelopment,
           typescript: {
+            configFile: paths.appTsConfig,
             typescriptPath: resolve.sync('typescript', {
               basedir: paths.appNodeModules,
             }),
@@ -697,7 +698,7 @@ module.exports = function (webpackEnv) {
                 tsBuildInfoFile: paths.appTsBuildInfoFile,
               },
             },
-            context: paths.appPath,
+            context: path.dirname(paths.appTsConfig),
             diagnosticOptions: {
               syntactic: true,
             },
