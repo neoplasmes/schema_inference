@@ -58,6 +58,12 @@ def mergeTypos(
         parentToFix = typoKey.split("/")[0]
 
         for grammarKey in documentGrammar:
+            check = grammarKey.replace(f"/{typoName}", f"/{referenceName}")
+            if (
+                check not in documentGrammarTemp
+                or grammarKey not in documentGrammarTemp
+            ):
+                continue
             # Пофиксили родителей
             if grammarKey.endswith(f"/{parentToFix}"):
                 documentGrammarTemp[grammarKey].replaceTagInStats(
@@ -88,6 +94,19 @@ def mergeTypos(
                     f"/{typoName}", f"/{referenceName}"
                 )
 
+                currentGrammarKeyParent = fixedGrammarKey.split("/")[0]
+
+                helper = {
+                    k.split("/")[1]: v.split("/")[1] for k, v in typosMetaData.items()
+                }
+
+                if currentGrammarKeyParent in helper:
+                    fixedGrammarKey = (
+                        f"{helper[currentGrammarKeyParent]}/{referenceName}"
+                    )
+
+                print(typoName, referenceName, fixedGrammarKey)
+
                 if fixedGrammarKey not in documentGrammar:
                     raise Exception(
                         f"unprocessable logic during typos merge. attempt to merge {fixedGrammarKey} and {referenceKey}"
@@ -96,7 +115,13 @@ def mergeTypos(
                 # берём из Temp грамматики, чтобы у нас накапливались опечатки в случаях,
                 # когда их больше одной для элемента))
                 trueElement = documentGrammarTemp[fixedGrammarKey]
-                falseElement = documentGrammarTemp[grammarKey]
+
+                falseElKey = grammarKey
+                falseParent = grammarKey.split("/")[0]
+                if grammarKey not in documentGrammarTemp and falseParent in helper:
+                    falseElKey = f"{helper[falseParent]}/{typoName}"
+
+                falseElement = documentGrammarTemp[falseElKey]
 
                 # в функции mergeEG я прописал сохранение опечаток и альтернатив, поэтому всё долнжо быть нормально???
                 trueElement.mergeWith(falseElement).addTypoStat(

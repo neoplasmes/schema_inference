@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import time
+import traceback
 import uuid
 import xml.etree.ElementTree as ET
 from typing import List
@@ -131,14 +132,16 @@ async def websocket_process(websocket: WebSocket, session_id: str):
         )
 
     except Exception as e:
+        stack_trace = "".join(traceback.format_exception(type(e), e, e.__traceback__))
+        print(stack_trace)
+
         await websocket.send_json({"error": str(e)})
     finally:
-        # Удаляем файлы и сессию
         if session_id in sessions:
             session_dir = os.path.join("uploaded_files", session_id)
             if os.path.exists(session_dir):
                 try:
-                    shutil.rmtree(session_dir)  # Удаляем всю папку сессии
+                    shutil.rmtree(session_dir)
                 except Exception as e:
                     print(f"Ошибка при удалении сессии {session_id}: {e}")
             del sessions[session_id]
@@ -153,13 +156,10 @@ async def generate_xsd(request: Request):
         if not isinstance(schema, dict):
             # 422 - unprocessable content
             raise HTTPException(status_code=422, detail="aaaa")
-        # Преобразуем Pydantic модель в словарь
         schema_as_string = json.dumps(schema)
 
-        # Генерируем XSD строку
         xsd_content = buildSchema(schema_as_string)
 
-        # Создаем поток для отправки файла
         xsd_stream = io.StringIO(xsd_content)
         xsd_bytes = xsd_stream.getvalue().encode("utf-8")
 

@@ -35,12 +35,10 @@ def _getCombinedEGSemanticSimilarity(
         return 0.0
 
     nameSimilarity = getPairSimilarity(ctx1.tag, ctx2.tag)
-    parentSimilarity = getPairSimilarity(ctx1.parent, ctx2.parent)
+    # parentSimilarity = getPairSimilarity(ctx1.parent, ctx2.parent)
     # print(parentSimilarity, ctx1.parent, ctx2.parent)
-    if parentSimilarity < 0.7:
-        return 0
     # Оба имени простые. true and true = true
-    if eg1.isSimple and eg2.isSimple:
+    if eg1.isSimple and eg2.isSimple or ctx1.parent != ctx2.parent:
         return 0.0
 
         # if clearCtx1.parent == clearCtx2.parent:
@@ -119,6 +117,11 @@ def mergeSemantics(
 
         # Итерируемся по оригинальному объекту, меняем temp
         for grammarKey in documentGrammar:
+            # check = grammarKey.replace(f"/{alternativeName}", f"/{referenceName}")
+
+            # if check not in documentGrammar:
+            #     continue
+
             if grammarKey.endswith(f"/{parentToFix}"):
                 # БАГ
                 if grammarKey in documentGrammarTemp:
@@ -148,6 +151,8 @@ def mergeSemantics(
                 fixedGrammarKey = grammarKey.replace(
                     f"/{alternativeName}", f"/{referenceName}"
                 )
+
+                print(semanticsMetaData)
 
                 if fixedGrammarKey not in documentGrammar:
                     raise Exception(

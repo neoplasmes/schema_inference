@@ -8,3 +8,5 @@ cornerCases
 uploaded_files
 brown_differing_nouns.*
 similarity_dataset.csv
+
+temp_schema.xsd

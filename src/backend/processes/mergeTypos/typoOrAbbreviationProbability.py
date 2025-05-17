@@ -85,9 +85,7 @@ def _computeAbbreviationProbability(word1: str, word2: str) -> Tuple[float, bool
     # Плотность с учётом составных слов
     if valid_positions:
         span = max(valid_positions) - min(valid_positions) + 1
-        density = min(
-            1.0, found / span * len(long_parts)
-        )  # Учитываем количество частей
+        density = min(1.0, found / span * len(long_parts))
     else:
         density = 0.0
 
@@ -148,7 +146,7 @@ def getAbbreviationOrTypoProbability(
         return 0.0
     # Вероятность сокращения
     abbr_prob, foundInWordnet = _computeAbbreviationProbability(ctx1.tag, ctx2.tag)
-    # Вероятность опечатки (нормируем WRatio до 0-1)
+    # Иная вероятность опечатки (нормируем WRatio до 0-1)
     typo_prob = fuzz.WRatio(ctx1.tag, ctx2.tag) / 100.0
 
     if foundInWordnet:

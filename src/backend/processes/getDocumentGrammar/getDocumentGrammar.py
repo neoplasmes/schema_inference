@@ -50,6 +50,13 @@ def getDocumentGrammar(root: Element) -> Dict[str, ElementGrammarInterface]:
         result[currentNodeKey].addXSDTypeStat(nodeXSDType, 1)
 
         for attribute, value in currentNode.attrib.items():
+            if (
+                "xsi" in attribute
+                or "noNamespaceSchemaLocation" in attribute
+                or "xmlns" in attribute
+            ):
+                continue
+
             attrType = inferXSDType(value)
 
             result[currentNodeKey].insertAttribute(attribute, attrType)

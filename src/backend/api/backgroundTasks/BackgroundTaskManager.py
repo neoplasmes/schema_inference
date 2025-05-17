@@ -30,7 +30,7 @@ class BackgroundTaskManager:
         return scheduledTask
 
     async def gatherTasks(self):
-        """Ожидает завершения всех активных задач."""
+        """Ожидаем завершения всех активных задач."""
         if self.tasks:
             print("Waiting for background tasks to complete...")
             # await asyncio.gather(

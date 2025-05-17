@@ -13,7 +13,7 @@ async def lifespan(app: FastAPI):
     """
     print("Application starting...")
     yield
-    await globalBackgroundTaskManager.gatherTasks()  # Ожидаем завершения всех задач
+    await globalBackgroundTaskManager.gatherTasks()
     print("Application shutting down.")
 
 
@@ -21,10 +21,10 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Allows all origins
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(schemaRouter)

@@ -14,10 +14,21 @@ from backend.processes import (
 def documentGrammarPipeline(trees: List[ElementTree]) -> str:
     completedInitialGrammar: Dict[str, ElementGrammarInterface] = {}
 
+    firstIteration = True
+    rootName = None
+
     for tree in trees:
         root = tree.getroot()
         if root is None:
             continue
+
+        if firstIteration or (rootName is None):
+            rootName = root.tag.lower()
+        elif root.tag.lower() != rootName:
+            completedInitialGrammar[f"begin-c/{rootName}-c"].addSemanticStat(
+                root.tag, 1
+            )
+            root.tag = rootName
 
         documentGrammar = getDocumentGrammar(root)
 
@@ -26,6 +37,8 @@ def documentGrammarPipeline(trees: List[ElementTree]) -> str:
                 completedInitialGrammar[key] = grammar
             else:
                 completedInitialGrammar[key].mergeWith(grammar)
+
+        firstIteration = False
 
     mergedTyposGrammar = mergeTypos(completedInitialGrammar)
     print("ок с опечатками")
