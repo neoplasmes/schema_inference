@@ -121,6 +121,12 @@ function getModules() {
   config = config || {};
   const options = config.compilerOptions || {};
 
+  // Resolve baseUrl relative to its config, which can live outside the app.
+  if (options.baseUrl) {
+    const configPath = hasTsConfig ? paths.appTsConfig : paths.appJsConfig;
+    options.baseUrl = path.resolve(path.dirname(configPath), options.baseUrl);
+  }
+
   const additionalModulePaths = getAdditionalModulePaths(options);
 
   return {
