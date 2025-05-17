@@ -98,12 +98,7 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
                                         onChange={onAttributeChoose}
                                         value={attr.name}
                                     />
-                                    <label
-                                        className="name"
-                                        htmlFor={`checkbox-${attr.name}`}
-                                    >
-                                        {attr.name}
-                                    </label>
+                                    <span className="name">{attr.name}</span>
                                 </div>
                                 <span className={block('type')}>{attr.XSDTypes}</span>
                                 <span className="probability">{(attr.probability * 100).toFixed(0) + '%'}</span>

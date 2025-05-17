@@ -29,6 +29,8 @@ export const WelcomePage = () => {
     const [files, setFiles] = useState<FileList | null>(null);
     const websocketRef = useRef<WebSocket | null>(null);
 
+    const startTime = useRef<number>(0);
+
     const { initialize: initializeWorkingSchema } = useWorkingSchemaContext();
     const navigate = useNavigate();
 
@@ -49,6 +51,7 @@ export const WelcomePage = () => {
                 formData.append('files', file);
             });
 
+            startTime.current = Date.now();
             try {
                 const response = await fetch('http://localhost:8000/schema/uploadfiles/', {
                     method: 'POST',
@@ -103,7 +106,7 @@ export const WelcomePage = () => {
                         throw new Error('Message has not been provided on completed state');
                     }
 
-                    // console.log(data.message);
+                    console.log((Date.now() - startTime.current) / 1000);
 
                     const jsonSchemaData: Record<string, SchemaDataEntry> = JSON.parse(data.message);
                     initializeWorkingSchema(jsonSchemaData);

@@ -20,7 +20,7 @@ const getNameFromExpressionNodeValue = (expr: ExpressionNode): string => {
     }
 
     if (!expressionNodeValueRegexp.test(expr.value)) {
-        new Error(`Unacceptable node value ${expr.value}`);
+        throw new Error(`Unacceptable node value ${expr.value}`);
     }
 
     return expr.value.split('/')[1].split('-')[0];
@@ -65,18 +65,22 @@ export const createVirtualModelFromSchemaData = <K extends SchemaDataEntryBase>(
                 current.schemaNodeParent.getInternalData().type == ExpressionNodeType.LEAF
             )
         ) {
-            const currentSchemaDataTransfer: SchemaNodeModel = assignObjectSkippingProperties(
-                {
-                    chosen: false,
-                    chosenAttributes: [],
-                    chosenType: XSDType.PARENT,
-                    name: getNameFromExpressionNodeValue(current.exprNode),
-                },
-                current.exprNode,
-                ['children']
-            );
+            try {
+                const currentSchemaDataTransfer: SchemaNodeModel = assignObjectSkippingProperties(
+                    {
+                        chosen: false,
+                        chosenAttributes: [],
+                        chosenType: XSDType.PARENT,
+                        name: getNameFromExpressionNodeValue(current.exprNode),
+                    },
+                    current.exprNode,
+                    ['children']
+                );
 
-            addedNode = schemaModel.addNode(current.schemaNodeParent.id, currentSchemaDataTransfer);
+                addedNode = schemaModel.addNode(current.schemaNodeParent.id, currentSchemaDataTransfer);
+            } catch (e) {
+                continue;
+            }
         }
 
         if (current.exprNode.children) {

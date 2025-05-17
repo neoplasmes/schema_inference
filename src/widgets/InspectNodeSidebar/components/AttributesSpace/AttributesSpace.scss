@@ -10,15 +10,17 @@ $prop-width: 30%;
         input {
             accent-color: #333;
         }
-    }
 
-    .name {
-        display: inline-block;
+        .name {
+            display: inline-block;
 
-        padding-left: 4px;
-        font-weight: 500;
+            padding-left: 4px;
+            font-weight: 500;
 
-        text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     &__type {

@@ -10,13 +10,15 @@ import { ExpressionNode, ExpressionNodeType, SchemaDataEntryBase } from '@model/
 export const createGlobalExpressionFromSchemaData = <K extends SchemaDataEntryBase>(
     schemaData: Readonly<Record<string, K>>
 ) => {
-    // Данные копируются потому, что мы берём изначальный объект и тупо его и модифицируем. А schemaData нам очень важна
+    // Данные копируются потому что потому
     const datacopy: Record<string, K> = JSON.parse(JSON.stringify(schemaData));
+    console.log(schemaData);
 
     const aaa = (node: ExpressionNode, parent: string) => {
+        let newParent = parent;
+
         if (node.type === ExpressionNodeType.LEAF) {
             const nodeKey = `${parent}/${node.value}`;
-            // console.log(nodeKey);
             if (!datacopy[nodeKey]) {
                 return;
             }
@@ -24,24 +26,38 @@ export const createGlobalExpressionFromSchemaData = <K extends SchemaDataEntryBa
             if (Object.keys(datacopy[nodeKey].expression).length > 0) {
                 node.children.push(datacopy[nodeKey].expression);
             }
-            parent = node.value;
+            newParent = node.value;
             node.value = nodeKey;
         }
 
         if (node.children) {
             for (const child of node.children) {
-                aaa(child, parent);
+                aaa(child, newParent);
             }
         }
+
+        console.log(node.value);
     };
 
-    const startPoint = datacopy['begin-c/root-c'];
-    if (!startPoint) {
+    let startPoint;
+    let startPointName;
+    for (const key in datacopy) {
+        if (key.startsWith('begin-c/')) {
+            if (startPoint && startPointName) {
+                throw new Error('second root occurred');
+            }
+
+            startPoint = datacopy[key];
+            startPointName = key;
+        }
+    }
+
+    if (!startPoint || !startPointName) {
         throw new Error('invalid schema data');
     }
 
     for (const child of [startPoint.expression]) {
-        aaa(child, 'root-c');
+        aaa(child, startPointName?.split('/')[1]);
     }
 
     const normalizedRoot: ExpressionNode = {
@@ -49,7 +65,7 @@ export const createGlobalExpressionFromSchemaData = <K extends SchemaDataEntryBa
         minOccurs: 1,
         maxOccurs: 1,
         probability: 1,
-        value: 'begin-c/root-c',
+        value: startPointName,
         children: [startPoint.expression],
     };
 
