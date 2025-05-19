@@ -1,0 +1,9 @@
+projects:
+  client: apps/client
+  server: apps/server
+
+versionConstraint: '1.35.4'
+
+vcs:
+  manager: git
+  defaultBranch: master

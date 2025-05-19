@@ -1,0 +1,21 @@
+proto = "0.48.1"
+moon = "1.35.4"
+python = "3.12.10"
+uv = "0.7.2"
+node = "22.15.0"
+npm = "11.3.0"
+
+[env]
+UV_PYTHON = "3.12.10"
+
+[settings]
+auto-install = false
+
+[plugins]
+proto = "https://github.com/moonrepo/plugins/releases/download/proto_tool-v0.5.3/proto_tool.wasm"
+moon = "https://github.com/moonrepo/plugins/releases/download/moon_tool-v0.3.1/moon_tool.wasm"
+node = "https://github.com/moonrepo/plugins/releases/download/node_tool-v0.16.2/node_tool.wasm"
+npm = "https://github.com/moonrepo/plugins/releases/download/node_depman_tool-v0.15.1/node_depman_tool.wasm"
+uv = "https://github.com/moonrepo/plugins/releases/download/python_uv_tool-v0.2.1/python_uv_tool.wasm"
+python = "source:./.moon/plugins/python.toml"
+internal-schema = "https://github.com/moonrepo/plugins/releases/download/schema_tool-v0.17.2/schema_tool.wasm"

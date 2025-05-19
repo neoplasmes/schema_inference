@@ -1,0 +1,19 @@
+language: python
+type: application
+
+tasks:
+  dev:
+    command: uv run --no-sync uvicorn api.app:app --reload --host 127.0.0.1 --port 8000
+    local: true
+    options:
+      persistent: true
+
+  start:
+    command: uv run --no-sync start
+    local: true
+    options:
+      persistent: true
+
+  download-wordnet:
+    command: uv run --no-sync python -m nltk.downloader -d nltk_data wordnet
+    local: true

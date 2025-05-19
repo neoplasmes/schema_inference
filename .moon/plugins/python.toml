@@ -1,0 +1,40 @@
+name = "Python"
+type = "language"
+
+[platform.linux]
+archs = ["x86_64", "aarch64"]
+archive-prefix = "python"
+download-file = "cpython-{version}+20250409-{arch}-unknown-linux-{libc}-install_only.tar.gz"
+checksum-file = "cpython-{version}+20250409-{arch}-unknown-linux-{libc}-install_only.tar.gz.sha256"
+exe-path = "bin/python3"
+exes-dirs = ["bin"]
+
+[platform.macos]
+archs = ["x86_64", "aarch64"]
+archive-prefix = "python"
+download-file = "cpython-{version}+20250409-{arch}-apple-darwin-install_only.tar.gz"
+checksum-file = "cpython-{version}+20250409-{arch}-apple-darwin-install_only.tar.gz.sha256"
+exe-path = "bin/python3"
+exes-dirs = ["bin"]
+
+[platform.windows]
+archs = ["x86", "x86_64"]
+archive-prefix = "python"
+download-file = "cpython-{version}+20250409-{arch}-pc-windows-msvc-install_only.tar.gz"
+checksum-file = "cpython-{version}+20250409-{arch}-pc-windows-msvc-install_only.tar.gz.sha256"
+exe-path = "python.exe"
+exes-dirs = ["Scripts"]
+
+[install]
+download-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20250409/{download_file}"
+checksum-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20250409/{checksum_file}"
+
+[install.arch]
+x86 = "i686"
+
+[install.exes.pip]
+no-bin = true
+shim-before-args = ["-m", "pip"]
+
+[resolve]
+versions = ["3.12.10"]
