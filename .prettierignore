@@ -1,2 +1,7 @@
 node_modules/
 apps/client/config/
+.moon/cache/
+**/.venv/
+**/dist/
+**/build/
+**/nltk_data/

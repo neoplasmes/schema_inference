@@ -1,0 +1,37 @@
+# XML schema workspace
+
+Монорепозиторий редактора вероятностного пространства XML-схем: React-клиент в `apps/client` и Python API в `apps/server`.
+
+Инструменты закреплены в `.prototools` по состоянию на 1 мая 2025 года включительно. Для Node.js выбрана ветка LTS 22, для Python — 3.12.
+
+| Инструмент | Версия | Дата публикации |
+| --- | --- | --- |
+| proto | [0.48.1](https://github.com/moonrepo/proto/releases/tag/v0.48.1) | 30.04.2025 |
+| moon | [1.35.4](https://github.com/moonrepo/moon/releases/tag/v1.35.4) | 01.05.2025 |
+| Python | [3.12.10](https://www.python.org/downloads/release/python-31210/) | 08.04.2025 |
+| uv | [0.7.2](https://github.com/astral-sh/uv/releases/tag/0.7.2) | 30.04.2025 |
+| Node.js | [22.15.0 LTS](https://nodejs.org/en/blog/release/v22.15.0) | 23.04.2025 |
+| npm | [11.3.0](https://github.com/npm/cli/releases/tag/v11.3.0) | 08.04.2025 |
+
+Установка инструментов из корня репозитория:
+
+```bash
+proto install proto 0.48.1
+~/.proto/tools/proto/0.48.1/proto use
+eval "$(~/.proto/tools/proto/0.48.1/proto activate bash --export)"
+```
+
+В WSL каталоги `$HOME/.proto/shims` и `$HOME/.proto/bin` должны присутствовать в `PATH`. Активация применяет версии и переменные `.prototools` к текущему Bash, включая закреплённый proto. Для переключения при переходе между проектами можно добавить `eval "$(proto activate bash --on-init)"` в `~/.bashrc`. Если proto ошибочно сообщает об отсутствии сети при рабочем подключении, установку можно повторить с `PROTO_OFFLINE=false proto use`.
+
+Команды из корня репозитория:
+
+```bash
+moon run server:dev
+moon run client:dev
+```
+
+Moon устанавливает зависимости при первом запуске соответствующей задачи. Бэкенд использует uv и отдельное окружение `apps/server/.venv`. Python устанавливает proto; загрузка другого интерпретатора через uv отключена. `UV_PYTHON` в `.prototools` должен совпадать с закреплённой версией Python.
+
+Дата разрешения Python-зависимостей ограничена через `tool.uv.exclude-newer` в `apps/server/pyproject.toml`; npm использует аналогичное ограничение `before` в `apps/client/.npmrc`. При разрешении зависимостей выбираются публикации не позднее `2025-05-01T23:59:59Z`. Созданный uv lockfile следует сохранять в репозитории.
+
+Версии плагинов закреплены в `.prototools`. Локальный TOML-плагин `.moon/plugins/python.toml` устанавливает Python 3.12.10 из [сборки python-build-standalone от 9 апреля 2025 года](https://github.com/astral-sh/python-build-standalone/releases/tag/20250409) и использует соответствующий файл SHA-256. Адреса не зависят от обновляемого реестра сборок. Плагин рассчитан на Linux/WSL и macOS (x64/ARM64), а также Windows (x86/x64); наличие архива зависит от платформы и libc. При обновлении Python нужно согласованно изменить версию, дату сборки и список `resolve.versions` в плагине.

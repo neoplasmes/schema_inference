@@ -5,6 +5,17 @@ node_modules/
 # Python dependencies and cache
 __pycache__/
 poetry.lock
+.venv/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.uv-cache/
+dist/
+build/
+.moon/cache/
+nltk_data/
 
 # Backend models and generated data
 apps/server/**/fineTuning

@@ -1,0 +1,9 @@
+language: typescript
+type: application
+
+tasks:
+  dev:
+    command: npm run start
+    local: true
+    options:
+      persistent: true

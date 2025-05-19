@@ -1,0 +1,10 @@
+node:
+  packageManager: npm
+
+python:
+  packageManager: uv
+  rootVenvOnly: false
+  venvName: .venv
+  uv:
+    syncArgs:
+      - --no-python-downloads
