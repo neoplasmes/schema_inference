@@ -1,0 +1,2 @@
+class UploadDocumentsError(ValueError):
+    pass

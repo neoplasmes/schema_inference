@@ -53,7 +53,7 @@ export const WelcomePage = () => {
 
             startTime.current = Date.now();
             try {
-                const response = await fetch('http://localhost:8000/schema/uploadfiles/', {
+                const response = await fetch('http://localhost:8000/schema/sessions', {
                     method: 'POST',
                     body: formData,
                     // Нет необходимости явно указывать 'Content-Type': 'multipart/form-data',
@@ -82,7 +82,7 @@ export const WelcomePage = () => {
             return;
         }
 
-        websocketRef.current = new WebSocket(`ws://localhost:8000/schema/ws/process/${session_id}`);
+        websocketRef.current = new WebSocket(`ws://localhost:8000/schema/sessions/${session_id}/events`);
         const websocket = websocketRef.current;
 
         websocket.onopen = () => {

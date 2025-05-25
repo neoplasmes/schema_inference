@@ -25,7 +25,7 @@ export const EditPage = () => {
         const result = finalSchema.toJson();
 
         try {
-            const response = await fetch('http://localhost:8000/schema/generatexsd/', {
+            const response = await fetch('http://localhost:8000/schema/xsd', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
