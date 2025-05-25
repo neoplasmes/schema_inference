@@ -35,3 +35,5 @@ Moon устанавливает зависимости при первом за�
 Дата разрешения Python-зависимостей ограничена через `tool.uv.exclude-newer` в `apps/server/pyproject.toml`; npm использует аналогичное ограничение `before` в `apps/client/.npmrc`. При разрешении зависимостей выбираются публикации не позднее `2025-05-01T23:59:59Z`. Созданный uv lockfile следует сохранять в репозитории.
 
 Версии плагинов закреплены в `.prototools`. Локальный TOML-плагин `.moon/plugins/python.toml` устанавливает Python 3.12.10 из [сборки python-build-standalone от 9 апреля 2025 года](https://github.com/astral-sh/python-build-standalone/releases/tag/20250409) и использует соответствующий файл SHA-256. Адреса не зависят от обновляемого реестра сборок. Плагин рассчитан на Linux/WSL и macOS (x64/ARM64), а также Windows (x86/x64); наличие архива зависит от платформы и libc. При обновлении Python нужно согласованно изменить версию, дату сборки и список `resolve.versions` в плагине.
+
+Архитектурный контракт бэкенда находится в [ARCHITECTURE.md](ARCHITECTURE.md).

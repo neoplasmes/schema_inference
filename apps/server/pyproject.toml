@@ -13,6 +13,7 @@ dependencies = [
     "rapidfuzz (>=3.13.0,<4.0.0)",
     "nltk (>=3.9.1,<4.0.0)",
     "fastapi (>=0.115.12,<0.116.0)",
+    "pydantic (>=2.0,<3.0)",
     "uvicorn[standard] (>=0.34.2,<0.35.0)",
     "python-multipart (>=0.0.20,<0.0.21)",
     "websockets (>=15.0.1,<16.0.0)",
@@ -28,14 +29,18 @@ legacy-ml = [
 ]
 
 [project.scripts]
-start = "api.app:start"
+start = "main:start"
+infer-schema = "main:infer_schema_cli"
+generate-schema = "main:generate_schema_cli"
 
 [tool.poetry]
 packages = [
-    { include = "domain", from = "src" },
-    { include = "application", from = "src" },
-    { include = "infrastructure", from = "src" },
+    { include = "core", from = "src" },
+    { include = "app", from = "src" },
+    { include = "env", from = "src" },
     { include = "api", from = "src" },
+    { include = "shared", from = "src" },
+    { include = "main.py", from = "src" },
 ]
 
 [tool.uv]

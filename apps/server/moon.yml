@@ -3,7 +3,7 @@ type: application
 
 tasks:
   dev:
-    command: uv run --no-sync uvicorn api.app:app --reload --host 127.0.0.1 --port 8000
+    command: uv run --no-sync uvicorn main:create_app --factory --reload --host 127.0.0.1 --port 8000
     local: true
     options:
       persistent: true
