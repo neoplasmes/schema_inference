@@ -16,18 +16,21 @@ class XSDBuilder:
             },
         )
 
-        self._process_node(root, schema)
+        self._process_node(root, schema, is_root=True)
         return schema
 
-    def _process_node(self, node: SchemaNode, parent: XmlNode) -> None:
-        element = parent.add_child(
-            "xs:element",
-            {
-                "name": node.name,
-                "minOccurs": str(node.minOccurs),
-                "maxOccurs": "unbounded" if node.maxOccurs > 1 else str(node.maxOccurs),
-            },
-        )
+    def _process_node(
+        self, node: SchemaNode, parent: XmlNode, *, is_root: bool = False
+    ) -> None:
+        attributes = {"name": node.name}
+        if not is_root:
+            attributes.update(
+                {
+                    "minOccurs": str(node.minOccurs),
+                    "maxOccurs": str(node.maxOccurs),
+                }
+            )
+        element = parent.add_child("xs:element", attributes)
 
         if node.chosenType == "parent":
             complex_type = element.add_child("xs:complexType")

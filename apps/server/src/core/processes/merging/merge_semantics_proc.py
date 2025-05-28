@@ -20,20 +20,17 @@ def _getCombinedEGSemanticSimilarity(
         return 0.0
 
     if eg1.isSimple != eg2.isSimple:
-
         return 0.0
 
     nameSimilarity = compare_words(ctx1.tag, ctx2.tag)
     if eg1.isSimple and eg2.isSimple or ctx1.parent != ctx2.parent:
         return 0.0
 
-
     contextSimilarity = compare_word_lists(
         [*ctx1.children, ctx1.parent], [*ctx2.children, ctx2.parent]
     )
 
     result = nameSimilarity * NAME_WEIGHT + contextSimilarity * (1 - NAME_WEIGHT)
-
 
     return result
 
@@ -49,7 +46,9 @@ def _getSemanticsMetaData(
         if len(cluster) < 1:
             continue
 
-        referenceEGName = getReferenceEGNameByOccurencies(cluster, documentGrammar, contains_word)
+        referenceEGName = getReferenceEGNameByOccurencies(
+            cluster, documentGrammar, contains_word
+        )
 
         for key in cluster:
             if key == referenceEGName:
@@ -77,7 +76,9 @@ def mergeSemantics(
         ),
         0.75,
     )
-    semanticsMetaData = _getSemanticsMetaData(semanticsClusters, documentGrammar, contains_word)
+    semanticsMetaData = _getSemanticsMetaData(
+        semanticsClusters, documentGrammar, contains_word
+    )
 
     for alternativeKey, referenceKey in semanticsMetaData.items():
         if (alternativeKey not in documentGrammar) or (
@@ -91,8 +92,6 @@ def mergeSemantics(
         parentToFix = alternativeKey.split("/")[0]
 
         for grammarKey in documentGrammar:
-
-
             if grammarKey.endswith(f"/{parentToFix}"):
                 if grammarKey in documentGrammarTemp:
                     documentGrammarTemp[grammarKey].replaceTagInStats(

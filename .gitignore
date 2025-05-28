@@ -12,9 +12,18 @@ poetry.lock
 .mypy_cache/
 .ruff_cache/
 .uv-cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.pytype/
+test-results/
 dist/
 build/
 .moon/cache/
+/.proto/
 nltk_data/
 
 # Backend models and generated data

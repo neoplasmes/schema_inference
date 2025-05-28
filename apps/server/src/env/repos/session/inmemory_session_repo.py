@@ -1,7 +1,7 @@
 from threading import RLock
 
-from core.entities.session import Session
 from app.ports.repos.session_repo import SessionRepository
+from core.entities.session import Session
 
 
 class InMemorySessionRepository(SessionRepository):

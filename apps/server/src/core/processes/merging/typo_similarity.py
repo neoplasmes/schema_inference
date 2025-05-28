@@ -24,7 +24,6 @@ def _computeAbbreviationProbability(
     elif short[0] == long[0] and len(short) == 1:
         return 0.2, foundInWordNet
 
-
     long_parts = []
     current_part = ""
     for char in long:
@@ -68,7 +67,6 @@ def _computeAbbreviationProbability(
     else:
         density = 0.0
 
-
     vowels = set("aeiouy")
     short_consonants = sum(1 for c in short if c not in vowels)
     long_consonants = sum(1 for c in long if c not in vowels)
@@ -85,21 +83,20 @@ def _computeAbbreviationProbability(
     return max(0.0, min(1.0, probability)), foundInWordNet
 
 
-
 def getAbbreviationOrTypoProbability(
     ctx1: ClearEGContext,
     ctx2: ClearEGContext,
     relatedness: Callable[[str, str], float],
     compare_text: Callable[[str, str], float],
 ) -> float:
-
     if ctx1.tag == ctx2.tag or ctx1.parent != ctx2.parent:
         return 0.0
-    abbr_prob, foundInWordnet = _computeAbbreviationProbability(ctx1.tag, ctx2.tag, relatedness)
+    abbr_prob, foundInWordnet = _computeAbbreviationProbability(
+        ctx1.tag, ctx2.tag, relatedness
+    )
     typo_prob = compare_text(ctx1.tag, ctx2.tag)
 
     if foundInWordnet:
         return abbr_prob
 
     return typo_prob if abbr_prob <= 0.7 else abbr_prob
-

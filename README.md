@@ -16,12 +16,13 @@
 Установка инструментов из корня репозитория:
 
 ```bash
+export PROTO_HOME="$PWD/.proto"
 proto install proto 0.48.1
-~/.proto/tools/proto/0.48.1/proto use
-eval "$(~/.proto/tools/proto/0.48.1/proto activate bash --export)"
+"$PROTO_HOME/tools/proto/0.48.1/proto" use
+eval "$("$PROTO_HOME/tools/proto/0.48.1/proto" activate bash --export)"
 ```
 
-В WSL каталоги `$HOME/.proto/shims` и `$HOME/.proto/bin` должны присутствовать в `PATH`. Активация применяет версии и переменные `.prototools` к текущему Bash, включая закреплённый proto. Для переключения при переходе между проектами можно добавить `eval "$(proto activate bash --on-init)"` в `~/.bashrc`. Если proto ошибочно сообщает об отсутствии сети при рабочем подключении, установку можно повторить с `PROTO_OFFLINE=false proto use`.
+Каталог `.proto` изолирует исторические инструменты и их метаданные от современных глобальных установок. Выполняйте настройку из корня репозитория; в новом терминале повторите `export PROTO_HOME="$PWD/.proto"` и команду активации. Если proto ошибочно сообщает об отсутствии сети при рабочем подключении, повторите установку с `PROTO_OFFLINE=false`.
 
 Команды из корня репозитория:
 
@@ -35,5 +36,7 @@ Moon устанавливает зависимости при первом за�
 Дата разрешения Python-зависимостей ограничена через `tool.uv.exclude-newer` в `apps/server/pyproject.toml`; npm использует аналогичное ограничение `before` в `apps/client/.npmrc`. При разрешении зависимостей выбираются публикации не позднее `2025-05-01T23:59:59Z`. Созданный uv lockfile следует сохранять в репозитории.
 
 Версии плагинов закреплены в `.prototools`. Локальный TOML-плагин `.moon/plugins/python.toml` устанавливает Python 3.12.10 из [сборки python-build-standalone от 9 апреля 2025 года](https://github.com/astral-sh/python-build-standalone/releases/tag/20250409) и использует соответствующий файл SHA-256. Адреса не зависят от обновляемого реестра сборок. Плагин рассчитан на Linux/WSL и macOS (x64/ARM64), а также Windows (x86/x64); наличие архива зависит от платформы и libc. При обновлении Python нужно согласованно изменить версию, дату сборки и список `resolve.versions` в плагине.
+
+moon 1.35.4 запускает shims через собственный proto 0.47.11, поэтому Node-плагин закреплён на совместимой версии 0.16.1. Для Python в `.moon/toolchain.yml` указан WASM-плагин 0.14.1: эта версия moon не читает TOML-плагины. Сначала выполняйте `proto use`, чтобы moon использовал уже установленную историческую сборку Python.
 
 Архитектурный контракт бэкенда находится в [ARCHITECTURE.md](ARCHITECTURE.md).

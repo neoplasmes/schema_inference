@@ -5,3 +5,4 @@ apps/client/config/
 **/dist/
 **/build/
 **/nltk_data/
+.proto/

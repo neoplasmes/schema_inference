@@ -12,7 +12,9 @@ T = TypeVar("T")
 class ScipyGrammarClusterer(ClusteringTool):
     def cluster(
         self,
-        inputDict: Dict[str, T], compareFn: Callable[[T, T], float], threshold: float = 0.8
+        inputDict: Dict[str, T],
+        compareFn: Callable[[T, T], float],
+        threshold: float = 0.8,
     ) -> Dict[int, List[str]]:
         """
         Функция для кластеризации некоего словаря с помощью попарного сравнения элементов через CompareFn.
@@ -22,6 +24,9 @@ class ScipyGrammarClusterer(ClusteringTool):
 
         keys = list(inputDict.keys())
         matrixSize = len(keys)
+
+        if matrixSize < 2:
+            return {1: keys} if keys else {}
 
         matrix = np.zeros((matrixSize, matrixSize))
         for i in range(0, matrixSize):
@@ -40,8 +45,8 @@ class ScipyGrammarClusterer(ClusteringTool):
         labels = fcluster(Z, t=1 - threshold, criterion="distance")
 
         clusters: Dict[int, List[str]] = {}
-        for key, label in zip(keys, labels):
-            if not label in clusters:
+        for key, label in zip(keys, labels, strict=True):
+            if label not in clusters:
                 clusters[label] = []
 
             clusters[label].append(key)

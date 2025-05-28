@@ -48,7 +48,6 @@ def expressionNodeIsValid(node: ExpressionNode) -> bool:
         return False
 
 
-
 def generateExpression(
     data: Dict[str, ProductionRule],
     tagsToExclude: Set[str],
@@ -158,7 +157,7 @@ def getNormalizedAttributes(grammar: ElementGrammarInterface) -> Dict:
 
     totalOccurencies = grammar.occurencies
 
-    for key, attributeGrammar in grammar.attributes.items():
+    for attributeGrammar in grammar.attributes.values():
         name = attributeGrammar.name
         attrProbability = attributeGrammar.occurencies / totalOccurencies
 

@@ -68,6 +68,7 @@ class ProcessDocuments:
                     continue
                 yield ProcessingProgress(index, len(session.filenames))
 
-            yield ProcessingCompleted(self._infer_schema.execute(roots))
+            if roots:
+                yield ProcessingCompleted(self._infer_schema.execute(roots))
         finally:
             self._cleanup_session.execute(session_id)

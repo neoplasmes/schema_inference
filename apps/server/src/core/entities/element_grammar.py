@@ -8,11 +8,11 @@ from core.entities import (
     ElementGrammarInterface,
     ProductionRule,
 )
+from core.entities.grammar_contract import ClearEGContext
 from core.entities.grammar_data import (
     EG_CHILD_SEPARATOR,
     AttributeGrammar,
 )
-from core.entities.grammar_contract import ClearEGContext
 from core.entities.xsd_type import XSDType
 
 
@@ -148,7 +148,7 @@ class ElementGrammar(ElementGrammarInterface):
 
     def addXSDTypeStat(self, XSDType: XSDType, occurencies: int) -> None:
         self._data.XSDTypes[XSDType.value] = (
-            self._data.XSDTypes.get(XSDType.value, 0) + 1
+            self._data.XSDTypes.get(XSDType.value, 0) + occurencies
         )
 
     def addTypoStat(self, typoName: str, occurencies: int) -> None:
