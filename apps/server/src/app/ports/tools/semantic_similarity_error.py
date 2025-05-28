@@ -1,2 +1,0 @@
-class SemanticSimilarityError(RuntimeError):
-    pass

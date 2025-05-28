@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from core.entities.schema_node import SchemaNode
 from app.ports.tools.schema_writer_tool import SchemaWriter
+from core.entities.schema_node import SchemaNode
 from core.processes.build_xsd_proc import build_xsd
 
 

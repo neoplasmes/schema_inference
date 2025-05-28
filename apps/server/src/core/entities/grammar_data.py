@@ -18,12 +18,12 @@ class ProductionRule:
     def content(self):
         return MappingProxyType(self._content)
 
-    def __init__(self, name: str, ruleValue: List[str] = []):
+    def __init__(self, name: str, ruleValue: List[str] | None = None):
         self.name = name
         self.occurencies = 1
         self._content = dict()
 
-        for element in ruleValue:
+        for element in ruleValue or []:
             if element in self.content:
                 self._content[element] += 1
             else:

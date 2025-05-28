@@ -2,6 +2,33 @@ language: python
 type: application
 
 tasks:
+  lint:
+    command: uv run --no-sync ruff check src tests
+
+  fmt:
+    command: uv run --no-sync ruff format src tests
+    options:
+      cache: false
+      runInCI: false
+
+  typecheck:
+    command: uv run --no-sync pyright
+
+  test:
+    command: uv run --no-sync pytest
+
+  build:
+    command: uv build
+    outputs:
+      - dist
+
+  ci:
+    deps:
+      - ~:lint
+      - ~:typecheck
+      - ~:test
+      - ~:build
+
   dev:
     command: uv run --no-sync uvicorn main:create_app --factory --reload --host 127.0.0.1 --port 8000
     local: true

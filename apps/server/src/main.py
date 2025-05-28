@@ -10,7 +10,7 @@ from app.use_cases.generate_schema_case import GenerateSchema
 from app.use_cases.infer_schema_case import InferSchema
 from app.use_cases.process_documents_case import ProcessDocuments
 from app.use_cases.upload_documents_case import UploadDocuments
-from env.config.settings import SERVER_ROOT, Settings
+from env.config.settings import Settings
 from env.repos.session.inmemory_session_repo import InMemorySessionRepository
 from env.tools.clustering.scipy_clustering_tool import ScipyGrammarClusterer
 from env.tools.document_storage.filesystem_document_storage_tool import (
@@ -18,10 +18,8 @@ from env.tools.document_storage.filesystem_document_storage_tool import (
 )
 from env.tools.lexicon.wordnet_lexicon_tool import WordNetLexicon
 from env.tools.schema.element_tree_schema_writer_tool import ElementTreeSchemaWriterTool
+from env.tools.similarity.noop_semantic_similarity_tool import NoopSemanticSimilarity
 from env.tools.similarity.rapidfuzz_text_similarity_tool import RapidFuzzSimilarity
-from env.tools.similarity.sentence_transformer_semantic_similarity_tool import (
-    SentenceTransformerSimilarity,
-)
 from env.tools.xml.element_tree_xml_document_tool import ElementTreeXmlDocumentTool
 
 
@@ -29,7 +27,7 @@ def build_infer_schema(settings: Settings) -> InferSchema:
     return InferSchema(
         lexicon=WordNetLexicon(data_path=settings.wordnet_root),
         text_similarity=RapidFuzzSimilarity(),
-        semantic_similarity=SentenceTransformerSimilarity(settings.semantic_model_root),
+        semantic_similarity=NoopSemanticSimilarity(),
         clusterer=ScipyGrammarClusterer(),
     )
 
@@ -67,9 +65,12 @@ def create_app(
     )
     cleanup = CleanupSession(sessions, documents)
     cleanup_job = SessionCleanupJob(cleanup, configuration.cleanup_delay)
+
     return create_http_server(
         upload_documents=UploadDocuments(sessions, documents),
-        process_documents=ProcessDocuments(sessions, documents, reader, inference, cleanup),
+        process_documents=ProcessDocuments(
+            sessions, documents, reader, inference, cleanup
+        ),
         generate_schema=generation,
         cleanup_session=cleanup,
         cleanup_job=cleanup_job,
@@ -82,18 +83,6 @@ def start() -> None:
 
     settings = Settings()
     uvicorn.run("main:create_app", factory=True, host=settings.host, port=settings.port)
-
-
-def infer_schema_cli() -> None:
-    from api.cli.infer_schema_cli import run
-
-    run(build_infer_schema(Settings()), ElementTreeXmlDocumentTool(), SERVER_ROOT)
-
-
-def generate_schema_cli() -> None:
-    from api.cli.generate_schema_cli import run
-
-    run(build_generate_schema(), SERVER_ROOT)
 
 
 if __name__ == "__main__":

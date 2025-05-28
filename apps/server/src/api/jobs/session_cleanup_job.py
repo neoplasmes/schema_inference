@@ -3,7 +3,6 @@ import logging
 
 from app.use_cases.cleanup_session_case import CleanupSession
 
-
 logger = logging.getLogger(__name__)
 
 

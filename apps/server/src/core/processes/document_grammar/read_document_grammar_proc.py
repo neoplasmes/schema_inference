@@ -31,7 +31,9 @@ def read_document_grammar(root: XmlNode) -> Dict[str, ElementGrammarInterface]:
             productionRule = []
 
             for childNode in currentNode.children:
-                childNodeKey = childNode.tag + ("-c" if len(childNode.children) > 0 else "-s")
+                childNodeKey = childNode.tag + (
+                    "-c" if len(childNode.children) > 0 else "-s"
+                )
                 childNodeKey = childNodeKey.lower()
 
                 productionRule.append(childNodeKey)

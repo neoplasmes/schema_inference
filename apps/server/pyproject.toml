@@ -21,17 +21,8 @@ dependencies = [
 ]
 
 
-[project.optional-dependencies]
-legacy-ml = [
-    "transformers (>=4.51.2,<5.0.0)",
-    "torch (>=2.6.0,<3.0.0)",
-    "sentence-transformers (>=4.0.2,<5.0.0)",
-]
-
 [project.scripts]
 start = "main:start"
-infer-schema = "main:infer_schema_cli"
-generate-schema = "main:generate_schema_cli"
 
 [tool.poetry]
 packages = [
@@ -54,8 +45,32 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "isort>=6.0.1,<7.0.0",
-    "flake8>=7.2.0,<8.0.0",
-    "flake8-quotes>=3.4.0,<4.0.0",
-    "black>=25.1.0,<26.0.0",
+    "ruff==0.11.8",
+    "pyright==1.1.400",
+    "pytest==8.3.5",
 ]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/test_backend.py" = ["E712"]
+
+[tool.pyright]
+include = ["src", "tests"]
+exclude = [".venv", "dist", "build"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+extraPaths = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib --strict-config --strict-markers -ra"
+filterwarnings = ["error"]

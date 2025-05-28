@@ -2,8 +2,8 @@ from typing import Any, Callable, Dict, List
 
 from core.entities import ElementGrammarInterface
 from core.processes.merging.merge_types import ClusterGrammars
-from core.processes.merging.typo_similarity import getAbbreviationOrTypoProbability
 from core.processes.merging.reference_grammar import getReferenceEGNameByOccurencies
+from core.processes.merging.typo_similarity import getAbbreviationOrTypoProbability
 
 
 def _getTyposMetaData(
@@ -21,7 +21,9 @@ def _getTyposMetaData(
         if len(cluster) <= 1:
             continue
 
-        referenceEGName = getReferenceEGNameByOccurencies(cluster, documentGrammar, contains_word)
+        referenceEGName = getReferenceEGNameByOccurencies(
+            cluster, documentGrammar, contains_word
+        )
 
         for key in cluster:
             if key == referenceEGName:
