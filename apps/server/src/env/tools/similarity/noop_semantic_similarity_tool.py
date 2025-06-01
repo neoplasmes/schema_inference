@@ -1,4 +1,4 @@
-from app.ports.tools.semantic_similarity_tool import SemanticSimilarity
+from app.ports.tools import SemanticSimilarity
 
 
 class NoopSemanticSimilarity(SemanticSimilarity):

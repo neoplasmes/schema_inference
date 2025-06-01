@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as ET
 from typing import BinaryIO
 
-from app.ports.tools.xml_document_error import InvalidDocumentError
-from app.ports.tools.xml_document_tool import XmlDocumentTool
-from core.entities.xml_node import XmlNode
+from app.ports.tools import InvalidDocumentError, XmlDocumentTool
+from core.entities import XmlNode
 
 
 class ElementTreeXmlDocumentTool(XmlDocumentTool):

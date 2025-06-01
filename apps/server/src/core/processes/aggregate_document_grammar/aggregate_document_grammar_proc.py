@@ -1,10 +1,7 @@
 from dataclasses import replace
 
-from core.entities import ElementGrammarInterface
-from core.entities.xml_node import XmlNode
-from core.processes.document_grammar.read_document_grammar_proc import (
-    read_document_grammar,
-)
+from core.entities import ElementGrammarInterface, XmlNode
+from core.processes.read_document_grammar import read_document_grammar
 
 
 def aggregate_document_grammars(

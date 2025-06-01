@@ -1,10 +1,8 @@
 from collections import deque
 from typing import Deque, Dict, Tuple
 
-from core.entities import ElementGrammarInterface, XSDType
-from core.entities.element_grammar import ElementGrammar
-from core.entities.xml_node import XmlNode
-from core.processes.document_grammar.infer_xsd_type import inferXSDType
+from core.entities import ElementGrammar, ElementGrammarInterface, XmlNode, XSDType
+from core.processes.read_document_grammar import inferXSDType
 
 
 def read_document_grammar(root: XmlNode) -> Dict[str, ElementGrammarInterface]:

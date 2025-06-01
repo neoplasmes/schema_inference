@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from app.use_cases.cleanup_session_case import CleanupSession
+from app.use_cases.cleanup_session import CleanupSession
 
 logger = logging.getLogger(__name__)
 

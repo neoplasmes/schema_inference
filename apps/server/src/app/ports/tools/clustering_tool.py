@@ -1,12 +1,10 @@
-from typing import Callable, Protocol, TypeVar
+from typing import Protocol
 
-Item = TypeVar("Item")
+from core.entities import GrammarClustering
 
 
 class ClusteringTool(Protocol):
     def cluster(
         self,
-        items: dict[str, Item],
-        compare: Callable[[Item, Item], float],
-        threshold: float,
+        request: GrammarClustering,
     ) -> dict[int, list[str]]: ...

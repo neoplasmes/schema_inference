@@ -1,8 +1,8 @@
 from typing import Any, Dict
 
-from app.ports.tools.schema_writer_tool import SchemaWriter
-from core.entities.schema_node import SchemaNode
-from core.processes.build_xsd_proc import build_xsd
+from app.ports.tools import SchemaWriter
+from core.entities import SchemaNode
+from core.processes.build_xsd import build_xsd
 
 
 class GenerateSchema:

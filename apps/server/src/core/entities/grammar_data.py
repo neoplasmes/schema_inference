@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Dict, List, Optional
 
-from core.entities.xsd_type import XSDType
+from core.entities import XSDType
 
 EG_CHILD_SEPARATOR = "|"
 

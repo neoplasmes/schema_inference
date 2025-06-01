@@ -2,11 +2,11 @@ import shutil
 from pathlib import Path
 from typing import BinaryIO
 
-from app.ports.tools.document_storage_error import (
+from app.ports.tools import (
     DocumentNotFoundError,
     DocumentStorageError,
+    DocumentStorageTool,
 )
-from app.ports.tools.document_storage_tool import DocumentStorageTool
 
 
 class FilesystemDocumentStorageTool(DocumentStorageTool):

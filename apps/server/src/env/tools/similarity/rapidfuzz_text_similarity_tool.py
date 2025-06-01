@@ -1,6 +1,6 @@
 from rapidfuzz import fuzz
 
-from app.ports.tools.text_similarity_tool import TextSimilarity
+from app.ports.tools import TextSimilarity
 
 
 class RapidFuzzSimilarity(TextSimilarity):

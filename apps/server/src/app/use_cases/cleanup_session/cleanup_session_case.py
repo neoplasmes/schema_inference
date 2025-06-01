@@ -1,5 +1,5 @@
-from app.ports.repos.session_repo import SessionRepository
-from app.ports.tools.document_storage_tool import DocumentStorageTool
+from app.ports.repos import SessionRepository
+from app.ports.tools import DocumentStorageTool
 
 
 class CleanupSession:

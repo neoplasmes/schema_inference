@@ -1,13 +1,15 @@
 from dataclasses import dataclass
 from typing import Generator
 
-from app.ports.repos.session_repo import SessionRepository
-from app.ports.tools.document_storage_error import DocumentNotFoundError
-from app.ports.tools.document_storage_tool import DocumentStorageTool
-from app.ports.tools.xml_document_error import InvalidDocumentError
-from app.ports.tools.xml_document_tool import XmlDocumentTool
-from app.use_cases.cleanup_session_case import CleanupSession
-from app.use_cases.infer_schema_case import InferSchema
+from app.ports.repos import SessionRepository
+from app.ports.tools import (
+    DocumentNotFoundError,
+    DocumentStorageTool,
+    InvalidDocumentError,
+    XmlDocumentTool,
+)
+from app.use_cases.cleanup_session import CleanupSession
+from app.use_cases.infer_schema import InferSchema
 
 
 @dataclass(frozen=True)

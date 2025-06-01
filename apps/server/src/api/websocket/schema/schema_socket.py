@@ -3,20 +3,20 @@ import logging
 from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect, WebSocketState
 
-from api.jobs.session_cleanup_job import SessionCleanupJob
-from api.schemas.session import (
+from api.jobs import SessionCleanupJob
+from api.schemas import (
     ProcessingCompletedMessage,
     ProcessingErrorMessage,
     ProcessingProgressMessage,
 )
-from app.use_cases.cleanup_session_case import CleanupSession
-from app.use_cases.process_documents_case import (
+from app.use_cases.cleanup_session import CleanupSession
+from app.use_cases.process_documents import (
     ProcessDocuments,
     ProcessingCompleted,
     ProcessingError,
     ProcessingProgress,
 )
-from shared.utils.threading_utils import complete_in_thread
+from shared.utils import complete_in_thread
 
 logger = logging.getLogger(__name__)
 

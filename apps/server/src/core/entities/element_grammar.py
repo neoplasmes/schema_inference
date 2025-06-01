@@ -4,16 +4,14 @@ from types import MappingProxyType
 from typing import Dict, List, Optional
 
 from core.entities import (
+    EG_CHILD_SEPARATOR,
+    AttributeGrammar,
+    ClearEGContext,
     ElementGrammarEntity,
     ElementGrammarInterface,
     ProductionRule,
+    XSDType,
 )
-from core.entities.grammar_contract import ClearEGContext
-from core.entities.grammar_data import (
-    EG_CHILD_SEPARATOR,
-    AttributeGrammar,
-)
-from core.entities.xsd_type import XSDType
 
 
 class ElementGrammar(ElementGrammarInterface):

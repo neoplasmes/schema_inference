@@ -1,8 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from app.ports.tools.lexicon_error import LexiconError
-from app.ports.tools.lexicon_tool import Lexicon
+from app.ports.tools import Lexicon, LexiconError
 
 
 @lru_cache(maxsize=8192)

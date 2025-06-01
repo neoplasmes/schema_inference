@@ -60,6 +60,10 @@ select = ["E4", "E7", "E9", "F", "I", "B"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/test_backend.py" = ["E712"]
+"src/core/entities/__init__.py" = ["I001"]
+"src/core/processes/read_document_grammar/__init__.py" = ["I001"]
+"src/app/use_cases/upload_documents/__init__.py" = ["I001"]
+"src/api/http/schema/__init__.py" = ["I001"]
 
 [tool.pyright]
 include = ["src", "tests"]
