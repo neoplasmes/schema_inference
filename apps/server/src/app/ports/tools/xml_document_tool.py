@@ -1,6 +1,6 @@
 from typing import BinaryIO, Protocol
 
-from core.entities.xml_node import XmlNode
+from core.entities import XmlNode
 
 
 class XmlDocumentTool(Protocol):

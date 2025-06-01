@@ -1,19 +1,22 @@
-from typing import Callable, Tuple
+from typing import Tuple
 
-from core.entities.grammar_contract import ClearEGContext
+from core.entities import ClearEGContext
+
+
+def abbreviation_words(word1: str, word2: str) -> tuple[str, str]:
+    """Prepare the short and long words for the lexical lookup."""
+    if len(word1) > len(word2):
+        return word2.lower(), word1.lower()
+
+    return word1.lower(), word2.lower()
 
 
 def _computeAbbreviationProbability(
-    word1: str, word2: str, relatedness: Callable[[str, str], float]
+    word1: str, word2: str, lexical_relatedness: float
 ) -> Tuple[float, bool]:
-    if len(word1) > len(word2):
-        long = word1.lower()
-        short = word2.lower()
-    else:
-        long = word2.lower()
-        short = word1.lower()
+    short, long = abbreviation_words(word1, word2)
 
-    max_similarity = relatedness(short, long)
+    max_similarity = lexical_relatedness
     foundInWordNet = False
 
     if max_similarity > 0:
@@ -86,15 +89,15 @@ def _computeAbbreviationProbability(
 def getAbbreviationOrTypoProbability(
     ctx1: ClearEGContext,
     ctx2: ClearEGContext,
-    relatedness: Callable[[str, str], float],
-    compare_text: Callable[[str, str], float],
+    lexical_relatedness: float,
+    text_similarity: float,
 ) -> float:
     if ctx1.tag == ctx2.tag or ctx1.parent != ctx2.parent:
         return 0.0
     abbr_prob, foundInWordnet = _computeAbbreviationProbability(
-        ctx1.tag, ctx2.tag, relatedness
+        ctx1.tag, ctx2.tag, lexical_relatedness
     )
-    typo_prob = compare_text(ctx1.tag, ctx2.tag)
+    typo_prob = text_similarity
 
     if foundInWordnet:
         return abbr_prob

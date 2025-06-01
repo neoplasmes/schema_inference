@@ -3,8 +3,7 @@ from dataclasses import KW_ONLY, dataclass
 from types import MappingProxyType
 from typing import List
 
-from core.entities.grammar_data import AttributeGrammar, ProductionRule
-from core.entities.xsd_type import XSDType
+from core.entities import AttributeGrammar, ProductionRule, XSDType
 
 
 @dataclass

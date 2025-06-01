@@ -1,15 +1,39 @@
-from typing import Any, Callable, Dict, List
+from itertools import combinations
+from typing import Dict, List
 
-from core.entities import ElementGrammarInterface
-from core.processes.merging.merge_types import ClusterGrammars
-from core.processes.merging.reference_grammar import getReferenceEGNameByOccurencies
-from core.processes.merging.typo_similarity import getAbbreviationOrTypoProbability
+from core.entities import ElementGrammarInterface, GrammarClustering
+from core.processes.select_reference_grammar import getReferenceEGNameByOccurencies
+
+
+def prepare_typo_pairs(
+    grammar: dict[str, ElementGrammarInterface],
+) -> list[tuple[str, str]]:
+    """Select comparable tags in the legacy comparison order."""
+    pairs = []
+
+    for second, first in combinations(grammar, 2):
+        left, right = grammar[first].context, grammar[second].context
+
+        if left.tag != right.tag and left.parent == right.parent:
+            pairs.append((first, second))
+
+    return pairs
+
+
+def prepare_typo_clustering(
+    grammar: dict[str, ElementGrammarInterface],
+    scores: dict[tuple[str, str], float],
+) -> GrammarClustering:
+    """Apply the typo grouping policy to the calculated pair scores."""
+    return GrammarClustering.from_pair_scores(
+        tuple(grammar), scores, threshold=0.8, linkage="average"
+    )
 
 
 def _getTyposMetaData(
-    clusteredTypos: Dict[Any, List[str]],
+    clusteredTypos: Dict[int, List[str]],
     documentGrammar: Dict[str, ElementGrammarInterface],
-    contains_word: Callable[[str], bool],
+    known_words: frozenset[str],
 ) -> Dict[str, str]:
     """
     Функция извлекает словарь типа
@@ -22,7 +46,7 @@ def _getTyposMetaData(
             continue
 
         referenceEGName = getReferenceEGNameByOccurencies(
-            cluster, documentGrammar, contains_word
+            cluster, documentGrammar, known_words
         )
 
         for key in cluster:
@@ -37,21 +61,11 @@ def _getTyposMetaData(
 def mergeTypos(
     documentGrammar: Dict[str, ElementGrammarInterface],
     *,
-    cluster: ClusterGrammars,
-    contains_word: Callable[[str], bool],
-    relatedness: Callable[[str, str], float],
-    compare_text: Callable[[str, str], float],
+    clusters: dict[int, list[str]],
+    known_words: frozenset[str],
 ) -> Dict[str, ElementGrammarInterface]:
     documentGrammarTemp = {k: v.clone() for k, v in documentGrammar.items()}
-
-    typosClusters = cluster(
-        documentGrammar,
-        lambda eg1, eg2: getAbbreviationOrTypoProbability(
-            eg1.context, eg2.context, relatedness, compare_text
-        ),
-        0.8,
-    )
-    typosMetaData = _getTyposMetaData(typosClusters, documentGrammar, contains_word)
+    typosMetaData = _getTyposMetaData(clusters, documentGrammar, known_words)
 
     for typoKey, referenceKey in typosMetaData.items():
         if (typoKey not in documentGrammar) or (referenceKey not in documentGrammar):

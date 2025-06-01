@@ -1,26 +1,22 @@
 from fastapi import FastAPI
 
-from api.http.http_server import create_http_server
-from api.jobs.session_cleanup_job import SessionCleanupJob
-from app.ports.repos.session_repo import SessionRepository
-from app.ports.tools.document_storage_tool import DocumentStorageTool
-from app.ports.tools.xml_document_tool import XmlDocumentTool
-from app.use_cases.cleanup_session_case import CleanupSession
-from app.use_cases.generate_schema_case import GenerateSchema
-from app.use_cases.infer_schema_case import InferSchema
-from app.use_cases.process_documents_case import ProcessDocuments
-from app.use_cases.upload_documents_case import UploadDocuments
-from env.config.settings import Settings
-from env.repos.session.inmemory_session_repo import InMemorySessionRepository
-from env.tools.clustering.scipy_clustering_tool import ScipyGrammarClusterer
-from env.tools.document_storage.filesystem_document_storage_tool import (
-    FilesystemDocumentStorageTool,
-)
-from env.tools.lexicon.wordnet_lexicon_tool import WordNetLexicon
-from env.tools.schema.element_tree_schema_writer_tool import ElementTreeSchemaWriterTool
-from env.tools.similarity.noop_semantic_similarity_tool import NoopSemanticSimilarity
-from env.tools.similarity.rapidfuzz_text_similarity_tool import RapidFuzzSimilarity
-from env.tools.xml.element_tree_xml_document_tool import ElementTreeXmlDocumentTool
+from api.http import create_http_server
+from api.jobs import SessionCleanupJob
+from app.ports.repos import SessionRepository
+from app.ports.tools import DocumentStorageTool, XmlDocumentTool
+from app.use_cases.cleanup_session import CleanupSession
+from app.use_cases.generate_schema import GenerateSchema
+from app.use_cases.infer_schema import InferSchema
+from app.use_cases.process_documents import ProcessDocuments
+from app.use_cases.upload_documents import UploadDocuments
+from env.config import Settings
+from env.repos.session import InMemorySessionRepository
+from env.tools.clustering import ScipyGrammarClusterer
+from env.tools.document_storage import FilesystemDocumentStorageTool
+from env.tools.lexicon import WordNetLexicon
+from env.tools.schema import ElementTreeSchemaWriterTool
+from env.tools.similarity import NoopSemanticSimilarity, RapidFuzzSimilarity
+from env.tools.xml import ElementTreeXmlDocumentTool
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:

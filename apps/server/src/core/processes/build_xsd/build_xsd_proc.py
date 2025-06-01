@@ -1,5 +1,4 @@
-from core.entities.schema_node import SchemaNode
-from core.entities.xml_node import XmlNode
+from core.entities import SchemaNode, XmlNode
 
 
 class XSDBuilder:

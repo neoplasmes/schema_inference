@@ -3,11 +3,14 @@ from typing import Annotated
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 
-from api.jobs.session_cleanup_job import SessionCleanupJob
-from api.schemas.session import SessionCreated
-from app.ports.tools.document_storage_error import DocumentStorageError
-from app.use_cases.upload_documents_case import UploadDocuments, UploadedDocument
-from app.use_cases.upload_documents_error import UploadDocumentsError
+from api.jobs import SessionCleanupJob
+from api.schemas import SessionCreated
+from app.ports.tools import DocumentStorageError
+from app.use_cases.upload_documents import (
+    UploadDocuments,
+    UploadDocumentsError,
+    UploadedDocument,
+)
 
 
 def register(

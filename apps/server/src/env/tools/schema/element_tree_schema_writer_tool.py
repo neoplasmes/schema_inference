@@ -1,8 +1,8 @@
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-from app.ports.tools.schema_writer_tool import SchemaWriter
-from core.entities.xml_node import XmlNode
+from app.ports.tools import SchemaWriter
+from core.entities import XmlNode
 
 
 class ElementTreeSchemaWriterTool(SchemaWriter):

@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from core.entities.session import Session
+from core.entities import Session
 
 
 class SessionRepository(Protocol):

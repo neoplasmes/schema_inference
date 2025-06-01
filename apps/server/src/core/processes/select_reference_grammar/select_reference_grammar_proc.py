@@ -1,19 +1,24 @@
-from typing import Callable, Dict, List
+from typing import Dict, List
 
 from core.entities import ElementGrammarInterface
+
+
+def reference_words(grammar: dict[str, ElementGrammarInterface]) -> set[str]:
+    """Extract the words used to resolve reference grammar ties."""
+    return {key.split("/")[1].split("-")[0] for key in grammar}
 
 
 def getReferenceEGNameByOccurencies(
     cluster: List[str],
     documentGrammar: Dict[str, ElementGrammarInterface],
-    contains_word: Callable[[str], bool],
+    known_words: frozenset[str],
 ) -> str:
     """
     Функция для извлечения эталонной грамматики среди кластера. Возвращает
     ключ эталонной грамматики. Эталонная грамматика определяется как наиболее часто используемая.
     Если n > 1 грамматик используется максимальное кол-во раз, будет выбрана та,
-    имя которой присутствует в корпусе WordNet.
-    Если обе отсутствуют, будет выбрана та, имя которой имеет большую длину.
+    имя которой присутствует в переданном наборе известных слов.
+    При оставшемся равенстве выбирается самый длинный ключ грамматики.
     """
     referenceName: str = ""
     referenceCandidates: list[str] = []
@@ -36,7 +41,7 @@ def getReferenceEGNameByOccurencies(
         normalizedByWordNet = [
             x
             for x in referenceCandidates
-            if contains_word(x.split("/")[1].split("-")[0])
+            if x.split("/")[1].split("-")[0] in known_words
         ]
 
         if len(normalizedByWordNet) == 0:

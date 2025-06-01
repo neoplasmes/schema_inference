@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
-from app.use_cases.generate_schema_case import GenerateSchema
+from app.use_cases.generate_schema import GenerateSchema
 
 
 def register(router: APIRouter, generate_schema: GenerateSchema) -> None:

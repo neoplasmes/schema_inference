@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from typing import BinaryIO, Sequence
 from uuid import uuid4
 
-from app.ports.repos.session_repo import SessionRepository
-from app.ports.tools.document_storage_tool import DocumentStorageTool
-from app.use_cases.upload_documents_error import UploadDocumentsError
-from core.entities.session import Session
+from app.ports.repos import SessionRepository
+from app.ports.tools import DocumentStorageTool
+from app.use_cases.upload_documents import UploadDocumentsError
+from core.entities import Session
 
 
 @dataclass(frozen=True)

@@ -1,7 +1,7 @@
 import re
 from typing import Union
 
-from core.entities.xsd_type import XSDType
+from core.entities import XSDType
 
 PATTERNS = {
     XSDType.INTEGER: r"^-?\d+$",
