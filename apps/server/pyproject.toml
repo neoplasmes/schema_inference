@@ -34,10 +34,8 @@ packages = [
     { include = "main.py", from = "src" },
 ]
 
-[tool.uv]
-exclude-newer = "2025-05-01T23:59:59Z"
-python-downloads = "never"
-python-preference = "only-system"
+[tool.uv.sources]
+xml-data-generator = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -45,9 +43,7 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "ruff==0.11.8",
-    "pyright==1.1.400",
-    "pytest==8.3.5",
+    "xml-data-generator",
 ]
 
 [tool.ruff]
@@ -59,7 +55,6 @@ src = ["src"]
 select = ["E4", "E7", "E9", "F", "I", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/test_backend.py" = ["E712"]
 "src/core/entities/__init__.py" = ["I001"]
 "src/core/processes/read_document_grammar/__init__.py" = ["I001"]
 "src/app/use_cases/upload_documents/__init__.py" = ["I001"]
@@ -70,7 +65,7 @@ include = ["src", "tests"]
 exclude = [".venv", "dist", "build"]
 pythonVersion = "3.12"
 typeCheckingMode = "basic"
-venvPath = "."
+venvPath = "../.."
 venv = ".venv"
 extraPaths = ["src"]
 

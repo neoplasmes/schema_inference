@@ -18,6 +18,7 @@ htmlcov/
 .nox/
 .pytype/
 test-results/
+artifacts/
 dist/
 build/
 .moon/cache/

@@ -5,6 +5,19 @@ requires-python = "==3.12.*"
 [options]
 exclude-newer = "2025-05-01T23:59:59Z"
 
+[manifest]
+members = [
+    "backend",
+    "xml-data-generator",
+]
+
+[manifest.dependency-groups]
+dev = [
+    { name = "pyright", specifier = "==1.1.400" },
+    { name = "pytest", specifier = "==8.3.5" },
+    { name = "ruff", specifier = "==0.11.8" },
+]
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -31,7 +44,7 @@ wheels = [
 [[package]]
 name = "backend"
 version = "0.1.0"
-source = { editable = "." }
+source = { editable = "apps/server" }
 dependencies = [
     { name = "fastapi" },
     { name = "nltk" },
@@ -48,9 +61,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "pyright" },
-    { name = "pytest" },
-    { name = "ruff" },
+    { name = "xml-data-generator" },
 ]
 
 [package.metadata]
@@ -69,11 +80,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [
-    { name = "pyright", specifier = "==1.1.400" },
-    { name = "pytest", specifier = "==8.3.5" },
-    { name = "ruff", specifier = "==0.11.8" },
-]
+dev = [{ name = "xml-data-generator", editable = "packages/xml_data_generator" }]
 
 [[package]]
 name = "click"
@@ -570,6 +577,27 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c9/4a/44d3c295350d776427904d73c189e10aeae66d7f555bb2feee16d1e4ba5a/wsproto-1.2.0.tar.gz", hash = "sha256:ad565f26ecb92588a3e43bc3d96164de84cd9902482b130d0ddbaa9664a85065", size = 53425, upload-time = "2022-08-23T19:58:21.447Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/58/e860788190eba3bcce367f74d29c4675466ce8dddfba85f7827588416f01/wsproto-1.2.0-py3-none-any.whl", hash = "sha256:b9acddd652b585d75b20477888c56642fdade28bdfd3579aa24a4d2c037dd736", size = 24226, upload-time = "2022-08-23T19:58:19.96Z" },
+]
+
+[[package]]
+name = "xml-data-generator"
+version = "0.1.0"
+source = { editable = "packages/xml_data_generator" }
+
+[package.dev-dependencies]
+dev = [
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pyright", specifier = "==1.1.400" },
+    { name = "pytest", specifier = "==8.3.5" },
+    { name = "ruff", specifier = "==0.11.8" },
 ]
 
 [[package]]
