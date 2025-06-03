@@ -1,0 +1,25 @@
+language: python
+type: tool
+
+tasks:
+  generate:
+    command: uv run --no-sync xml-data-generator --output generated --scenario all --documents 8 --seed 42
+    outputs:
+      - generated
+    options:
+      cache: false
+
+  test:
+    command: uv run --no-sync pytest
+
+  lint:
+    command: uv run --no-sync ruff check src tests
+
+  typecheck:
+    command: uv run --no-sync pyright
+
+  fmt:
+    command: uv run --no-sync ruff format src tests
+    options:
+      cache: false
+      runInCI: false

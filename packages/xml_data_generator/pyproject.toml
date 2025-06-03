@@ -1,0 +1,37 @@
+[project]
+name = "xml-data-generator"
+version = "0.1.0"
+description = "Seeded XML collections with independent correspondence annotations"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[project.scripts]
+xml-data-generator = "xml_data_generator.cli:main"
+
+[tool.poetry]
+packages = [{ include = "xml_data_generator", from = "src" }]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+venvPath = "../.."
+venv = ".venv"
+extraPaths = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib --strict-config --strict-markers -ra"
+filterwarnings = ["error"]

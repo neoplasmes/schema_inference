@@ -1,6 +1,7 @@
 projects:
   client: apps/client
   server: apps/server
+  xml-data-generator: packages/xml_data_generator
 
 versionConstraint: '1.35.4'
 

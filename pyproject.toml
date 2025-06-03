@@ -1,0 +1,19 @@
+[tool.uv.workspace]
+members = ["apps/server", "packages/xml_data_generator"]
+
+[tool.uv]
+exclude-newer = "2025-05-01T23:59:59Z"
+python-downloads = "never"
+python-preference = "only-system"
+
+[dependency-groups]
+dev = [
+    "ruff==0.11.8",
+    "pyright==1.1.400",
+    "pytest==8.3.5",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["apps/server/tests", "packages/xml_data_generator/tests"]
+addopts = "--import-mode=importlib --strict-config --strict-markers -ra"
+filterwarnings = ["error"]
