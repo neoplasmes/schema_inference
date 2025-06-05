@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "scenario": "namespace_separators",
+  "documents": [
+    {"id":"first","path":"first.xml","nodes":[{"locator":[],"role":"records","name":"records","kind":"element"},{"locator":[0],"role":"customer.account","name":"{https://example.test/customer-v1}account-record","kind":"element"},{"locator":[0],"role":"customer.id","name":"{https://example.test/customer-v1}account-id","kind":"attribute","attribute":"{https://example.test/customer-v1}account-id"},{"locator":[0,0],"role":"customer.name","name":"{https://example.test/customer-v1}item-name","kind":"element"},{"locator":[1],"role":"vendor.account","name":"{https://example.test/vendor-v1}account-record","kind":"element"},{"locator":[1],"role":"vendor.id","name":"{https://example.test/vendor-v1}account-id","kind":"attribute","attribute":"{https://example.test/vendor-v1}account-id"},{"locator":[1,0],"role":"vendor.name","name":"{https://example.test/vendor-v1}item-name","kind":"element"}]},
+    {"id":"second","path":"second.xml","nodes":[{"locator":[],"role":"records","name":"records","kind":"element"},{"locator":[0],"role":"customer.account","name":"{https://example.test/customer-v1}account-record","kind":"element"},{"locator":[0],"role":"customer.id","name":"{https://example.test/customer-v1}account-id","kind":"attribute","attribute":"{https://example.test/customer-v1}account-id"},{"locator":[0,0],"role":"customer.name","name":"{https://example.test/customer-v1}item-name","kind":"element"},{"locator":[1],"role":"vendor.account","name":"{https://example.test/vendor-v1}account-record","kind":"element"},{"locator":[1],"role":"vendor.id","name":"{https://example.test/vendor-v1}account-id","kind":"attribute","attribute":"{https://example.test/vendor-v1}account-id"},{"locator":[1,0],"role":"vendor.name","name":"{https://example.test/vendor-v1}item-name","kind":"element"}]}
+  ],
+  "correspondence_groups": [
+    {"role":"records","members":[{"document":"first","locator":[]},{"document":"second","locator":[]}]},
+    {"role":"customer.account","members":[{"document":"first","locator":[0]},{"document":"second","locator":[0]}]},
+    {"role":"customer.id","members":[{"document":"first","locator":[0],"attribute":"{https://example.test/customer-v1}account-id"},{"document":"second","locator":[0],"attribute":"{https://example.test/customer-v1}account-id"}]},
+    {"role":"customer.name","members":[{"document":"first","locator":[0,0]},{"document":"second","locator":[0,0]}]},
+    {"role":"vendor.account","members":[{"document":"first","locator":[1]},{"document":"second","locator":[1]}]},
+    {"role":"vendor.id","members":[{"document":"first","locator":[1],"attribute":"{https://example.test/vendor-v1}account-id"},{"document":"second","locator":[1],"attribute":"{https://example.test/vendor-v1}account-id"}]},
+    {"role":"vendor.name","members":[{"document":"first","locator":[1,0]},{"document":"second","locator":[1,0]}]}
+  ],
+  "forbidden_role_pairs": [
+    ["customer.account","vendor.account"],
+    ["customer.id","vendor.id"],
+    ["customer.name","vendor.name"]
+  ],
+  "ambiguity_groups": [
+  ],
+  "constraints": {"preserve_namespace_identity":true}
+}
