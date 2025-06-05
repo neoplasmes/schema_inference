@@ -1,0 +1,7 @@
+<record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <unknown xsi:nil="false">known</unknown>
+  <description>Plain text</description>
+  <code>AB0123</code>
+  <date>2025-02-28</date>
+  <optional>present</optional>
+</record>

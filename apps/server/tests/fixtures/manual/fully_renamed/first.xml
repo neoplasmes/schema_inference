@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<purchaseorder>
+  <orderreference>000042</orderreference>
+  <customerbillingaddress>
+    <streetname>Oak Road</streetname>
+    <postalcode>00123</postalcode>
+  </customerbillingaddress>
+  <customershippingaddress>
+    <streetname>Pine Road</streetname>
+    <postalcode>00456</postalcode>
+  </customershippingaddress>
+</purchaseorder>

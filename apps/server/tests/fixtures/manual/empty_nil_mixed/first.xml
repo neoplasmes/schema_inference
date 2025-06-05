@@ -1,0 +1,8 @@
+<record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:custom="urn:custom">
+  <empty />
+  <unknown xsi:nil="true" />
+  <literalnil custom:nil="true">kept</literalnil>
+  <description>Hello <emphasis>world</emphasis> and <emphasis>everyone</emphasis>!</description>
+  <code>000123</code>
+  <date>2025-02-30</date>
+</record>

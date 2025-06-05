@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "scenario": "fully_renamed",
+  "documents": [
+    {"id":"first","path":"first.xml","nodes":[{"locator":[],"role":"order","name":"purchaseorder","kind":"element"},{"locator":[0],"role":"order.id","name":"orderreference","kind":"element"},{"locator":[1],"role":"order.billing","name":"customerbillingaddress","kind":"element"},{"locator":[1,0],"role":"order.billing.street","name":"streetname","kind":"element"},{"locator":[1,1],"role":"order.billing.postal","name":"postalcode","kind":"element"},{"locator":[2],"role":"order.shipping","name":"customershippingaddress","kind":"element"},{"locator":[2,0],"role":"order.shipping.street","name":"streetname","kind":"element"},{"locator":[2,1],"role":"order.shipping.postal","name":"postalcode","kind":"element"}]},
+    {"id":"second","path":"second.xml","nodes":[{"locator":[],"role":"order","name":"salerequest","kind":"element"},{"locator":[0],"role":"order.id","name":"purchaseidentifier","kind":"element"},{"locator":[1],"role":"order.billing","name":"clientinvoiceaddress","kind":"element"},{"locator":[1,0],"role":"order.billing.street","name":"roadname","kind":"element"},{"locator":[1,1],"role":"order.billing.postal","name":"zipcode","kind":"element"},{"locator":[2],"role":"order.shipping","name":"buyerdeliveryaddress","kind":"element"},{"locator":[2,0],"role":"order.shipping.street","name":"roadname","kind":"element"},{"locator":[2,1],"role":"order.shipping.postal","name":"zipcode","kind":"element"}]}
+  ],
+  "correspondence_groups": [
+    {"role":"order","members":[{"document":"first","locator":[]},{"document":"second","locator":[]}]},
+    {"role":"order.id","members":[{"document":"first","locator":[0]},{"document":"second","locator":[0]}]},
+    {"role":"order.billing","members":[{"document":"first","locator":[1]},{"document":"second","locator":[1]}]},
+    {"role":"order.billing.street","members":[{"document":"first","locator":[1,0]},{"document":"second","locator":[1,0]}]},
+    {"role":"order.billing.postal","members":[{"document":"first","locator":[1,1]},{"document":"second","locator":[1,1]}]},
+    {"role":"order.shipping","members":[{"document":"first","locator":[2]},{"document":"second","locator":[2]}]},
+    {"role":"order.shipping.street","members":[{"document":"first","locator":[2,0]},{"document":"second","locator":[2,0]}]},
+    {"role":"order.shipping.postal","members":[{"document":"first","locator":[2,1]},{"document":"second","locator":[2,1]}]}
+  ],
+  "forbidden_role_pairs": [
+    ["order.billing","order.shipping"],
+    ["order.billing.street","order.shipping.street"],
+    ["order.billing.postal","order.shipping.postal"]
+  ],
+  "ambiguity_groups": [
+  ],
+  "constraints": {}
+}

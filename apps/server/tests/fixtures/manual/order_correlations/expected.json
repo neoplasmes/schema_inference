@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "scenario": "order_correlations",
+  "documents": [
+    {"id":"first","path":"first.xml","nodes":[{"locator":[],"role":"batch","name":"batch","kind":"element"},{"locator":[0],"role":"batch.a","name":"a","kind":"element"},{"locator":[1],"role":"batch.b","name":"b","kind":"element"}]},
+    {"id":"second","path":"second.xml","nodes":[{"locator":[],"role":"batch","name":"batch","kind":"element"},{"locator":[0],"role":"batch.c","name":"c","kind":"element"},{"locator":[1],"role":"batch.d","name":"d","kind":"element"}]},
+    {"id":"third","path":"third.xml","nodes":[{"locator":[],"role":"batch","name":"batch","kind":"element"},{"locator":[0],"role":"batch.a","name":"a","kind":"element"},{"locator":[1],"role":"batch.b","name":"b","kind":"element"},{"locator":[2],"role":"batch.a","name":"a","kind":"element"},{"locator":[3],"role":"batch.b","name":"b","kind":"element"}]}
+  ],
+  "correspondence_groups": [
+    {"role":"batch","members":[{"document":"first","locator":[]},{"document":"second","locator":[]},{"document":"third","locator":[]}]},
+    {"role":"batch.a","members":[{"document":"first","locator":[0]},{"document":"third","locator":[0]},{"document":"third","locator":[2]}]},
+    {"role":"batch.b","members":[{"document":"first","locator":[1]},{"document":"third","locator":[1]},{"document":"third","locator":[3]}]},
+    {"role":"batch.c","members":[{"document":"second","locator":[0]}]},
+    {"role":"batch.d","members":[{"document":"second","locator":[1]}]}
+  ],
+  "forbidden_role_pairs": [
+    ["batch.a","batch.b"],
+    ["batch.c","batch.d"]
+  ],
+  "ambiguity_groups": [
+  ],
+  "constraints": {"observed_child_sequences":[{"document":"first","locator":[],"names":["a","b"]},{"document":"second","locator":[],"names":["c","d"]},{"document":"third","locator":[],"names":["a","b","a","b"]}],"forbidden_sequences":[["a","d"],["c","b"]]}
+}

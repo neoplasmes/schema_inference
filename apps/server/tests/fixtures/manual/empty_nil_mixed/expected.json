@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "scenario": "empty_nil_mixed",
+  "documents": [
+    {"id":"first","path":"first.xml","nodes":[{"locator":[],"role":"record","name":"record","kind":"element"},{"locator":[0],"role":"record.empty","name":"empty","kind":"element"},{"locator":[1],"role":"record.unknown","name":"unknown","kind":"element"},{"locator":[1],"role":"record.unknown.nil","name":"{http://www.w3.org/2001/XMLSchema-instance}nil","kind":"attribute","attribute":"{http://www.w3.org/2001/XMLSchema-instance}nil"},{"locator":[2],"role":"record.literal","name":"literalnil","kind":"element"},{"locator":[2],"role":"record.literal.nil","name":"{urn:custom}nil","kind":"attribute","attribute":"{urn:custom}nil"},{"locator":[3],"role":"record.description","name":"description","kind":"element"},{"locator":[3,0],"role":"record.description.emphasis","name":"emphasis","kind":"element"},{"locator":[3,1],"role":"record.description.emphasis","name":"emphasis","kind":"element"},{"locator":[4],"role":"record.code","name":"code","kind":"element"},{"locator":[5],"role":"record.date","name":"date","kind":"element"}]},
+    {"id":"second","path":"second.xml","nodes":[{"locator":[],"role":"record","name":"record","kind":"element"},{"locator":[0],"role":"record.unknown","name":"unknown","kind":"element"},{"locator":[0],"role":"record.unknown.nil","name":"{http://www.w3.org/2001/XMLSchema-instance}nil","kind":"attribute","attribute":"{http://www.w3.org/2001/XMLSchema-instance}nil"},{"locator":[1],"role":"record.description","name":"description","kind":"element"},{"locator":[2],"role":"record.code","name":"code","kind":"element"},{"locator":[3],"role":"record.date","name":"date","kind":"element"},{"locator":[4],"role":"record.optional","name":"optional","kind":"element"}]}
+  ],
+  "correspondence_groups": [
+    {"role":"record","members":[{"document":"first","locator":[]},{"document":"second","locator":[]}]},
+    {"role":"record.empty","members":[{"document":"first","locator":[0]}]},
+    {"role":"record.unknown","members":[{"document":"first","locator":[1]},{"document":"second","locator":[0]}]},
+    {"role":"record.unknown.nil","members":[{"document":"first","locator":[1],"attribute":"{http://www.w3.org/2001/XMLSchema-instance}nil"},{"document":"second","locator":[0],"attribute":"{http://www.w3.org/2001/XMLSchema-instance}nil"}]},
+    {"role":"record.literal","members":[{"document":"first","locator":[2]}]},
+    {"role":"record.literal.nil","members":[{"document":"first","locator":[2],"attribute":"{urn:custom}nil"}]},
+    {"role":"record.description","members":[{"document":"first","locator":[3]},{"document":"second","locator":[1]}]},
+    {"role":"record.description.emphasis","members":[{"document":"first","locator":[3,0]},{"document":"first","locator":[3,1]}]},
+    {"role":"record.code","members":[{"document":"first","locator":[4]},{"document":"second","locator":[2]}]},
+    {"role":"record.date","members":[{"document":"first","locator":[5]},{"document":"second","locator":[3]}]},
+    {"role":"record.optional","members":[{"document":"second","locator":[4]}]}
+  ],
+  "forbidden_role_pairs": [
+    ["record.empty","record.unknown"],
+    ["record.unknown.nil","record.literal.nil"]
+  ],
+  "ambiguity_groups": [
+  ],
+  "constraints": {"nil_nodes":[{"document":"first","locator":[1]}],"non_nil_nodes":[{"document":"first","locator":[0]},{"document":"first","locator":[2]},{"document":"second","locator":[0]}],"mixed_content":[{"document":"first","locator":[3],"text":"Hello ","tails":[" and ","!"]}],"invalid_calendar_dates":[{"document":"first","locator":[5]}],"retain_lexical_values":[{"document":"first","locator":[4]}]}
+}

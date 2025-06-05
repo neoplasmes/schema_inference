@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "scenario": "unknown_symmetry",
+  "documents": [
+    {"id":"first","path":"first.xml","nodes":[{"locator":[],"role":"opaque","name":"opaque","kind":"element"},{"locator":[0],"role":"opaque.first.one","name":"xqv","kind":"element"},{"locator":[0,0],"role":"opaque.first.one.value","name":"zpt","kind":"element"},{"locator":[1],"role":"opaque.first.two","name":"yzz","kind":"element"},{"locator":[1,0],"role":"opaque.first.two.value","name":"zpt","kind":"element"},{"locator":[2],"role":"opaque.unicode.address","name":"客户地址","kind":"element"},{"locator":[3],"role":"opaque.unicode.resume","name":"résumé","kind":"element"}]},
+    {"id":"second","path":"second.xml","nodes":[{"locator":[],"role":"opaque","name":"opaque","kind":"element"},{"locator":[0],"role":"opaque.second.one","name":"qzx","kind":"element"},{"locator":[0,0],"role":"opaque.second.one.value","name":"mnr","kind":"element"},{"locator":[1],"role":"opaque.second.two","name":"vyw","kind":"element"},{"locator":[1,0],"role":"opaque.second.two.value","name":"mnr","kind":"element"},{"locator":[2],"role":"opaque.unicode.address","name":"客户地址","kind":"element"},{"locator":[3],"role":"opaque.unicode.resume","name":"résumé","kind":"element"}]}
+  ],
+  "correspondence_groups": [
+    {"role":"opaque","members":[{"document":"first","locator":[]},{"document":"second","locator":[]}]},
+    {"role":"opaque.first.one","members":[{"document":"first","locator":[0]}]},
+    {"role":"opaque.first.one.value","members":[{"document":"first","locator":[0,0]}]},
+    {"role":"opaque.first.two","members":[{"document":"first","locator":[1]}]},
+    {"role":"opaque.first.two.value","members":[{"document":"first","locator":[1,0]}]},
+    {"role":"opaque.unicode.address","members":[{"document":"first","locator":[2]},{"document":"second","locator":[2]}]},
+    {"role":"opaque.unicode.resume","members":[{"document":"first","locator":[3]},{"document":"second","locator":[3]}]},
+    {"role":"opaque.second.one","members":[{"document":"second","locator":[0]}]},
+    {"role":"opaque.second.one.value","members":[{"document":"second","locator":[0,0]}]},
+    {"role":"opaque.second.two","members":[{"document":"second","locator":[1]}]},
+    {"role":"opaque.second.two.value","members":[{"document":"second","locator":[1,0]}]}
+  ],
+  "forbidden_role_pairs": [
+  ],
+  "ambiguity_groups": [
+    {"left":[{"document":"first","locator":[0]},{"document":"first","locator":[1]}],"right":[{"document":"second","locator":[0]},{"document":"second","locator":[1]}],"resolution":"underdetermined"}
+  ],
+  "constraints": {"never_force_unique_match":true}
+}

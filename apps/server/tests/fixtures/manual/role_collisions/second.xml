@@ -1,0 +1,10 @@
+<paymentrecord>
+  <remitter><fullname>Ada</fullname><accountid>0011</accountid></remitter>
+  <beneficiary><fullname>Lin</fullname><accountid>0022</accountid></beneficiary>
+  <financialinstitution><bank><name>East Bank</name><branchcode>43</branchcode></bank></financialinstitution>
+  <river><bank><name>East Bank</name><slope>43</slope></bank></river>
+  <enabled>true</enabled>
+  <disabled>false</disabled>
+  <begindate>2025-05-01</begindate>
+  <finishdate>2025-05-31</finishdate>
+</paymentrecord>

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "scenario": "role_collisions",
+  "documents": [
+    {"id":"first","path":"first.xml","nodes":[{"locator":[],"role":"payment","name":"paymentrecord","kind":"element"},{"locator":[0],"role":"payment.payer","name":"payer","kind":"element"},{"locator":[0,0],"role":"payment.payer.name","name":"name","kind":"element"},{"locator":[0,1],"role":"payment.payer.account","name":"accountnumber","kind":"element"},{"locator":[1],"role":"payment.payee","name":"payee","kind":"element"},{"locator":[1,0],"role":"payment.payee.name","name":"name","kind":"element"},{"locator":[1,1],"role":"payment.payee.account","name":"accountnumber","kind":"element"},{"locator":[2],"role":"financial","name":"financialinstitution","kind":"element"},{"locator":[2,0],"role":"financial.bank","name":"bank","kind":"element"},{"locator":[2,0,0],"role":"financial.bank.name","name":"name","kind":"element"},{"locator":[2,0,1],"role":"financial.bank.branch","name":"branchcode","kind":"element"},{"locator":[3],"role":"river","name":"river","kind":"element"},{"locator":[3,0],"role":"river.bank","name":"bank","kind":"element"},{"locator":[3,0,0],"role":"river.bank.name","name":"name","kind":"element"},{"locator":[3,0,1],"role":"river.bank.slope","name":"slope","kind":"element"},{"locator":[4],"role":"payment.active","name":"active","kind":"element"},{"locator":[5],"role":"payment.inactive","name":"inactive","kind":"element"},{"locator":[6],"role":"payment.start","name":"startdate","kind":"element"},{"locator":[7],"role":"payment.end","name":"enddate","kind":"element"}]},
+    {"id":"second","path":"second.xml","nodes":[{"locator":[],"role":"payment","name":"paymentrecord","kind":"element"},{"locator":[0],"role":"payment.payer","name":"remitter","kind":"element"},{"locator":[0,0],"role":"payment.payer.name","name":"fullname","kind":"element"},{"locator":[0,1],"role":"payment.payer.account","name":"accountid","kind":"element"},{"locator":[1],"role":"payment.payee","name":"beneficiary","kind":"element"},{"locator":[1,0],"role":"payment.payee.name","name":"fullname","kind":"element"},{"locator":[1,1],"role":"payment.payee.account","name":"accountid","kind":"element"},{"locator":[2],"role":"financial","name":"financialinstitution","kind":"element"},{"locator":[2,0],"role":"financial.bank","name":"bank","kind":"element"},{"locator":[2,0,0],"role":"financial.bank.name","name":"name","kind":"element"},{"locator":[2,0,1],"role":"financial.bank.branch","name":"branchcode","kind":"element"},{"locator":[3],"role":"river","name":"river","kind":"element"},{"locator":[3,0],"role":"river.bank","name":"bank","kind":"element"},{"locator":[3,0,0],"role":"river.bank.name","name":"name","kind":"element"},{"locator":[3,0,1],"role":"river.bank.slope","name":"slope","kind":"element"},{"locator":[4],"role":"payment.active","name":"enabled","kind":"element"},{"locator":[5],"role":"payment.inactive","name":"disabled","kind":"element"},{"locator":[6],"role":"payment.start","name":"begindate","kind":"element"},{"locator":[7],"role":"payment.end","name":"finishdate","kind":"element"}]}
+  ],
+  "correspondence_groups": [
+    {"role":"payment","members":[{"document":"first","locator":[]},{"document":"second","locator":[]}]},
+    {"role":"payment.payer","members":[{"document":"first","locator":[0]},{"document":"second","locator":[0]}]},
+    {"role":"payment.payer.name","members":[{"document":"first","locator":[0,0]},{"document":"second","locator":[0,0]}]},
+    {"role":"payment.payer.account","members":[{"document":"first","locator":[0,1]},{"document":"second","locator":[0,1]}]},
+    {"role":"payment.payee","members":[{"document":"first","locator":[1]},{"document":"second","locator":[1]}]},
+    {"role":"payment.payee.name","members":[{"document":"first","locator":[1,0]},{"document":"second","locator":[1,0]}]},
+    {"role":"payment.payee.account","members":[{"document":"first","locator":[1,1]},{"document":"second","locator":[1,1]}]},
+    {"role":"financial","members":[{"document":"first","locator":[2]},{"document":"second","locator":[2]}]},
+    {"role":"financial.bank","members":[{"document":"first","locator":[2,0]},{"document":"second","locator":[2,0]}]},
+    {"role":"financial.bank.name","members":[{"document":"first","locator":[2,0,0]},{"document":"second","locator":[2,0,0]}]},
+    {"role":"financial.bank.branch","members":[{"document":"first","locator":[2,0,1]},{"document":"second","locator":[2,0,1]}]},
+    {"role":"river","members":[{"document":"first","locator":[3]},{"document":"second","locator":[3]}]},
+    {"role":"river.bank","members":[{"document":"first","locator":[3,0]},{"document":"second","locator":[3,0]}]},
+    {"role":"river.bank.name","members":[{"document":"first","locator":[3,0,0]},{"document":"second","locator":[3,0,0]}]},
+    {"role":"river.bank.slope","members":[{"document":"first","locator":[3,0,1]},{"document":"second","locator":[3,0,1]}]},
+    {"role":"payment.active","members":[{"document":"first","locator":[4]},{"document":"second","locator":[4]}]},
+    {"role":"payment.inactive","members":[{"document":"first","locator":[5]},{"document":"second","locator":[5]}]},
+    {"role":"payment.start","members":[{"document":"first","locator":[6]},{"document":"second","locator":[6]}]},
+    {"role":"payment.end","members":[{"document":"first","locator":[7]},{"document":"second","locator":[7]}]}
+  ],
+  "forbidden_role_pairs": [
+    ["payment.payer","payment.payee"],
+    ["financial.bank","river.bank"],
+    ["payment.active","payment.inactive"],
+    ["payment.start","payment.end"]
+  ],
+  "ambiguity_groups": [
+  ],
+  "constraints": {}
+}

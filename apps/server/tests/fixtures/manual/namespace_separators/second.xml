@@ -1,0 +1,4 @@
+<records xmlns:customer="https://example.test/customer-v1" xmlns:vendor="https://example.test/vendor-v1">
+  <customer:account-record customer:account-id="0002"><customer:item-name>Beta</customer:item-name></customer:account-record>
+  <vendor:account-record vendor:account-id="0002"><vendor:item-name>Beta</vendor:item-name></vendor:account-record>
+</records>

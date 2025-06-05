@@ -1,0 +1,10 @@
+<paymentrecord>
+  <payer><name>Ada</name><accountnumber>0011</accountnumber></payer>
+  <payee><name>Lin</name><accountnumber>0022</accountnumber></payee>
+  <financialinstitution><bank><name>North Bank</name><branchcode>42</branchcode></bank></financialinstitution>
+  <river><bank><name>North Bank</name><slope>42</slope></bank></river>
+  <active>true</active>
+  <inactive>false</inactive>
+  <startdate>2025-04-01</startdate>
+  <enddate>2025-04-30</enddate>
+</paymentrecord>
