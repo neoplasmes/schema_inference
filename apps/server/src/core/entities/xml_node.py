@@ -7,10 +7,12 @@ class XmlNode:
     text: str | None = None
     attributes: dict[str, str] = field(default_factory=dict)
     children: list["XmlNode"] = field(default_factory=list)
+    tail: str | None = None
 
     def add_child(
         self, tag: str, attributes: dict[str, str] | None = None
     ) -> "XmlNode":
         child = XmlNode(tag, attributes=attributes if attributes is not None else {})
         self.children.append(child)
+
         return child

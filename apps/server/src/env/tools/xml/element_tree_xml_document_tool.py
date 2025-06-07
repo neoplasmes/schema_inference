@@ -14,14 +14,22 @@ class ElementTreeXmlDocumentTool(XmlDocumentTool):
 
         root = self._convert_node(element)
         pending = [(element, root)]
+
         while pending:
             current, target = pending.pop()
+
             for child in current:
                 converted = self._convert_node(child)
                 target.children.append(converted)
                 pending.append((child, converted))
+
         return root
 
     @staticmethod
     def _convert_node(element: ET.Element) -> XmlNode:
-        return XmlNode(element.tag, element.text, dict(element.attrib))
+        return XmlNode(
+            element.tag,
+            element.text,
+            dict(element.attrib),
+            tail=element.tail,
+        )
