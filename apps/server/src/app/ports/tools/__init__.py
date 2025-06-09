@@ -1,6 +1,7 @@
 from .clustering_tool import ClusteringTool
 from .document_storage_error import DocumentNotFoundError, DocumentStorageError
 from .document_storage_tool import DocumentStorageTool
+from .lexical_resource_tool import LexicalResourceTool
 from .lexicon_error import LexiconError
 from .lexicon_tool import Lexicon
 from .schema_writer_tool import SchemaWriter
@@ -15,6 +16,7 @@ __all__ = [
     "DocumentStorageError",
     "DocumentStorageTool",
     "InvalidDocumentError",
+    "LexicalResourceTool",
     "Lexicon",
     "LexiconError",
     "SchemaWriter",

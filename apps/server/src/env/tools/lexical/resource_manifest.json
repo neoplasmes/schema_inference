@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "name": "wordsegment",
+      "version": "1.3.1",
+      "release_date": "2018-07-07",
+      "url": "https://pypi.org/project/wordsegment/1.3.1/",
+      "usage": "Packaged unigram and bigram frequency tables; no segmenter or neural model is called. The Python lockfile pins the distribution hash.",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "WordNet",
+      "version": "3.0",
+      "release_year": 2006,
+      "archive_commit_date": "2015-09-21",
+      "archive_commit": "96f9b3252457a2b97e52aec64c3dfceeb5c312d5",
+      "url": "https://raw.githubusercontent.com/nltk/nltk_data/96f9b3252457a2b97e52aec64c3dfceeb5c312d5/packages/corpora/wordnet.zip",
+      "history_url": "https://github.com/nltk/nltk_data/commits/gh-pages/packages/corpora/wordnet.zip",
+      "format_url": "https://wordnet.princeton.edu/documentation/wndb5wn",
+      "sha256": "cbda5ea6eef7f36a97a43d4a75f85e07fccbb4f23657d27b4ccbc93e2646ab59",
+      "size_bytes": 10775600,
+      "license": "Princeton WordNet License; README and LICENSE are included in the archive."
+    },
+    {
+      "name": "domain_lexicon",
+      "version": "1.0.0",
+      "path": "domain_lexicon.json",
+      "usage": "Explicit English field-name relations, abbreviations, phrase aliases and role contrasts; maintained independently of generated fixture answers."
+    }
+  ]
+}
