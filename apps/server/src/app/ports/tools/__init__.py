@@ -1,3 +1,4 @@
+from .assignment_tool import AssignmentTool
 from .clustering_tool import ClusteringTool
 from .document_storage_error import DocumentNotFoundError, DocumentStorageError
 from .document_storage_tool import DocumentStorageTool
@@ -11,14 +12,15 @@ from .xml_document_error import InvalidDocumentError
 from .xml_document_tool import XmlDocumentTool
 
 __all__ = [
+    "AssignmentTool",
     "ClusteringTool",
     "DocumentNotFoundError",
     "DocumentStorageError",
     "DocumentStorageTool",
     "InvalidDocumentError",
-    "LexicalResourceTool",
     "Lexicon",
     "LexiconError",
+    "LexicalResourceTool",
     "SchemaWriter",
     "SemanticSimilarity",
     "TextSimilarity",
