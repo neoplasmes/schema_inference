@@ -11,20 +11,17 @@ from app.use_cases.process_documents import ProcessDocuments
 from app.use_cases.upload_documents import UploadDocuments
 from env.config import Settings
 from env.repos.session import InMemorySessionRepository
-from env.tools.clustering import ScipyGrammarClusterer
 from env.tools.document_storage import FilesystemDocumentStorageTool
-from env.tools.lexicon import WordNetLexicon
+from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
-from env.tools.similarity import NoopSemanticSimilarity, RapidFuzzSimilarity
 from env.tools.xml import ElementTreeXmlDocumentTool
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:
     return InferSchema(
-        lexicon=WordNetLexicon(data_path=settings.wordnet_root),
-        text_similarity=RapidFuzzSimilarity(),
-        semantic_similarity=NoopSemanticSimilarity(),
-        clusterer=ScipyGrammarClusterer(),
+        lexical_resource=CorpusLexicalResourceTool(
+            corpus_directory=settings.wordnet_root
+        ),
     )
 
 

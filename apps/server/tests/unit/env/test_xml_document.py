@@ -3,6 +3,7 @@ from io import BytesIO
 import pytest
 
 from app.ports.tools import InvalidDocumentError
+from app.use_cases.infer_schema import InferSchema
 from env.tools.xml import ElementTreeXmlDocumentTool
 
 
@@ -21,6 +22,21 @@ def test_xml_reader_preserves_text_tail_expanded_names_and_attributes():
     assert root.children[0].tail == "After"
     assert root.children[1].tail == "End"
 
+
+def test_namespace_prefix_aliases_have_the_same_profile_identity():
+    """Treat different prefixes for the same namespace as the same profile."""
+    parser = ElementTreeXmlDocumentTool()
+    first = parser.read(
+        BytesIO(b'<a:root xmlns:a="urn:orders"><a:item a:id="1"/></a:root>')
+    )
+    second = parser.read(
+        BytesIO(b'<b:root xmlns:b="urn:orders"><b:item b:id="1"/></b:root>')
+    )
+
+    first_space = InferSchema().analyze([first])
+    second_space = InferSchema().analyze([second])
+
+    assert first_space == second_space
 
 
 def test_malformed_xml_raises_the_port_error():

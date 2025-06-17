@@ -22,6 +22,12 @@ class XSDBuilder:
         self, node: SchemaNode, parent: XmlNode, *, is_root: bool = False
     ) -> None:
         attributes = {"name": node.name}
+        value_type = node.chosenType
+
+        if value_type in ("null", "empty"):
+            value_type = "string"
+            attributes["nillable"] = "true"
+
         if not is_root:
             attributes.update(
                 {
@@ -52,7 +58,7 @@ class XSDBuilder:
                 complex_type = element.add_child("xs:complexType")
                 simple_content = complex_type.add_child("xs:simpleContent")
                 extension = simple_content.add_child(
-                    "xs:extension", {"base": f"xs:{node.chosenType}"}
+                    "xs:extension", {"base": f"xs:{value_type}"}
                 )
                 for attr_name, attr_type in node.attributes.items():
                     extension.add_child(
@@ -64,7 +70,7 @@ class XSDBuilder:
                         },
                     )
             else:
-                element.attributes["type"] = f"xs:{node.chosenType}"
+                element.attributes["type"] = f"xs:{value_type}"
 
 
 def build_xsd(root: SchemaNode) -> XmlNode:
