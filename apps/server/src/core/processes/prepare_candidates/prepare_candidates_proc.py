@@ -34,7 +34,7 @@ def prepare_candidates(
             index[term].append(profile_id)
 
     pairs: dict[tuple[str, str], int] = {}
-    limited_profiles = 0
+    limited_profiles: set[str] = set()
     limited_buckets: set[str] = set()
 
     for profile_id in sorted(profiles):
@@ -51,7 +51,7 @@ def prepare_candidates(
         selected_terms = structural_terms + other_terms
 
         if len(selected_terms) > config.max_index_terms:
-            limited_profiles += 1
+            limited_profiles.add(profile_id)
 
         for term in selected_terms[: config.max_index_terms]:
             bucket = index[term]
@@ -77,7 +77,7 @@ def prepare_candidates(
         ranked = sorted(hits, key=lambda other: (-hits[other], other))
 
         if len(ranked) > config.max_candidates_per_profile:
-            limited_profiles += 1
+            limited_profiles.add(profile_id)
 
         for other in ranked[: config.max_candidates_per_profile]:
             pair = (profile_id, other) if profile_id <= other else (other, profile_id)
@@ -86,7 +86,7 @@ def prepare_candidates(
     diagnostics: list[str] = []
 
     if limited_profiles:
-        diagnostics.append(f"candidate_profile_budget_reached:{limited_profiles}")
+        diagnostics.append(f"candidate_profile_budget_reached:{len(limited_profiles)}")
 
     if limited_buckets:
         diagnostics.append(f"candidate_bucket_budget_reached:{len(limited_buckets)}")
