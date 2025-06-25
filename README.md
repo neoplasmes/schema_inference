@@ -31,6 +31,17 @@ moon run server:dev
 moon run client:dev
 ```
 
+В `main.py` создаётся `Settings` с явными путями из `UPLOAD_ROOT` и `WORDNET_ROOT`.
+По умолчанию это `uploaded_files` и `nltk_data` относительно рабочего каталога
+запуска. Задачи Moon запускают сервер из `apps/server`. Для контейнера или запуска
+из другого каталога задавайте пути явно, например:
+
+```bash
+UPLOAD_ROOT=/data/uploads WORDNET_ROOT=/data/wordnet moon run server:start
+```
+
+В `WORDNET_ROOT` должен находиться каталог `corpora` с архивом `wordnet.zip`.
+
 Moon устанавливает зависимости при первом запуске соответствующей задачи. Бэкенд использует uv и отдельное окружение `apps/server/.venv`. Python устанавливает proto; загрузка другого интерпретатора через uv отключена. `UV_PYTHON` в `.prototools` должен совпадать с закреплённой версией Python.
 
 Дата разрешения Python-зависимостей ограничена через `tool.uv.exclude-newer` в `apps/server/pyproject.toml`; npm использует аналогичное ограничение `before` в `apps/client/.npmrc`. При разрешении зависимостей выбираются публикации не позднее `2025-05-01T23:59:59Z`. Созданный uv lockfile следует сохранять в репозитории.

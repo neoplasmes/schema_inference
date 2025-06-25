@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
 
 from api.http import create_http_server
@@ -11,20 +14,26 @@ from app.use_cases.process_documents import ProcessDocuments
 from app.use_cases.upload_documents import UploadDocuments
 from env.config import Settings
 from env.repos.session import InMemorySessionRepository
-from env.tools.clustering import ScipyGrammarClusterer
+from env.tools.assignment import ScipyAssignmentTool
 from env.tools.document_storage import FilesystemDocumentStorageTool
-from env.tools.lexicon import WordNetLexicon
+from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
-from env.tools.similarity import NoopSemanticSimilarity, RapidFuzzSimilarity
 from env.tools.xml import ElementTreeXmlDocumentTool
+
+
+def build_settings() -> Settings:
+    upload_root = Path(os.environ.get("UPLOAD_ROOT", "uploaded_files")).resolve()
+    wordnet_root = Path(os.environ.get("WORDNET_ROOT", "nltk_data")).resolve()
+
+    return Settings(upload_root=upload_root, wordnet_root=wordnet_root)
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:
     return InferSchema(
-        lexicon=WordNetLexicon(data_path=settings.wordnet_root),
-        text_similarity=RapidFuzzSimilarity(),
-        semantic_similarity=NoopSemanticSimilarity(),
-        clusterer=ScipyGrammarClusterer(),
+        lexical_resource=CorpusLexicalResourceTool(
+            corpus_directory=settings.wordnet_root
+        ),
+        assignment=ScipyAssignmentTool(),
     )
 
 
@@ -41,7 +50,7 @@ def create_app(
     infer_schema: InferSchema | None = None,
     generate_schema: GenerateSchema | None = None,
 ) -> FastAPI:
-    configuration = settings if settings is not None else Settings()
+    configuration = settings if settings is not None else build_settings()
     sessions = (
         session_repository
         if session_repository is not None
@@ -77,7 +86,7 @@ def create_app(
 def start() -> None:
     import uvicorn
 
-    settings = Settings()
+    settings = build_settings()
     uvicorn.run("main:create_app", factory=True, host=settings.host, port=settings.port)
 
 
