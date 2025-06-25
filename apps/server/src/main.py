@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from fastapi import FastAPI
 
 from api.http import create_http_server
@@ -15,6 +18,13 @@ from env.tools.document_storage import FilesystemDocumentStorageTool
 from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
 from env.tools.xml import ElementTreeXmlDocumentTool
+
+
+def build_settings() -> Settings:
+    upload_root = Path(os.environ.get("UPLOAD_ROOT", "uploaded_files")).resolve()
+    wordnet_root = Path(os.environ.get("WORDNET_ROOT", "nltk_data")).resolve()
+
+    return Settings(upload_root=upload_root, wordnet_root=wordnet_root)
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:
@@ -38,7 +48,7 @@ def create_app(
     infer_schema: InferSchema | None = None,
     generate_schema: GenerateSchema | None = None,
 ) -> FastAPI:
-    configuration = settings if settings is not None else Settings()
+    configuration = settings if settings is not None else build_settings()
     sessions = (
         session_repository
         if session_repository is not None
@@ -74,7 +84,7 @@ def create_app(
 def start() -> None:
     import uvicorn
 
-    settings = Settings()
+    settings = build_settings()
     uvicorn.run("main:create_app", factory=True, host=settings.host, port=settings.port)
 
 
