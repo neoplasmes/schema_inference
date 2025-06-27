@@ -1,0 +1,8 @@
+<weatherrecord>
+  <measurementtime>2025-05-01T12:00:00Z</measurementtime>
+  <outsideairtemperature unit="C">17.8</outsideairtemperature>
+  <insideairtemperature unit="C">20.9</insideairtemperature>
+  <humiditypercentage unit="percent">68</humiditypercentage>
+  <lowesttemperature unit="C">10.8</lowesttemperature>
+  <highesttemperature unit="C">21.9</highesttemperature>
+</weatherrecord>

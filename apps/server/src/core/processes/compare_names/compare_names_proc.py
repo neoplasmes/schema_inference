@@ -21,16 +21,29 @@ def character_ngrams(word: str, n: int = 3) -> frozenset[str]:
 
 
 def _edit_distance(first: str, second: str) -> int:
-    rows = [list(range(len(second) + 1))]
+    limit = 2
+
+    if abs(len(first) - len(second)) > limit:
+        return limit + 1
+
+    previous = {column: column for column in range(min(len(second), limit) + 1)}
+    before_previous: dict[int, int] = {}
 
     for row, first_character in enumerate(first, 1):
-        current = [row]
+        current = {}
 
-        for column, second_character in enumerate(second, 1):
+        for column in range(max(0, row - limit), min(len(second), row + limit) + 1):
+            if column == 0:
+                current[column] = row
+
+                continue
+
+            second_character = second[column - 1]
             distance = min(
-                current[column - 1] + 1,
-                rows[-1][column] + 1,
-                rows[-1][column - 1] + (first_character != second_character),
+                current.get(column - 1, limit + 1) + 1,
+                previous.get(column, limit + 1) + 1,
+                previous.get(column - 1, limit + 1)
+                + (first_character != second_character),
             )
 
             if (
@@ -39,21 +52,28 @@ def _edit_distance(first: str, second: str) -> int:
                 and first_character == second[column - 2]
                 and first[row - 2] == second_character
             ):
-                distance = min(distance, rows[-2][column - 2] + 1)
+                distance = min(distance, before_previous.get(column - 2, limit + 1) + 1)
 
-            current.append(distance)
+            current[column] = distance
 
-        rows.append(current)
+        if min(current.values()) > limit:
+            return limit + 1
 
-    return rows[-1][-1]
+        before_previous, previous = previous, current
+
+    return previous.get(len(second), limit + 1)
 
 
-def _canonical(tokens: tuple[str, ...], lexicon: LexiconData) -> tuple[str, ...]:
-    expanded = tuple(
+def _expanded(tokens: tuple[str, ...], lexicon: LexiconData) -> tuple[str, ...]:
+    return tuple(
         token
         for source in tokens
         for token in lexicon.abbreviations.get(source, (source,))
     )
+
+
+def _canonical(tokens: tuple[str, ...], lexicon: LexiconData) -> tuple[str, ...]:
+    expanded = _expanded(tokens, lexicon)
     result = []
     position = 0
     max_phrase = max((len(phrase) for phrase in lexicon.phrase_aliases), default=1)
@@ -83,6 +103,9 @@ def _forms(word: str, lexicon: LexiconData) -> frozenset[str]:
 
     if len(word) > 3 and word.endswith("s") and not word.endswith(("ss", "us", "is")):
         candidates.add(word[:-1])
+
+    if len(word) > 4 and word.endswith(("sses", "shes", "ches", "xes", "zes", "oes")):
+        candidates.add(word[:-2])
 
     if len(word) > 5 and word.endswith("ing"):
         candidates.update((word[:-3], word[:-3] + "e"))
@@ -266,14 +289,11 @@ def _conflicts(
     )
 
 
-def _compare_pair(
-    left: Segmentation, right: Segmentation, lexicon: LexiconData
-) -> tuple[float, tuple[str, ...]]:
-    first = _canonical(left.tokens, lexicon)
-    second = _canonical(right.tokens, lexicon)
-
+def _compare_tokens(
+    first: tuple[str, ...], second: tuple[str, ...], lexicon: LexiconData
+) -> tuple[float, set[str]]:
     if not first or not second:
-        return 0.0, ("empty_name",)
+        return 0.0, {"empty_name"}
 
     relations = [[_relation(a, b, lexicon) for b in second] for a in first]
     assignments = _assignment([[score for score, _ in row] for row in relations])
@@ -288,9 +308,6 @@ def _compare_pair(
         for row, column in matched
     }
 
-    if left.tokens != first or right.tokens != second:
-        evidence.add("phrase_or_abbreviation_expansion")
-
     phrase_groups = lexicon.synonym_groups.get(
         " ".join(first), frozenset()
     ) & lexicon.synonym_groups.get(" ".join(second), frozenset())
@@ -301,6 +318,30 @@ def _compare_pair(
 
     if len(matched) < max(len(first), len(second)):
         evidence.add("unmatched_tokens")
+
+    return score, evidence
+
+
+def _compare_pair(
+    left: Segmentation, right: Segmentation, lexicon: LexiconData
+) -> tuple[float, tuple[str, ...]]:
+    expanded_left = _expanded(left.tokens, lexicon)
+    expanded_right = _expanded(right.tokens, lexicon)
+    score, evidence = _compare_tokens(expanded_left, expanded_right, lexicon)
+    canonical_left = _canonical(left.tokens, lexicon)
+    canonical_right = _canonical(right.tokens, lexicon)
+
+    if canonical_left != expanded_left or canonical_right != expanded_right:
+        phrase_score, phrase_evidence = _compare_tokens(
+            canonical_left, canonical_right, lexicon
+        )
+
+        if phrase_score >= score:
+            score, evidence = phrase_score, phrase_evidence
+            evidence.add("phrase_or_abbreviation_expansion")
+
+    if left.tokens != expanded_left or right.tokens != expanded_right:
+        evidence.add("phrase_or_abbreviation_expansion")
 
     if left.corrections or right.corrections:
         evidence.add("segmentation_typo_correction")
@@ -331,6 +372,18 @@ def compare_names(
     if not left_options or not right_options:
         raise ValueError("Both names need at least one segmentation")
 
+    left_options = left_options[: config.top_k]
+    right_options = right_options[: config.top_k]
+
+    if any(
+        len(option.tokens) > config.max_tokens
+        or sum(map(len, option.tokens)) > config.max_identifier_length
+        for option in left_options + right_options
+    ):
+        return NameMatch(
+            0.0, ("identifier_analysis_limit",), (), left_options[0], right_options[0]
+        )
+
     if (
         left_options[0].normalized == right_options[0].normalized
         and left_options[0].normalized
@@ -345,11 +398,14 @@ def compare_names(
     for first in left_options:
         for second in right_options:
             score, evidence = _compare_pair(first, second, lexicon)
-            penalty = 0.015 * (
+            penalty = 0.025 * (
                 max(0.0, left_options[0].score - first.score)
                 + max(0.0, right_options[0].score - second.score)
             )
-            score = max(0.0, score - min(0.25, penalty))
+            score = max(0.0, score - penalty)
+
+            if penalty > 0.001:
+                evidence = tuple(sorted(set(evidence) | {"alternative_segmentation"}))
             pair_conflicts = tuple(
                 sorted(set(conflicts) | set(_conflicts(first, second, lexicon)))
             )

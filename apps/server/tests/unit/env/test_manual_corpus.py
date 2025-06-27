@@ -52,7 +52,7 @@ def test_manual_oracle_is_complete_and_resolves_to_xml(manifest_path: Path) -> N
         document_ids.add(identifier)
         root = ET.parse(manifest_path.parent / document["path"]).getroot()
         actual: set[tuple[str, tuple[int, ...], str]] = set()
-        pending = [(root, ())]
+        pending: list[tuple[ET.Element, tuple[int, ...]]] = [(root, ())]
 
         while pending:
             element, position = pending.pop()

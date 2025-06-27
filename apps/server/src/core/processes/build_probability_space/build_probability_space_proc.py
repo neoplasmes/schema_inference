@@ -165,6 +165,7 @@ def _profile_data(
                 "nil": item.nil,
                 "text": item.text,
                 "tail": item.tail,
+                "namespaces": dict(item.namespaces),
                 "children": list(item.child_profile_ids),
                 "attributes": [
                     {"name": _name_data(attribute.name), "value": attribute.value}

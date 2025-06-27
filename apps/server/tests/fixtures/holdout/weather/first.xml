@@ -1,0 +1,8 @@
+<environmentreport>
+  <observationtime>2025-04-30T12:00:00Z</observationtime>
+  <outdoorairtemperature unit="C">18.4</outdoorairtemperature>
+  <indoorairtemperature unit="C">21.5</indoorairtemperature>
+  <relativehumidity unit="percent">63</relativehumidity>
+  <minimumtemperature unit="C">11.2</minimumtemperature>
+  <maximumtemperature unit="C">22.1</maximumtemperature>
+</environmentreport>

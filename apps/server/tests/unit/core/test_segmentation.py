@@ -160,3 +160,37 @@ def test_empty_name_is_explicit(lexicon):
 def test_beam_cannot_be_smaller_than_result_set():
     with pytest.raises(ValueError):
         SegmentationConfig(top_k=10, beam_width=5)
+
+
+@pytest.mark.parametrize(
+    "configuration",
+    [
+        {"top_k": 1.5},
+        {"beam_width": True},
+        {"max_identifier_length": float("inf")},
+        {"max_tokens": float("nan")},
+        {"max_tokens": True},
+        {"max_word_length": 0},
+        {"max_typo_candidates": -1},
+        {"max_typo_visits": 1.0},
+    ],
+)
+def test_invalid_limits_fail_before_analysis(configuration):
+    with pytest.raises(ValueError, match="positive integers"):
+        SegmentationConfig(**configuration)
+
+
+@pytest.mark.parametrize(
+    "configuration",
+    [
+        {"typo_penalty": float("inf")},
+        {"typo_penalty": -1},
+        {"typo_penalty": True},
+        {"unknown_penalty": float("nan")},
+        {"unknown_penalty": float("-inf")},
+        {"unknown_penalty": False},
+    ],
+)
+def test_invalid_penalties_cannot_reach_json_scores(configuration):
+    with pytest.raises(ValueError, match="finite nonnegative"):
+        SegmentationConfig(**configuration)

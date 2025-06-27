@@ -77,6 +77,7 @@ class SegmentationConfig:
     top_k: int = 5
     beam_width: int = 16
     max_identifier_length: int = 160
+    max_tokens: int = 32
     max_word_length: int = 32
     max_typo_candidates: int = 24
     max_typo_visits: int = 3000
@@ -88,16 +89,27 @@ class SegmentationConfig:
             self.top_k,
             self.beam_width,
             self.max_identifier_length,
+            self.max_tokens,
             self.max_word_length,
             self.max_typo_candidates,
             self.max_typo_visits,
         )
 
-        if min(limits) < 1:
-            raise ValueError("Segmentation limits must be positive")
+        if any(type(value) is not int or value < 1 for value in limits):
+            raise ValueError("Segmentation limits must be positive integers")
 
         if self.beam_width < self.top_k:
             raise ValueError("The beam must retain at least top_k candidates")
+
+        penalties = (self.typo_penalty, self.unknown_penalty)
+
+        if any(
+            type(value) not in (int, float) or not isfinite(value) or value < 0
+            for value in penalties
+        ):
+            raise ValueError(
+                "Segmentation penalties must be finite nonnegative numbers"
+            )
 
 
 @dataclass(frozen=True)

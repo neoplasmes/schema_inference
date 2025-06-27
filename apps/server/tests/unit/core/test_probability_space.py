@@ -110,6 +110,7 @@ def test_mixed_content_and_expanded_names_survive_json_round_trip():
         "before ",
         attributes={"{urn:two}id": "a"},
         children=[XmlNode("{urn:two}mark", "inside", tail=" after")],
+        namespaces={"kind": "urn:types"},
     )
     space = json.loads(json.dumps(space_for(root), allow_nan=False))
     profile = profile_for(space, "line")
@@ -120,6 +121,7 @@ def test_mixed_content_and_expanded_names_survive_json_round_trip():
     assert profile["attributes"][0]["name"]["namespace"] == "urn:two"
     assert profile["observations"][0]["kind"] == "mixed"
     assert child["observations"][0]["tail"] == " after"
+    assert profile["observations"][0]["namespaces"] == {"kind": "urn:types"}
 
 
 def test_empty_corpus_has_no_fabricated_frequencies_or_types():

@@ -1,6 +1,6 @@
 import pytest
 
-from core.entities.lexical import LexiconData
+from core.entities.lexical import LexiconData, Segmentation
 from core.processes.compare_names import character_ngrams, compare_names
 
 
@@ -154,3 +154,63 @@ def test_wordnet_shared_sense_is_weaker_than_curated_relation():
 
 def test_empty_names_do_not_imply_match(lexicon):
     assert compare_names("", "", lexicon).score == 0
+
+
+def test_phrase_canonicalization_preserves_partial_token_evidence():
+    data = LexiconData(
+        unigrams={"unit": 100, "units": 100, "price": 100},
+        phrase_aliases={("unit", "price"): ("unitprice",)},
+    )
+    match = compare_names("unitprice", "price", data)
+
+    assert match.score == 0.5
+    assert match.left.tokens == ("unit", "price")
+    assert not match.left.corrections
+    assert "unmatched_tokens" in match.evidence
+
+
+def test_improbable_segmentation_cannot_manufacture_a_strong_match(lexicon):
+    alternatives = (
+        Segmentation("unrelated", "unrelated", ("unrelated",), 0),
+        Segmentation("unrelated", "unrelated", ("customer",), -100),
+    )
+    target = (Segmentation("client", "client", ("client",), 0),)
+
+    assert compare_names(alternatives, target, lexicon).score < 0.5
+
+
+def test_plausible_alternative_remains_available_with_evidence(lexicon):
+    alternatives = (
+        Segmentation("source", "source", ("unrelated",), 0),
+        Segmentation("source", "source", ("customer",), -1),
+    )
+    target = (Segmentation("client", "client", ("client",), 0),)
+    match = compare_names(alternatives, target, lexicon)
+
+    assert 0.85 < match.score < 0.94
+    assert "alternative_segmentation" in match.evidence
+
+
+@pytest.mark.parametrize(
+    "first,second", [("addresses", "address"), ("boxes", "box"), ("branches", "branch")]
+)
+def test_regular_es_plurals_use_dictionary_base_forms(first, second):
+    data = LexiconData(unigrams={first: 100, second: 100})
+
+    assert compare_names(first, second, data).score > 0.9
+
+
+def test_extreme_names_do_not_enter_quadratic_edit_distance(lexicon):
+    match = compare_names("a" * 10_000, "b" * 10_000, lexicon)
+
+    assert match.score == 0
+    assert match.evidence == ("identifier_analysis_limit",)
+
+
+def test_external_segmentation_cannot_create_unbounded_assignment(lexicon):
+    first = (Segmentation("a", "a", ("a",) * 5000, 0),)
+    second = (Segmentation("b", "b", ("b",) * 5000, 0),)
+    match = compare_names(first, second, lexicon)
+
+    assert match.score == 0
+    assert match.evidence == ("identifier_analysis_limit",)

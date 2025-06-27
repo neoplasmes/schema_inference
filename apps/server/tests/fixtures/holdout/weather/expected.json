@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "scenario": "holdout_weather",
+  "documents": [
+    {
+      "id": "first",
+      "path": "first.xml",
+      "nodes": [
+        {
+          "locator": [],
+          "role": "weather",
+          "name": "environmentreport",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            0
+          ],
+          "role": "weather.time",
+          "name": "observationtime",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            1
+          ],
+          "role": "weather.outdoor",
+          "name": "outdoorairtemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            1
+          ],
+          "role": "weather.outdoor.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            2
+          ],
+          "role": "weather.indoor",
+          "name": "indoorairtemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            2
+          ],
+          "role": "weather.indoor.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            3
+          ],
+          "role": "weather.humidity",
+          "name": "relativehumidity",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            3
+          ],
+          "role": "weather.humidity.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            4
+          ],
+          "role": "weather.minimum",
+          "name": "minimumtemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            4
+          ],
+          "role": "weather.minimum.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            5
+          ],
+          "role": "weather.maximum",
+          "name": "maximumtemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            5
+          ],
+          "role": "weather.maximum.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        }
+      ]
+    },
+    {
+      "id": "second",
+      "path": "second.xml",
+      "nodes": [
+        {
+          "locator": [],
+          "role": "weather",
+          "name": "weatherrecord",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            0
+          ],
+          "role": "weather.time",
+          "name": "measurementtime",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            1
+          ],
+          "role": "weather.outdoor",
+          "name": "outsideairtemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            1
+          ],
+          "role": "weather.outdoor.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            2
+          ],
+          "role": "weather.indoor",
+          "name": "insideairtemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            2
+          ],
+          "role": "weather.indoor.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            3
+          ],
+          "role": "weather.humidity",
+          "name": "humiditypercentage",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            3
+          ],
+          "role": "weather.humidity.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            4
+          ],
+          "role": "weather.minimum",
+          "name": "lowesttemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            4
+          ],
+          "role": "weather.minimum.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        },
+        {
+          "locator": [
+            5
+          ],
+          "role": "weather.maximum",
+          "name": "highesttemperature",
+          "kind": "element"
+        },
+        {
+          "locator": [
+            5
+          ],
+          "role": "weather.maximum.unit",
+          "name": "unit",
+          "kind": "attribute",
+          "attribute": "unit"
+        }
+      ]
+    }
+  ],
+  "correspondence_groups": [
+    {
+      "role": "weather",
+      "members": [
+        {
+          "document": "first",
+          "locator": []
+        },
+        {
+          "document": "second",
+          "locator": []
+        }
+      ]
+    },
+    {
+      "role": "weather.time",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            0
+          ]
+        },
+        {
+          "document": "second",
+          "locator": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "role": "weather.outdoor",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            1
+          ]
+        },
+        {
+          "document": "second",
+          "locator": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "role": "weather.outdoor.unit",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            1
+          ],
+          "attribute": "unit"
+        },
+        {
+          "document": "second",
+          "locator": [
+            1
+          ],
+          "attribute": "unit"
+        }
+      ]
+    },
+    {
+      "role": "weather.indoor",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            2
+          ]
+        },
+        {
+          "document": "second",
+          "locator": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "role": "weather.indoor.unit",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            2
+          ],
+          "attribute": "unit"
+        },
+        {
+          "document": "second",
+          "locator": [
+            2
+          ],
+          "attribute": "unit"
+        }
+      ]
+    },
+    {
+      "role": "weather.humidity",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            3
+          ]
+        },
+        {
+          "document": "second",
+          "locator": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "role": "weather.humidity.unit",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            3
+          ],
+          "attribute": "unit"
+        },
+        {
+          "document": "second",
+          "locator": [
+            3
+          ],
+          "attribute": "unit"
+        }
+      ]
+    },
+    {
+      "role": "weather.minimum",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            4
+          ]
+        },
+        {
+          "document": "second",
+          "locator": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "role": "weather.minimum.unit",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            4
+          ],
+          "attribute": "unit"
+        },
+        {
+          "document": "second",
+          "locator": [
+            4
+          ],
+          "attribute": "unit"
+        }
+      ]
+    },
+    {
+      "role": "weather.maximum",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            5
+          ]
+        },
+        {
+          "document": "second",
+          "locator": [
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "role": "weather.maximum.unit",
+      "members": [
+        {
+          "document": "first",
+          "locator": [
+            5
+          ],
+          "attribute": "unit"
+        },
+        {
+          "document": "second",
+          "locator": [
+            5
+          ],
+          "attribute": "unit"
+        }
+      ]
+    }
+  ],
+  "forbidden_role_pairs": [
+    [
+      "weather.outdoor",
+      "weather.indoor"
+    ],
+    [
+      "weather.minimum",
+      "weather.maximum"
+    ]
+  ],
+  "ambiguity_groups": []
+}

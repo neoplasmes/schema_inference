@@ -134,6 +134,7 @@ def _snapshot_document(
             nil=_nil_value(attributes),
             kind=_content_kind(node),
             child_profile_ids=child_profile_ids,
+            namespaces=tuple(sorted(node.namespaces.items())),
         )
         observations.append(observation)
         encoded = json.dumps(
@@ -150,6 +151,7 @@ def _snapshot_document(
                 node.text,
                 node.tail,
                 len(node.children),
+                observation.namespaces,
             ),
             ensure_ascii=False,
             separators=(",", ":"),
@@ -259,6 +261,12 @@ def _validate_limits(limits: ObservationLimits) -> None:
 
 
 def _validate_content(node: XmlNode) -> None:
+    if not isinstance(node.namespaces, Mapping) or any(
+        not isinstance(prefix, str) or not isinstance(namespace, str)
+        for prefix, namespace in node.namespaces.items()
+    ):
+        raise ObserveDocumentsError("Namespace bindings must map prefixes to strings.")
+
     if node.text is not None and not isinstance(node.text, str):
         raise ObserveDocumentsError("Node text must be a string or None.")
 

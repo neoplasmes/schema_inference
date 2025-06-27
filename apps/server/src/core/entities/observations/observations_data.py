@@ -33,6 +33,7 @@ class NodeObservation:
     nil: bool | None
     kind: Literal["empty", "text", "children", "mixed"]
     child_profile_ids: tuple[str, ...]
+    namespaces: tuple[tuple[str, str], ...] = ()
 
     @property
     def name(self) -> ExpandedName:
