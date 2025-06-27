@@ -37,6 +37,7 @@ def test_namespace_prefix_aliases_have_the_same_profile_identity():
     second_space = InferSchema().analyze([second])
 
     assert first_space == second_space
+    assert first.namespaces["a"] == second.namespaces["b"] == "urn:orders"
 
 
 def test_malformed_xml_raises_the_port_error():
@@ -44,6 +45,29 @@ def test_malformed_xml_raises_the_port_error():
     with pytest.raises(InvalidDocumentError):
         ElementTreeXmlDocumentTool().read(BytesIO(b"<root><item></root>"))
 
+
+def test_namespace_shadowing_and_default_undeclaration_restore_parent_scope():
+    """Limit namespace overrides to their element and its descendants."""
+    source = BytesIO(
+        b'<root xmlns="urn:default" xmlns:p="urn:outer">'
+        b'<p:before/><section xmlns="" xmlns:p="urn:inner">'
+        b"<p:inside/><plain/></section><p:after/></root>"
+    )
+    root = ElementTreeXmlDocumentTool().read(source)
+    before, section, after = root.children
+    inside, plain = section.children
+
+    assert root.namespaces[""] == "urn:default"
+    assert root.namespaces["p"] == "urn:outer"
+    assert before.tag == "{urn:outer}before"
+    assert after.tag == "{urn:outer}after"
+    assert section.tag == "section"
+    assert section.namespaces[""] == plain.namespaces[""] == ""
+    assert section.namespaces["p"] == inside.namespaces["p"] == "urn:inner"
+    assert inside.tag == "{urn:inner}inside"
+    assert plain.tag == "plain"
+    assert after.namespaces == root.namespaces
+    assert "xmlns" not in root.attributes
 
 
 def test_text_and_tails_survive_small_stream_chunks():
