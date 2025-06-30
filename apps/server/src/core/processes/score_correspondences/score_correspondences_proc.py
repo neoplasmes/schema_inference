@@ -1,8 +1,10 @@
 import re
 from collections.abc import Sequence
+from math import isfinite
 from typing import Literal
 
 from core.entities.matching import (
+    AdditionalPairEvidence,
     AlignmentRequest,
     AlignmentResult,
     CandidateBatch,
@@ -72,6 +74,7 @@ def score_correspondences(
     results: Sequence[AlignmentResult],
     previous: Sequence[Correspondence] = (),
     config: MatchingConfig | None = None,
+    extra_evidence: Sequence[AdditionalPairEvidence] = (),
 ) -> tuple[Correspondence, ...]:
     """Combine lexical and contextual evidence while preserving role contradictions."""
     config = config or MatchingConfig()
@@ -98,6 +101,7 @@ def score_correspondences(
 
     candidate_map = {_pair(item.left, item.right): item for item in candidates.pairs}
     previous_map = {_pair(item.left, item.right): item for item in previous}
+    additional = _collect_additional_evidence(candidate_ids, extra_evidence)
     output: list[Correspondence] = []
 
     for candidate in candidates.pairs:
@@ -204,6 +208,14 @@ def score_correspondences(
         if not total and bool(_slots(left)) != bool(_slots(right)):
             conflicts.add("different_node_kinds")
 
+        if candidate.id in additional:
+            external_score, external_weight, sources = additional[candidate.id]
+            score = score * (1.0 - external_weight) + external_score * external_weight
+            features.update(
+                external_evidence=external_score, external_weight=external_weight
+            )
+            evidence.update(f"additional_evidence:{source}" for source in sources)
+
         relation: Literal["equivalent", "shared_structure", "related", "uncertain"]
 
         if (
@@ -244,6 +256,74 @@ def score_correspondences(
         )
 
     return tuple(output)
+
+
+def _collect_additional_evidence(
+    candidate_ids: set[str],
+    evidence: Sequence[AdditionalPairEvidence],
+) -> dict[str, tuple[float, float, tuple[str, ...]]]:
+    grouped: dict[str, list[AdditionalPairEvidence]] = {}
+    seen: set[tuple[str, str]] = set()
+
+    for item in evidence:
+        if not isinstance(item, AdditionalPairEvidence):
+            raise ScoreCorrespondencesError(
+                "Additional evidence must use AdditionalPairEvidence values."
+            )
+
+        if (
+            not isinstance(item.candidate_id, str)
+            or item.candidate_id not in candidate_ids
+        ):
+            raise ScoreCorrespondencesError(
+                "Additional evidence references an unknown candidate."
+            )
+
+        if not isinstance(item.source, str) or not item.source.strip():
+            raise ScoreCorrespondencesError(
+                "Additional evidence requires a nonempty source."
+            )
+
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not isfinite(value)
+            for value in (item.score, item.weight)
+        ):
+            raise ScoreCorrespondencesError(
+                "Additional evidence scores and weights must be finite numbers."
+            )
+
+        if not 0 <= item.score <= 1 or not 0 <= item.weight <= 0.1:
+            raise ScoreCorrespondencesError(
+                "Evidence scores must be in [0, 1] and weights in [0, 0.1]."
+            )
+
+        key = (item.candidate_id, item.source)
+
+        if key in seen:
+            raise ScoreCorrespondencesError(
+                "A source must provide at most one score for each candidate."
+            )
+
+        seen.add(key)
+
+        if item.weight:
+            grouped.setdefault(item.candidate_id, []).append(item)
+
+    combined: dict[str, tuple[float, float, tuple[str, ...]]] = {}
+
+    for candidate_id, items in grouped.items():
+        ordered = sorted(items, key=lambda item: item.source)
+        weight = sum(item.weight for item in ordered)
+        score = sum(item.score * item.weight for item in ordered) / weight
+        combined[candidate_id] = (
+            score,
+            min(weight, 0.1),
+            tuple(item.source for item in ordered),
+        )
+
+    return combined
 
 
 def _pair(left: str, right: str) -> tuple[str, str]:

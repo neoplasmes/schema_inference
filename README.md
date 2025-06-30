@@ -42,12 +42,42 @@ UPLOAD_ROOT=/data/uploads WORDNET_ROOT=/data/wordnet moon run server:start
 
 В `WORDNET_ROOT` должен находиться каталог `corpora` с архивом `wordnet.zip`.
 
-Moon устанавливает зависимости при первом запуске соответствующей задачи. Бэкенд использует uv и отдельное окружение `apps/server/.venv`. Python устанавливает proto; загрузка другого интерпретатора через uv отключена. `UV_PYTHON` в `.prototools` должен совпадать с закреплённой версией Python.
+Moon устанавливает зависимости при первом запуске соответствующей задачи. Бэкенд и `packages/xml_data_generator` используют общий uv workspace: один `uv.lock` и одно окружение `.venv` в корне. Зависимости пакетов по-прежнему объявляются в их собственных `pyproject.toml`; `tool.uv.sources` связывает локальные пакеты без публикации в PyPI. Python устанавливает proto; загрузка другого интерпретатора через uv отключена. `UV_PYTHON` в `.prototools` должен совпадать с закреплённой версией Python.
 
-Дата разрешения Python-зависимостей ограничена через `tool.uv.exclude-newer` в `apps/server/pyproject.toml`; npm использует аналогичное ограничение `before` в `apps/client/.npmrc`. При разрешении зависимостей выбираются публикации не позднее `2025-05-01T23:59:59Z`. Созданный uv lockfile следует сохранять в репозитории.
+Дата разрешения Python-зависимостей ограничена через `tool.uv.exclude-newer` в корневом `pyproject.toml`; npm использует аналогичное ограничение `before` в `apps/client/.npmrc`. При разрешении зависимостей выбираются публикации не позднее `2025-05-01T23:59:59Z`. Созданный uv lockfile следует сохранять в репозитории.
 
 Версии плагинов закреплены в `.prototools`. Локальный TOML-плагин `.moon/plugins/python.toml` устанавливает Python 3.12.10 из [сборки python-build-standalone от 9 апреля 2025 года](https://github.com/astral-sh/python-build-standalone/releases/tag/20250409) и использует соответствующий файл SHA-256. Адреса не зависят от обновляемого реестра сборок. Плагин рассчитан на Linux/WSL и macOS (x64/ARM64), а также Windows (x86/x64); наличие архива зависит от платформы и libc. При обновлении Python нужно согласованно изменить версию, дату сборки и список `resolve.versions` в плагине.
 
 moon 1.35.4 запускает shims через собственный proto 0.47.11, поэтому Node-плагин закреплён на совместимой версии 0.16.1. Для Python в `.moon/toolchain.yml` указан WASM-плагин 0.14.1: эта версия moon не читает TOML-плагины. Сначала выполняйте `proto use`, чтобы moon использовал уже установленную историческую сборку Python.
 
 Архитектурный контракт бэкенда находится в [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Алгоритм без запуска API
+
+```bash
+uv sync --all-packages --locked
+moon run server:download-wordnet
+uv run xml-data-generator --output artifacts/generated --scenario all --documents 8 --seed 42
+moon run server:evaluate
+```
+
+WordNet устанавливается отдельной командой из закреплённого архива с проверкой
+SHA-256. Во время вывода схемы сетевых запросов нет. Отсутствие словаря отражается
+в предупреждениях; для полной проверки нужен установленный архив.
+
+`server:evaluate` сохраняет реальные входные XML, исходящий JSON и отчёты сравнения
+в `artifacts/inference-review`. Для своего набора, созданного генератором:
+
+```bash
+PYTHONPATH=apps/server/tests uv run --no-sync python -m integration.evaluate --manifest artifacts/generated/manifest.json --output artifacts/generated-review
+uv run --no-sync pytest
+```
+
+Новый результат `xml-probability-space` версии 1 сохраняет наблюдения и предлагает
+соответствия с объяснениями и вариантом `keep_separate`. Эвристические оценки
+не выдаются за вероятности. Существующий клиент требует отдельной адаптации
+к этому формату.
+
+Устройство алгоритма: [BUSINESS_LOGIC.md](apps/server/BUSINESS_LOGIC.md).
+Генератор: [packages/xml_data_generator](packages/xml_data_generator/README.md).
+Метрики, ручные случаи и команды: [оценка алгоритма](apps/server/tests/integration/README.md).

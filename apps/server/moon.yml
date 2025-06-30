@@ -42,5 +42,13 @@ tasks:
       persistent: true
 
   download-wordnet:
-    command: uv run --no-sync python -m nltk.downloader -d nltk_data wordnet
+    command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
     local: true
+
+  evaluate:
+    command: uv run --no-sync python -m integration.evaluate --all --output ../../artifacts/inference-review --fail-on-forbidden
+    env:
+      PYTHONPATH: tests
+    options:
+      cache: false
+      runInCI: false

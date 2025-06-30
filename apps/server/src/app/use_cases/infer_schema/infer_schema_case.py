@@ -2,7 +2,7 @@ import json
 import math
 from collections.abc import Sequence
 
-from app.ports.tools import AssignmentTool, LexicalResourceTool
+from app.ports.tools import AssignmentTool, CandidateEvidenceTool, LexicalResourceTool
 from app.use_cases.infer_schema import InferSchemaError
 from core.entities import XmlNode
 from core.entities.lexical import Segmentation, SegmentationConfig
@@ -27,6 +27,7 @@ class InferSchema:
         *,
         lexical_resource: LexicalResourceTool,
         assignment: AssignmentTool,
+        candidate_evidence: CandidateEvidenceTool | None = None,
         observation_limits: ObservationLimits | None = None,
         segmentation: SegmentationConfig | None = None,
         matching: MatchingConfig | None = None,
@@ -45,6 +46,7 @@ class InferSchema:
 
         self._lexical_resource = lexical_resource
         self._assignment = assignment
+        self._candidate_evidence = candidate_evidence
         self._observation_limits = observation_limits or ObservationLimits()
         self._segmentation = segmentation or SegmentationConfig()
         self._matching = matching or MatchingConfig()
@@ -72,6 +74,11 @@ class InferSchema:
             for profile in corpus.profiles
         }
         candidates = prepare_candidates(corpus, lexicon, analyses, self._matching)
+        extra_evidence = ()
+
+        if candidates.pairs and self._candidate_evidence is not None:
+            extra_evidence = self._candidate_evidence.score(corpus, candidates)
+
         correspondences: tuple[Correspondence, ...] = ()
         rounds = 0
         converged = not candidates.pairs
@@ -91,6 +98,7 @@ class InferSchema:
                 alignments,
                 correspondences,
                 self._matching,
+                extra_evidence,
             )
             converged = self._converged(correspondences, current)
             correspondences = current
@@ -124,6 +132,9 @@ class InferSchema:
             warnings=warnings,
             diagnostics={
                 "lexical_sources": list(lexicon.sources),
+                "additional_evidence_sources": sorted(
+                    {item.source for item in extra_evidence}
+                ),
                 "candidate_pairs": len(candidates.pairs),
                 "context_rounds": rounds,
                 "context_converged": converged,
@@ -144,13 +155,31 @@ class InferSchema:
         if len(previous) != len(current):
             return False
 
-        return all(
-            left.id == right.id
-            and left.relation == right.relation
-            and left.conflicts == right.conflicts
-            and abs(left.score - right.score) < self._convergence_tolerance
-            for left, right in zip(previous, current, strict=True)
-        )
+        for left, right in zip(previous, current, strict=True):
+            if left.id != right.id or left.relation != right.relation:
+                return False
+
+            if left.conflicts != right.conflicts:
+                return False
+
+            score_change = abs(left.score - right.score)
+
+            if score_change >= self._convergence_tolerance:
+                return False
+
+            previous_features = dict(left.features)
+            current_features = dict(right.features)
+
+            if previous_features.keys() != current_features.keys():
+                return False
+
+            for name, previous_value in previous_features.items():
+                feature_change = abs(previous_value - current_features[name])
+
+                if feature_change >= self._convergence_tolerance:
+                    return False
+
+        return True
 
     @staticmethod
     def _serialize(space: dict) -> str:

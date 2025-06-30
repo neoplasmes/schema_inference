@@ -1,5 +1,6 @@
 import json
 from collections.abc import Sequence
+from dataclasses import replace
 from itertools import permutations
 
 import pytest
@@ -7,7 +8,13 @@ import pytest
 from app.use_cases.infer_schema import InferSchema, InferSchemaError
 from core.entities import XmlNode
 from core.entities.lexical import LexiconData
-from core.entities.matching import AlignmentRequest, AlignmentResult, MatchingConfig
+from core.entities.matching import (
+    AdditionalPairEvidence,
+    AlignmentRequest,
+    AlignmentResult,
+    Correspondence,
+    MatchingConfig,
+)
 from core.entities.observations import ObservationLimits
 
 
@@ -124,6 +131,49 @@ def test_pair_budget_is_visible_in_result():
 
     assert len(space["correspondences"]) <= 1
     assert any("budget" in warning for warning in space["warnings"])
+
+
+def test_optional_evidence_is_loaded_once_and_explained_in_json():
+    class ExtraEvidence:
+        def __init__(self):
+            self.calls = 0
+
+        def score(self, corpus, candidates):
+            self.calls += 1
+
+            return (AdditionalPairEvidence(candidates.pairs[0].id, "manual-tool", 0.9),)
+
+    tool = ExtraEvidence()
+    inference, _, assignment = make_inference(candidate_evidence=tool)
+    first = XmlNode("customer", children=[XmlNode("name", "Ada")])
+    second = XmlNode("client", children=[XmlNode("name", "Bob")])
+    space = json.loads(inference.execute([first, second]))
+
+    assert tool.calls == 1
+    assert assignment.calls > 1
+    assert space["diagnostics"]["additional_evidence_sources"] == ["manual-tool"]
+    assert any(
+        "external_weight" in item["features"] for item in space["correspondences"]
+    )
+
+
+def test_equal_total_score_does_not_hide_changed_context_anchors():
+    inference, _, _ = make_inference()
+    previous = Correspondence(
+        id="pair",
+        left="first",
+        right="second",
+        relation="related",
+        score=0.8,
+        features=(("context_anchors", 1.0), ("children", 0.8)),
+        evidence=(),
+        conflicts=(),
+        choices=(),
+    )
+    current = replace(previous, features=(("context_anchors", 2.0), ("children", 0.8)))
+
+    assert not inference._converged((previous,), (current,))
+    assert inference._converged((current,), (current,))
 
 
 @pytest.mark.parametrize("max_rounds", [0, 21, -1, 1.5, True])

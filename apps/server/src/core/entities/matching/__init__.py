@@ -1,3 +1,4 @@
+from .additional_pair_evidence import AdditionalPairEvidence
 from .matching_data import (
     AlignmentRequest,
     AlignmentResult,
@@ -9,6 +10,7 @@ from .matching_data import (
 )
 
 __all__ = [
+    "AdditionalPairEvidence",
     "AlignmentRequest",
     "AlignmentResult",
     "CandidateBatch",

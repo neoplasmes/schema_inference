@@ -21,6 +21,7 @@ htmlcov/
 .pytype/
 test-results/
 artifacts/
+/packages/xml_data_generator/generated/
 dist/
 build/
 .moon/cache/

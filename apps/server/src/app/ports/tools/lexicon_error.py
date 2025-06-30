@@ -1,2 +1,0 @@
-class LexiconError(RuntimeError):
-    pass

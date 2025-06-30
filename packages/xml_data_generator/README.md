@@ -7,8 +7,11 @@ From the repository root:
 
 ```bash
 uv run --package xml-data-generator xml-data-generator --output /tmp/xml-corpus --scenario all --documents 8 --seed 42
-moon run xml_data_generator:generate
+moon run xml-data-generator:generate
 ```
+
+The moon task writes to `packages/xml_data_generator/generated/`, which is ignored
+by Git. The CLI's `--output` option lets you choose a different directory.
 
 `--documents` is the number per family. Families are `orders`, `invoices`, `catalog`
 and `contacts`. The same seed and options reproduce identical XML and manifest bytes.
