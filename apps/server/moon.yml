@@ -42,5 +42,5 @@ tasks:
       persistent: true
 
   download-wordnet:
-    command: uv run --no-sync python -m nltk.downloader -d nltk_data wordnet
+    command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
     local: true
