@@ -4,7 +4,7 @@ from typing import Any
 
 from app.ports.tools.lexical_resource import LexicalResourceTool
 from app.use_cases.infer_schema import InferSchemaError
-from core.entities import XmlNode as ProbabilitySpaceNode
+from core.entities import ProbabilitySpaceNode
 from core.entities.inference import InferenceLimits
 from core.entities.lexical import LexiconData
 from core.processes.build_probability_space import build_probability_space

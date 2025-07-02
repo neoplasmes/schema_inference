@@ -3,7 +3,7 @@ import re
 from collections.abc import Sequence
 from datetime import date, datetime
 
-from core.entities import XmlNode as ProbabilitySpaceNode
+from core.entities import ProbabilitySpaceNode
 from core.entities.inference import InferenceLimits, NormalizedNode
 from core.processes.normalize_documents import NormalizeDocumentsError
 
@@ -76,6 +76,16 @@ def normalize_documents(
             for index, child in enumerate(node.children)
         )
         active.remove(id(node))
+        source_format = getattr(node, "format", "xml")
+
+        if source_format == "yaml":
+            kind = node.value_type or "parent"
+            value = node.value
+
+            if kind == "string" and not str(value or "").strip():
+                kind, value = "null", None
+
+            return NormalizedNode(node.tag, kind, value, children, position, node.role)
 
         attributes = getattr(node, "attributes", {})
         nil = attributes.get(XSI + "nil", "false").strip()

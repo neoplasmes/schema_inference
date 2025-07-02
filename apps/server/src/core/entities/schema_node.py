@@ -4,6 +4,8 @@ from typing import Any, Dict, List
 
 @dataclass
 class SchemaNode:
+    """Describe a user-selected schema element before its conversion to XSD."""
+
     chosenType: str
     name: str
     type: str
