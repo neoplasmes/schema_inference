@@ -5,7 +5,7 @@ from starlette.concurrency import run_in_threadpool
 
 from api.jobs import SessionCleanupJob
 from api.schemas import SessionCreated
-from app.ports.tools import DocumentStorageError
+from app.ports.tools.document_storage import DocumentStorageError
 from app.use_cases.upload_documents import (
     UploadDocuments,
     UploadDocumentsError,

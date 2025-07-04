@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from app.ports.tools import SchemaWriter
+from app.ports.tools.schema_writer import SchemaWriter
 from core.entities import SchemaNode
 from core.processes.build_xsd import build_xsd
 

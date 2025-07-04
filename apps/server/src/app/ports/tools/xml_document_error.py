@@ -1,2 +1,0 @@
-class InvalidDocumentError(ValueError):
-    pass

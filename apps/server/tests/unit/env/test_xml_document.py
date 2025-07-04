@@ -2,9 +2,9 @@ from io import BytesIO
 
 import pytest
 
-from app.ports.tools import InvalidDocumentError
+from app.ports.tools.document_reader import InvalidDocumentError
 from app.use_cases.infer_schema import InferSchema
-from env.tools.xml import ElementTreeXmlDocumentTool
+from env.tools.document_reader.strategies import ElementTreeXmlDocumentTool
 
 
 def test_xml_reader_preserves_text_tail_expanded_names_and_attributes():

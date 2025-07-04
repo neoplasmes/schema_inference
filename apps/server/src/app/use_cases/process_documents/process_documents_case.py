@@ -2,12 +2,8 @@ from dataclasses import dataclass
 from typing import Generator
 
 from app.ports.repos import SessionRepository
-from app.ports.tools import (
-    DocumentNotFoundError,
-    DocumentStorageTool,
-    InvalidDocumentError,
-    XmlDocumentTool,
-)
+from app.ports.tools.document_reader import DocumentReaderTool, InvalidDocumentError
+from app.ports.tools.document_storage import DocumentNotFoundError, DocumentStorageTool
 from app.use_cases.cleanup_session import CleanupSession
 from app.use_cases.infer_schema import InferSchema
 
@@ -36,13 +32,13 @@ class ProcessDocuments:
         self,
         sessions: SessionRepository,
         documents: DocumentStorageTool,
-        xml_reader: XmlDocumentTool,
+        document_reader: DocumentReaderTool,
         infer_schema: InferSchema,
         cleanup_session: CleanupSession,
     ) -> None:
         self._sessions = sessions
         self._documents = documents
-        self._xml_reader = xml_reader
+        self._document_reader = document_reader
         self._infer_schema = infer_schema
         self._cleanup_session = cleanup_session
 
@@ -61,7 +57,7 @@ class ProcessDocuments:
             for index, filename in enumerate(session.filenames, 1):
                 try:
                     with self._documents.open(session.id, filename) as source:
-                        roots.append(self._xml_reader.read(source))
+                        roots.append(self._document_reader.read(source, filename))
                 except DocumentNotFoundError:
                     yield ProcessingError(f"Файл {filename} не найден")
                     continue

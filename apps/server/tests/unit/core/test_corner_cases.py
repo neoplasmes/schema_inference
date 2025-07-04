@@ -11,7 +11,7 @@ from core.processes.normalize_documents import (
     NormalizeDocumentsError,
     normalize_documents,
 )
-from env.tools.xml import ElementTreeXmlDocumentTool
+from env.tools.document_reader.strategies import ElementTreeXmlDocumentTool
 from env.tools.lexical import CorpusLexicalResourceTool
 
 
