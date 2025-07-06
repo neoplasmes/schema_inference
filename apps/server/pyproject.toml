@@ -32,7 +32,7 @@ packages = [
 ]
 
 [tool.uv.sources]
-xml-data-generator = { workspace = true }
+documents-generator = { workspace = true }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -40,7 +40,7 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "xml-data-generator",
+    "documents-generator",
 ]
 
 [tool.ruff]

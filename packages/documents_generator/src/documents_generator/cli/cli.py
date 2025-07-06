@@ -1,8 +1,8 @@
 import argparse
 from pathlib import Path
 
-from xml_data_generator import GenerationOptions, generate_dataset
-from xml_data_generator.scenarios import SCENARIOS
+from documents_generator import GenerationOptions, generate_dataset
+from documents_generator.scenarios import SCENARIOS
 
 
 def main() -> None:

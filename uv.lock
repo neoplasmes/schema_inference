@@ -8,7 +8,7 @@ exclude-newer = "2025-05-01T23:59:59Z"
 [manifest]
 members = [
     "backend",
-    "xml-data-generator",
+    "documents-generator",
 ]
 
 [manifest.dependency-groups]
@@ -58,7 +58,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "xml-data-generator" },
+    { name = "documents-generator" },
 ]
 
 [package.metadata]
@@ -74,7 +74,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "xml-data-generator", editable = "packages/xml_data_generator" }]
+dev = [{ name = "documents-generator", editable = "packages/documents_generator" }]
 
 [[package]]
 name = "click"
@@ -96,6 +96,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
 ]
+
+[[package]]
+name = "documents-generator"
+version = "0.1.0"
+source = { editable = "packages/documents_generator" }
+dependencies = [
+    { name = "pyyaml" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pyyaml", specifier = "==6.0.2" }]
 
 [[package]]
 name = "fastapi"
@@ -452,8 +463,3 @@ sdist = { url = "https://files.pythonhosted.org/packages/c9/4a/44d3c295350d77642
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/58/e860788190eba3bcce367f74d29c4675466ce8dddfba85f7827588416f01/wsproto-1.2.0-py3-none-any.whl", hash = "sha256:b9acddd652b585d75b20477888c56642fdade28bdfd3579aa24a4d2c037dd736", size = 24226, upload-time = "2022-08-23T19:58:19.96Z" },
 ]
-
-[[package]]
-name = "xml-data-generator"
-version = "0.1.0"
-source = { editable = "packages/xml_data_generator" }

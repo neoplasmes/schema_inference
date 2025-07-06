@@ -19,7 +19,7 @@ htmlcov/
 .pytype/
 test-results/
 artifacts/
-/packages/xml_data_generator/generated/
+/packages/documents_generator/generated/
 dist/
 build/
 .moon/cache/

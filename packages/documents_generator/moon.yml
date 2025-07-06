@@ -3,7 +3,7 @@ type: tool
 
 tasks:
   generate:
-    command: uv run --no-sync xml-data-generator --output generated --scenario all --documents 8 --seed 42
+    command: uv run --no-sync documents-generator --output generated --scenario all --documents 8 --seed 42
     outputs:
       - generated
     options:

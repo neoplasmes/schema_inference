@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from xml_data_generator.scenarios import FORBIDDEN_ROLE_PAIRS, SCENARIOS, Field
+from documents_generator.scenarios import FORBIDDEN_ROLE_PAIRS, SCENARIOS, Field
 
 
 @dataclass(frozen=True)

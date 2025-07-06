@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["apps/server", "packages/xml_data_generator"]
+members = ["apps/server", "packages/documents_generator"]
 
 [tool.uv]
 exclude-newer = "2025-05-01T23:59:59Z"

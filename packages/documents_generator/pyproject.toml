@@ -1,15 +1,15 @@
 [project]
-name = "xml-data-generator"
+name = "documents-generator"
 version = "0.1.0"
-description = "Seeded XML collections with independent correspondence annotations"
+description = "Repeated XML and YAML collections with known variant distributions"
 requires-python = ">=3.12,<3.13"
-dependencies = []
+dependencies = ["PyYAML==6.0.2"]
 
 [project.scripts]
-xml-data-generator = "xml_data_generator.cli:main"
+documents-generator = "documents_generator.cli:main"
 
 [tool.poetry]
-packages = [{ include = "xml_data_generator", from = "src" }]
+packages = [{ include = "documents_generator", from = "src" }]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -30,4 +30,3 @@ typeCheckingMode = "basic"
 venvPath = "../.."
 venv = ".venv"
 extraPaths = ["src"]
-
