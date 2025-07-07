@@ -1,3 +1,3 @@
-from .generation import GenerationOptions, generate_dataset
+from .generation import GenerationOptions, generate_collections, generate_dataset
 
-__all__ = ["GenerationOptions", "generate_dataset"]
+__all__ = ["GenerationOptions", "generate_collections", "generate_dataset"]

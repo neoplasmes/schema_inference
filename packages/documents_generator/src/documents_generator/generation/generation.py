@@ -1,207 +1,135 @@
 import json
+import math
 import random
-import xml.etree.ElementTree as ET
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any
 
-from documents_generator.scenarios import FORBIDDEN_ROLE_PAIRS, SCENARIOS, Field
+from documents_generator.rendering import render_document
+from documents_generator.scenarios import FORBIDDEN_ROLE_PAIRS, SCENARIOS
+from documents_generator.variants import build_variant
+
+DISTRIBUTIONS = ("geometric", "geometric_offset")
+FORMATS = ("xml", "yaml")
+VARIANT_COUNT = 7
 
 
 @dataclass(frozen=True)
 class GenerationOptions:
+    """Settings for one collection with seven repeated structural variants."""
+
     seed: int = 42
-    documents: int = 8
-    scenario: str = "all"
-    typo_rate: float = 0.1
-    omission_rate: float = 0.2
-    attribute_rate: float = 0.15
-    reorder_rate: float = 0.5
-    max_repeats: int = 3
+    documents: int = 100
+    scenario: str = "orders"
+    distribution: str = "geometric"
+    format: str = "xml"
 
     def __post_init__(self) -> None:
-        if self.documents < 1 or self.max_repeats < 1:
-            raise ValueError("documents and max_repeats must be positive")
+        minimum = 6 * VARIANT_COUNT if self.distribution == "geometric_offset" else 7
 
-        if self.scenario != "all" and self.scenario not in SCENARIOS:
+        if self.documents < minimum:
+            raise ValueError(f"This distribution needs at least {minimum} documents")
+
+        if self.scenario not in SCENARIOS and self.scenario != "all":
             raise ValueError(f"Unknown scenario: {self.scenario}")
 
-        for value in (
-            self.typo_rate,
-            self.omission_rate,
-            self.attribute_rate,
-            self.reorder_rate,
-        ):
-            if not 0 <= value <= 1:
-                raise ValueError("Mutation rates must be between zero and one")
+        if self.distribution not in DISTRIBUTIONS:
+            raise ValueError(f"Unknown distribution: {self.distribution}")
+
+        if self.format not in FORMATS:
+            raise ValueError(f"Unknown format: {self.format}")
 
 
-def mutate_name(name: str, rng: random.Random) -> tuple[str, str]:
-    """Introduce one reproducible edit while preserving a valid XML local name."""
-    operation = rng.choice(("substitution", "insertion", "deletion", "transposition"))
-    index = rng.randrange(1, len(name)) if len(name) > 1 else 0
-    letter = rng.choice("abcdefghijklmnopqrstuvwxyz".replace(name[index], ""))
+def variant_distribution(documents: int, offset: int) -> tuple[float, list[int]]:
+    """Solve the geometric sum and round counts while keeping the exact total."""
+    lower = 1.0
+    upper = float(documents)
 
-    if operation == "insertion":
-        result = name[:index] + letter + name[index:]
-    elif operation == "deletion" and len(name) > 2:
-        result = name[:index] + name[index + 1 :]
-    elif operation == "transposition" and len(set(name)) > 1:
-        positions = [
-            position
-            for position in range(len(name) - 1)
-            if name[position] != name[position + 1]
-        ]
-        index = rng.choice(positions)
-        result = name[:index] + name[index + 1] + name[index] + name[index + 2 :]
-    else:
-        result = name[:index] + letter + name[index + 1 :]
-        operation = "substitution"
+    for _ in range(80):
+        ratio = (lower + upper) / 2
+        total = sum(offset + ratio**index for index in range(VARIANT_COUNT))
 
-    return result, operation
+        if total < documents:
+            lower = ratio
+        else:
+            upper = ratio
 
+    ratio = (lower + upper) / 2
+    weights = [offset + ratio**index for index in range(VARIANT_COUNT)]
+    counts = [math.floor(weight) for weight in weights]
+    remaining = documents - sum(counts)
+    order = sorted(
+        range(VARIANT_COUNT),
+        key=lambda index: (-(weights[index] - counts[index]), index),
+    )
 
-class DocumentBuilder:
-    """Build XML and independent role annotations in one deterministic traversal."""
+    for index in order[:remaining]:
+        counts[index] += 1
 
-    def __init__(self, options: GenerationOptions, rng: random.Random, index: int):
-        self.options = options
-        self.rng = rng
-        self.index = index
-        self.nodes: list[dict[str, Any]] = []
-        self.transformations: list[dict[str, Any]] = []
-        self.namespace = "urn:example:business" if index % 3 else ""
-        self.names: dict[str, str] = {}
-
-    def name(self, field: Field) -> str:
-        if field.role not in self.names:
-            local = field.names[self.index % len(field.names)]
-
-            if self.rng.random() < self.options.typo_rate:
-                changed, operation = mutate_name(local, self.rng)
-                self.transformations.append(
-                    {
-                        "role": field.role,
-                        "operation": operation,
-                        "from": local,
-                        "to": changed,
-                    }
-                )
-                local = changed
-
-            self.names[field.role] = (
-                f"{{{self.namespace}}}{local}" if self.namespace else local
-            )
-
-        return self.names[field.role]
-
-    def build(self, field: Field, locator: list[int]) -> ET.Element:
-        element = ET.Element(self.name(field))
-        self.nodes.append(
-            {
-                "locator": locator,
-                "role": field.role,
-                "name": element.tag,
-                "kind": "element",
-            }
-        )
-
-        if not field.children:
-            element.text = field.value
-
-            return element
-
-        children = list(field.children)
-
-        if self.rng.random() < self.options.reorder_rate:
-            self.rng.shuffle(children)
-            self.transformations.append({"role": field.role, "operation": "reorder"})
-
-        for child in children:
-            if child.optional and self.rng.random() < self.options.omission_rate:
-                self.transformations.append({"role": child.role, "operation": "omit"})
-
-                continue
-
-            repeats = (
-                self.rng.randint(1, self.options.max_repeats) if child.repeated else 1
-            )
-
-            if not child.children and not child.repeated:
-                if self.rng.random() < self.options.attribute_rate:
-                    attribute = self.name(child)
-                    element.set(attribute, child.value)
-                    self.nodes.append(
-                        {
-                            "locator": locator,
-                            "attribute": attribute,
-                            "role": child.role,
-                            "name": attribute,
-                            "kind": "attribute",
-                        }
-                    )
-                    self.transformations.append(
-                        {"role": child.role, "operation": "attribute"}
-                    )
-
-                    continue
-
-            for _ in range(repeats):
-                element.append(self.build(child, [*locator, len(element)]))
-
-        return element
+    return ratio, counts
 
 
 def generate_dataset(output: Path, options: GenerationOptions) -> dict[str, Any]:
-    """Write a collection and manifest; unrelated existing files are never removed."""
-    rng = random.Random(options.seed)
-    families = list(SCENARIOS) if options.scenario == "all" else [options.scenario]
+    """Write one collection with compact annotations shared by its variants."""
+    if options.scenario == "all":
+        raise ValueError("Use generate_collections to produce every scenario")
+
     output.mkdir(parents=True, exist_ok=True)
-    document_directory = output / "documents"
-    document_directory.mkdir(exist_ok=True)
+    (output / "documents").mkdir(exist_ok=True)
+    offset = 5 if options.distribution == "geometric_offset" else 0
+    ratio, counts = variant_distribution(options.documents, offset)
     documents: list[dict[str, Any]] = []
+    variants: list[dict[str, Any]] = []
     groups: dict[str, list[dict[str, Any]]] = {}
+    index = 0
 
-    for family in families:
-        for index in range(options.documents):
-            identifier = f"{family}-{index:04d}"
-            builder = DocumentBuilder(options, rng, index)
-            root = builder.build(SCENARIOS[family], [])
+    for variant, count in enumerate(counts):
+        root = build_variant(SCENARIOS[options.scenario], variant, options.seed)
+        first_nodes: list[dict[str, Any]] = []
+        first_identifier = ""
 
-            if builder.namespace:
-                ET.register_namespace(
-                    "left" if index % 2 else "right", builder.namespace
-                )
-
-            ET.indent(root, space="  ")
-            relative = f"documents/{identifier}.xml"
-            ET.ElementTree(root).write(
-                output / relative, encoding="utf-8", xml_declaration=True
-            )
+        for occurrence in range(count):
+            identifier = f"{options.scenario}-{index + 1:03d}"
+            relative = f"documents/{identifier}.{options.format}"
+            nodes = render_document(root, output / relative, options.format, index)
             documents.append(
                 {
                     "id": identifier,
                     "path": relative,
-                    "family": family,
-                    "nodes": builder.nodes,
-                    "transformations": builder.transformations,
+                    "family": options.scenario,
+                    "format": options.format,
+                    "variant": variant,
                 }
             )
 
-            for node in builder.nodes:
-                reference = {"document": identifier, "locator": node["locator"]}
+            if occurrence == 0:
+                first_nodes = nodes
+                first_identifier = identifier
 
-                if node["kind"] == "attribute":
-                    reference["attribute"] = node["attribute"]
+            index += 1
 
-                groups.setdefault(node["role"], []).append(reference)
+        variants.append({"id": variant, "count": count, "nodes": first_nodes})
 
+        for node in first_nodes:
+            groups.setdefault(node["role"], []).append(
+                {"document": first_identifier, "locator": node["locator"]}
+            )
+
+    random.Random(options.seed).shuffle(documents)
     roles = set(groups)
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "seed": options.seed,
         "scenario": options.scenario,
+        "format": options.format,
         "parameters": asdict(options),
+        "distribution": {
+            "kind": options.distribution,
+            "offset": offset,
+            "ratio": ratio,
+            "counts": counts,
+        },
+        "variants": variants,
         "documents": documents,
         "correspondence_groups": [
             {"role": role, "members": members}
@@ -219,3 +147,29 @@ def generate_dataset(output: Path, options: GenerationOptions) -> dict[str, Any]
     )
 
     return manifest
+
+
+def generate_collections(
+    output: Path,
+    options: GenerationOptions,
+    distributions: tuple[str, ...] = DISTRIBUTIONS,
+    formats: tuple[str, ...] = FORMATS,
+) -> list[Path]:
+    """Keep each family, format and distribution in its own document collection."""
+    families = list(SCENARIOS) if options.scenario == "all" else [options.scenario]
+    manifests = []
+
+    for family in families:
+        for distribution in distributions:
+            for file_format in formats:
+                directory = output / f"{family}-{distribution}-{file_format}"
+                selected = replace(
+                    options,
+                    scenario=family,
+                    distribution=distribution,
+                    format=file_format,
+                )
+                generate_dataset(directory, selected)
+                manifests.append(directory / "manifest.json")
+
+    return manifests

@@ -8,6 +8,14 @@ from documents_generator.variants import DocumentNode
 
 
 def _value(node: DocumentNode, index: int) -> str | int | float:
+    if node.role.endswith(".email"):
+        local, domain = node.value.split("@", 1)
+
+        return f"{local}{index + 1}@{domain}"
+
+    if node.role.endswith(".phone"):
+        return f"+{int(node.value) + index}"
+
     if node.role.endswith((".quantity", ".count")):
         return int(node.value) + index % 3
 
