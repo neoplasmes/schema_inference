@@ -1,0 +1,71 @@
+[environment]
+# Target language and standard library version for type checking; does not install Python.
+# This version of ty supports "3.7"–"3.13". The project targets Python 3.12.
+python-version = "3.12"
+
+# Target OS for sys.platform branches and platform-specific types. WSL uses Linux.
+# Options: "linux", "win32", "darwin", "android", "ios", "all", or another sys.platform string.
+# "all" makes no assumptions about the OS; omitting this setting uses the current OS.
+python-platform = "linux"
+
+# Environment used to resolve installed libraries and their types.
+# Accepts a path to a virtual environment or an actual interpreter; auto-detected if omitted.
+# All relative paths here are resolved from the project root containing this ty.toml.
+python = ".venv"
+
+# Roots of the project's Python modules in search order: the first takes priority.
+# Accepts a list of directories; if omitted, ty tries to detect a standard src/flat layout.
+# For this monorepo, include both src directories and the root for integration/unit test imports.
+root = [
+    "apps/server/src",
+    "packages/documents_generator/src",
+    "apps/server/tests",
+]
+
+[src]
+# Directories and files to check: source code for both packages and server tests.
+# Accepts a list of paths or glob patterns; if omitted, the entire project is checked.
+# This defines what to check; environment.root above defines where to resolve imports.
+include = [
+    "apps/server/src",
+    "apps/server/tests",
+    "packages/documents_generator/src",
+]
+
+# Additional exclusions: auxiliary files and build output.
+# Accepts paths and glob patterns: * within a directory, ** at any depth, ! negates an exclusion.
+# Patterns are anchored to the project root; exclusions take precedence over include.
+exclude = [
+    "**/__pycache__",
+    "**/build",
+    "**/dist",
+    "**/*.egg-info",
+]
+
+# Respect .gitignore and .ignore: true honors them; false also checks ignored files.
+respect-ignore-files = true
+
+[rules]
+# Each rule below accepts "error" for an error, "warn" for a warning,
+# or "ignore" to disable it. Unlisted rules retain ty's default severity levels.
+
+# An imported module cannot be found: helps catch typos and an incorrect environment.
+unresolved-import = "error"
+
+# A variable may be undefined in one of the execution branches.
+possibly-unresolved-reference = "error"
+
+# A malformed comment intended to suppress a ty diagnostic.
+invalid-ignore-comment = "error"
+
+# A suppression is no longer needed: remove outdated exceptions to checks.
+unused-ignore-comment = "warn"
+
+# cast() does not change the type: warns about an unnecessary cast.
+redundant-cast = "warn"
+
+[terminal]
+# true makes warnings produce exit code 1 as well, allowing the check to fail CI.
+# false only fails on errors. Does not affect diagnostic colors or severity in the editor.
+error-on-warning = true
+output-format = "full"

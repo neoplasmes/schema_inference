@@ -11,6 +11,7 @@ dev = [
     "ruff==0.11.8",
     "pyright==1.1.400",
     "pytest==8.3.5",
+    "ipykernel==6.29.5",
 ]
 
 [tool.pytest.ini_options]

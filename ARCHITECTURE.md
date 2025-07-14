@@ -198,3 +198,21 @@ is the operation useful outside a specific business domain?
 
 - use_case — one application operation
 - workflow — long-running/distributed orchestration of multiple app operations
+
+### Tests structure:
+
+```
+tests/
+    unit/
+        core/
+        env/
+        app/
+        ......
+
+    integration/
+        env/
+        api/
+        ......
+
+    e2e/
+```

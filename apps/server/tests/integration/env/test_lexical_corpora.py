@@ -4,17 +4,17 @@ import pytest
 
 from env.tools.lexical import CorpusLexicalResourceTool
 
+CORPUS_DIRECTORY = Path(__file__).resolve().parents[3] / "nltk_data"
+
+pytestmark = pytest.mark.skipif(
+    not (CORPUS_DIRECTORY / "corpora" / "wordnet.zip").is_file(),
+    reason="The pinned WordNet archive must be installed for corpus integration tests",
+)
+
 
 @pytest.fixture(scope="module")
 def data():
-    directory = Path(__file__).resolve().parents[3] / "nltk_data"
-
-    if not (directory / "corpora" / "wordnet.zip").is_file():
-        pytest.skip(
-            "The pinned WordNet archive must be installed for corpus integration tests"
-        )
-
-    return CorpusLexicalResourceTool(directory).load()
+    return CorpusLexicalResourceTool(CORPUS_DIRECTORY).load()
 
 
 def test_historical_corpora_load_without_downloads(data):

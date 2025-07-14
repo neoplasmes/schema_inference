@@ -19,4 +19,8 @@
       "./.moon/cache/schemas/template.json": ["**/template.yml"],
       "./.moon/cache/schemas/toolchain.json": [".moon/toolchain.yml"]
     },
+
+    "files.associations": {
+        ".prototools": "toml"
+    }
 }
