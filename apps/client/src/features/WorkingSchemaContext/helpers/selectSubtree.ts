@@ -1,4 +1,10 @@
-import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel, VirtualSchemaModel } from '@/model/treeModel';
+import type {
+    SchemaDataEntry,
+    SchemaNode,
+    SchemaNodeModel,
+    VirtualSchemaModel,
+} from '@/model/treeModel';
+import { ExpressionNodeType } from '@/model/treeModel';
 
 import { selectMostProbableSubtrees } from './selectMostProbableSubtrees';
 
@@ -40,7 +46,10 @@ export const selectSubtree = (
     schemaData: Record<string, SchemaDataEntry>,
     nodeID: number
 ) => {
-    const subtreePath: Array<{ orNode: SchemaNode<SchemaNodeModel>; choosedNode: SchemaNode<SchemaNodeModel> }> = [];
+    const subtreePath: Array<{
+        orNode: SchemaNode<SchemaNodeModel>;
+        choosedNode: SchemaNode<SchemaNodeModel>;
+    }> = [];
     let current = model.getNodeById(nodeID);
     while (current !== model.getRoot()) {
         //console.log(current.data.value);

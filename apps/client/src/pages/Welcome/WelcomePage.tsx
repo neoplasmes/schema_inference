@@ -3,12 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useWorkingSchemaContext } from '../../features/WorkingSchemaContext/components/WorkingSchemaContext';
-import { SchemaDataEntry } from '../../model/treeModel';
+import type { SchemaDataEntry } from '../../model/treeModel';
 import mockData from '../../sample.json';
-import { bem } from '../../shared/bem/bem';
 import './WelcomePage.scss';
 
-const block = bem('GeneratePage');
 // Интерфейс для ответа от POST-запроса
 type UploadResponse = {
     message: string;
@@ -21,7 +19,7 @@ type WebSocketMessage = Partial<{
     processed: number;
     total: number;
     progress: number;
-    message: any;
+    message: string;
     error: string;
 }>;
 
@@ -34,15 +32,21 @@ export const WelcomePage = () => {
     const { initialize: initializeWorkingSchema } = useWorkingSchemaContext();
     const navigate = useNavigate();
 
-    const handleAttachFiles = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setFiles(event.target.files);
-    }, []);
+    const handleAttachFiles = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            setFiles(event.target.files);
+        },
+        []
+    );
 
     const handleUpload = useCallback(() => {
         const upload = async () => {
             if (!files) {
-                initializeWorkingSchema(mockData as unknown as Record<string, SchemaDataEntry>);
+                initializeWorkingSchema(
+                    mockData as unknown as Record<string, SchemaDataEntry>
+                );
                 navigate('/edit');
+
                 return;
             }
 
@@ -77,12 +81,18 @@ export const WelcomePage = () => {
 
     const connectWebSocket = useCallback((session_id: string) => {
         // 0 - Connecting, 1 - Open
-        if (websocketRef.current?.readyState === 0 || websocketRef.current?.readyState === 1) {
+        if (
+            websocketRef.current?.readyState === 0 ||
+            websocketRef.current?.readyState === 1
+        ) {
             console.log(websocketRef.current);
+
             return;
         }
 
-        websocketRef.current = new WebSocket(`ws://localhost:8000/schema/sessions/${session_id}/events`);
+        websocketRef.current = new WebSocket(
+            `ws://localhost:8000/schema/sessions/${session_id}/events`
+        );
         const websocket = websocketRef.current;
 
         websocket.onopen = () => {
@@ -99,19 +109,26 @@ export const WelcomePage = () => {
             switch (data.status) {
                 case 'progress':
                     console.log('progress message');
+
                     break;
-                case 'completed':
+                case 'completed': {
                     websocket.close();
                     if (!data.message) {
-                        throw new Error('Message has not been provided on completed state');
+                        throw new Error(
+                            'Message has not been provided on completed state'
+                        );
                     }
 
                     console.log((Date.now() - startTime.current) / 1000);
 
-                    const jsonSchemaData: Record<string, SchemaDataEntry> = JSON.parse(data.message);
+                    const jsonSchemaData: Record<string, SchemaDataEntry> = JSON.parse(
+                        data.message
+                    );
                     initializeWorkingSchema(jsonSchemaData);
                     navigate('/edit');
+
                     break;
+                }
                 default:
                     throw new Error('Unprovided status');
             }
@@ -137,12 +154,7 @@ export const WelcomePage = () => {
 
     return (
         <div>
-            <input
-                type="file"
-                multiple
-                accept=".xml"
-                onChange={handleAttachFiles}
-            />
+            <input type="file" multiple accept=".xml" onChange={handleAttachFiles} />
             <button onClick={handleUpload}>Построить схему</button>
         </div>
     );

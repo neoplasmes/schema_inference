@@ -1,12 +1,11 @@
 import { XSDType } from '@/entities/node';
-import {
+import type {
     ExpressionNode,
-    ExpressionNodeType,
     SchemaDataEntryBase,
     SchemaNode,
     SchemaNodeModel,
-    VirtualSchemaModel,
 } from '@/model/treeModel';
+import { ExpressionNodeType, VirtualSchemaModel } from '@/model/treeModel';
 import { assignObjectSkippingProperties } from '@/shared/assignWithOmit';
 
 import { createGlobalExpressionFromSchemaData } from './createGlobalExpressionFromSchemaData';
@@ -30,7 +29,9 @@ const getNameFromExpressionNodeValue = (expr: ExpressionNode): string => {
  * Метод, используемый для создания виртуальной модели дерева из JSON-ответа с сервера
  * @note При конвертации все AND < LEAF убираются, так как они не несут в себе никакой информации
  */
-export const createVirtualModelFromSchemaData = <K extends SchemaDataEntryBase>(schemaData: Record<string, K>) => {
+export const createVirtualModelFromSchemaData = <K extends SchemaDataEntryBase>(
+    schemaData: Record<string, K>
+) => {
     const expressionRoot = createGlobalExpressionFromSchemaData(schemaData);
 
     const rootNodeData: SchemaNodeModel = assignObjectSkippingProperties(
@@ -46,7 +47,10 @@ export const createVirtualModelFromSchemaData = <K extends SchemaDataEntryBase>(
 
     const schemaModel = new VirtualSchemaModel(rootNodeData);
 
-    const stack: { exprNode: ExpressionNode; schemaNodeParent: SchemaNode<SchemaNodeModel> }[] = [];
+    const stack: {
+        exprNode: ExpressionNode;
+        schemaNodeParent: SchemaNode<SchemaNodeModel>;
+    }[] = [];
     // обработка слева направо. сразу запихиваем детей корня, т.к. его уже не надо обрабатывать
     for (let i = expressionRoot.children.length - 1; i >= 0; i--) {
         stack.push({
@@ -66,19 +70,23 @@ export const createVirtualModelFromSchemaData = <K extends SchemaDataEntryBase>(
             )
         ) {
             try {
-                const currentSchemaDataTransfer: SchemaNodeModel = assignObjectSkippingProperties(
-                    {
-                        chosen: false,
-                        chosenAttributes: [],
-                        chosenType: XSDType.PARENT,
-                        name: getNameFromExpressionNodeValue(current.exprNode),
-                    },
-                    current.exprNode,
-                    ['children']
-                );
+                const currentSchemaDataTransfer: SchemaNodeModel =
+                    assignObjectSkippingProperties(
+                        {
+                            chosen: false,
+                            chosenAttributes: [],
+                            chosenType: XSDType.PARENT,
+                            name: getNameFromExpressionNodeValue(current.exprNode),
+                        },
+                        current.exprNode,
+                        ['children']
+                    );
 
-                addedNode = schemaModel.addNode(current.schemaNodeParent.id, currentSchemaDataTransfer);
-            } catch (e) {
+                addedNode = schemaModel.addNode(
+                    current.schemaNodeParent.id,
+                    currentSchemaDataTransfer
+                );
+            } catch {
                 continue;
             }
         }

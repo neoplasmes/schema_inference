@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Reactive } from './Reactive';
+import type { Reactive } from './Reactive';
 
 type StateExtractor<T, State> = (state: T) => State;
 
-export const useReactiveState = <T, State>(model: Reactive<T>, extractor: StateExtractor<T, State>) => {
+export const useReactiveState = <T, State>(
+    model: Reactive<T>,
+    extractor: StateExtractor<T, State>
+) => {
     const [state, setState] = useState<State>(() => extractor(model.getInternalData()));
     // Если это не сделать, то когда в одном и том же компоненте, в одном и том же хуке меняется модель
     // у нас не переключится стейт на данные из новой модели.
@@ -51,11 +54,17 @@ function shallowEqual<T>(a: T, b: T): boolean {
                 return false;
             }
         }
+
         return true;
     }
 
     // Handle objects (excluding arrays, null, and other special objects)
-    if (typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
+    if (
+        typeof a === 'object' &&
+        typeof b === 'object' &&
+        !Array.isArray(a) &&
+        !Array.isArray(b)
+    ) {
         const keysA = Object.keys(a) as (keyof T)[];
         const keysB = Object.keys(b) as (keyof T)[];
 
@@ -68,6 +77,7 @@ function shallowEqual<T>(a: T, b: T): boolean {
                 return false;
             }
         }
+
         return true;
     }
 

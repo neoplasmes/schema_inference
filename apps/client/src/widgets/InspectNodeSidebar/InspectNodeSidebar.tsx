@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
 import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
@@ -17,9 +17,14 @@ export const InspectNodeSidebar = () => {
 
     const workingSchemaController = useSafelyWorkingSchemaController();
 
-    const inspectableNode = useReactiveState(workingSchemaController.getWorkspace(), state => state.inspectableNode);
+    const inspectableNode = useReactiveState(
+        workingSchemaController.getWorkspace(),
+        state => state.inspectableNode
+    );
     const nodeInstance = useMemo(() => {
-        return workingSchemaController.getVirtualSchemaModel().getNodeById(inspectableNode);
+        return workingSchemaController
+            .getVirtualSchemaModel()
+            .getNodeById(inspectableNode);
     }, [inspectableNode]);
 
     const nodeName = useReactiveState(nodeInstance, state => state.name);

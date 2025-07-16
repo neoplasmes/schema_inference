@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext/components/WorkingSchemaContext';
 import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
-import { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import type { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
 import { bem } from '@/shared/bem/bem';
 
 import './AttributesSpace.scss';
@@ -27,7 +27,8 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
     const attributesList = useMemo(() => {
         const key = node.getInternalData().value;
 
-        const pureAttributesList = workingSchemaController.getSchemaData()[key].attributes;
+        const pureAttributesList =
+            workingSchemaController.getSchemaData()[key].attributes;
 
         const attributesNamesSorted = Object.keys(pureAttributesList).sort((a, b) => {
             return a.localeCompare(b);
@@ -39,12 +40,14 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
             let bestProb = -1;
             let bestType = '';
 
-            Object.entries(pureAttributesList[name].XSDTypes).forEach(([xsdtype, prob]) => {
-                if (prob > bestProb) {
-                    bestProb = prob;
-                    bestType = xsdtype;
+            Object.entries(pureAttributesList[name].XSDTypes).forEach(
+                ([xsdtype, prob]) => {
+                    if (prob > bestProb) {
+                        bestProb = prob;
+                        bestType = xsdtype;
+                    }
                 }
-            });
+            );
 
             result.push({
                 name: name,
@@ -101,7 +104,9 @@ export const AttributesSpace = ({ node }: AttributesSpaceProps) => {
                                     <span className="name">{attr.name}</span>
                                 </div>
                                 <span className={block('type')}>{attr.XSDTypes}</span>
-                                <span className="probability">{(attr.probability * 100).toFixed(0) + '%'}</span>
+                                <span className="probability">
+                                    {(attr.probability * 100).toFixed(0) + '%'}
+                                </span>
                             </div>
                         </li>
                     );

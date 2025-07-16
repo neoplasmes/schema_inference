@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { XSDType } from '@/entities/node';
 import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
 import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
-import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import type { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { ExpressionNodeType } from '@/model/treeModel';
 import { bem } from '@/shared/bem';
 
 import './TreeNodeBody.scss';
@@ -20,7 +21,10 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
     const nodeData = node.getInternalData();
     const workingSchemaController = useSafelyWorkingSchemaController();
 
-    const inspectableNode = useReactiveState(workingSchemaController.getWorkspace(), state => state.inspectableNode);
+    const inspectableNode = useReactiveState(
+        workingSchemaController.getWorkspace(),
+        state => state.inspectableNode
+    );
 
     const isChosen = useReactiveState(node, state => state.chosen);
     const chosenAttributes = useReactiveState(node, state => state.chosenAttributes);
@@ -35,7 +39,8 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
             return result;
         }
 
-        const nativeAttributes = workingSchemaController.getSchemaData()[nodeData.value].attributes;
+        const nativeAttributes =
+            workingSchemaController.getSchemaData()[nodeData.value].attributes;
 
         for (const attr of chosenAttributes) {
             let bestType = XSDType.STRING;
@@ -69,6 +74,7 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
 
             if (!choosable) {
                 console.log('not choosable');
+
                 return;
             }
 
@@ -84,7 +90,10 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
     return (
         <div
             ref={ref}
-            className={block(undefined, { chosen: isChosen, inspected: node.id === inspectableNode })}
+            className={block(undefined, {
+                chosen: isChosen,
+                inspected: node.id === inspectableNode,
+            })}
             onContextMenu={chooseThisNodeSubtree}
             onClick={inspectThisNode}
         >
@@ -102,7 +111,9 @@ export const TreeNodeBody = ({ ref, node, choosable }: TreeNodeBodyProps) => {
                         </span>
                     ))}
                 </span>
-                {accentIsVisible && <span className={block('value-accent')}>{' />'}</span>}
+                {accentIsVisible && (
+                    <span className={block('value-accent')}>{' />'}</span>
+                )}
             </span>
         </div>
     );

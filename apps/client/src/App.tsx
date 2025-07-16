@@ -9,14 +9,8 @@ function App() {
             <WorkingSchemaContextProvider>
                 <BrowserRouter>
                     <Routes>
-                        <Route
-                            index
-                            element={<WelcomePage />}
-                        />
-                        <Route
-                            path="/edit"
-                            element={<EditPage />}
-                        />
+                        <Route index element={<WelcomePage />} />
+                        <Route path="/edit" element={<EditPage />} />
                     </Routes>
                 </BrowserRouter>
             </WorkingSchemaContextProvider>

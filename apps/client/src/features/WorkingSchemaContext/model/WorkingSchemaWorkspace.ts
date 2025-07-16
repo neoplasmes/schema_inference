@@ -1,4 +1,5 @@
-import { Reactive, ReactiveListenersTemplate } from '@/interfaces/Reactive/Reactive';
+import type { Reactive } from '@/interfaces/Reactive/Reactive';
+import { ReactiveListenersTemplate } from '@/interfaces/Reactive/Reactive';
 
 export type WorkingSchemaWorkspaceData = {
     inspectableNode: number;

@@ -1,12 +1,15 @@
 import { XSDType } from '@/entities/node';
-import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import type { SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { ExpressionNodeType } from '@/model/treeModel';
 
 export const selectMostProbableSubtrees = (
     startNode: SchemaNode<SchemaNodeModel>,
     schemaData: Record<string, SchemaDataEntry>,
     attributesThreshold = 0.55
 ) => {
-    const stack: { node: SchemaNode<SchemaNodeModel>; chosen: boolean }[] = [{ node: startNode, chosen: true }];
+    const stack: { node: SchemaNode<SchemaNodeModel>; chosen: boolean }[] = [
+        { node: startNode, chosen: true },
+    ];
 
     while (stack.length > 0) {
         const { node, chosen } = stack.pop()!; // Берем узел из стека

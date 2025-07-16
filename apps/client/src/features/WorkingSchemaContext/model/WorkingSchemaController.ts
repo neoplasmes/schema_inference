@@ -1,9 +1,15 @@
-import { ExpressionNodeType, SchemaDataEntry, SchemaNodeModel, VirtualSchemaModel } from '../../../model/treeModel';
+import type {
+    SchemaDataEntry,
+    SchemaNodeModel,
+    VirtualSchemaModel,
+} from '../../../model/treeModel';
+import { ExpressionNodeType } from '../../../model/treeModel';
 import { selectSubtree as selectSubtreeBase } from '../helpers/selectSubtree';
 import { selectMostProbableSubtrees } from '../helpers/selectMostProbableSubtrees';
-import { convertSchemaModelToFinalSchema, FinalSchemaNodeModel } from '../helpers/convertSchemaModelToFinalSchema';
-import { WorkingSchemaWorkspaceData } from './WorkingSchemaWorkspace';
-import { Reactive } from '../../../interfaces/Reactive/Reactive';
+import type { FinalSchemaNodeModel } from '../helpers/convertSchemaModelToFinalSchema';
+import { convertSchemaModelToFinalSchema } from '../helpers/convertSchemaModelToFinalSchema';
+import type { WorkingSchemaWorkspaceData } from './WorkingSchemaWorkspace';
+import type { Reactive } from '../../../interfaces/Reactive/Reactive';
 
 export class WorkingSchemaController {
     private virtualSchemaModel: VirtualSchemaModel<SchemaNodeModel>;

@@ -33,6 +33,7 @@ export class ReactiveListenersTemplate<T> {
 
     subscribe(listener: ReactiveListener<T>): () => void {
         this.listeners.add(listener);
+
         return () => this.listeners.delete(listener);
     }
 

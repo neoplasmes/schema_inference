@@ -1,7 +1,8 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react';
 
 import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
-import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import type { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { ExpressionNodeType } from '@/model/treeModel';
 import { bem } from '@/shared/bem';
 
 import { TreeNodeBody } from './components/TreeNodeBody';
@@ -61,7 +62,6 @@ const calculateConnectorData = (
     const cornerY = endY;
 
     const curveRadius = 6;
-    const curveStartX = cornerX;
     const curveStartY = cornerY - curveRadius;
     const curveEndX = cornerX + curveRadius;
     const curveEndY = cornerY;
@@ -85,7 +85,13 @@ const calculateConnectorData = (
 };
 
 export const TreeNode = memo(
-    ({ node, parentBodyRef, ref, isAlternative = false, choosable = false }: TreeNodeProps) => {
+    ({
+        node,
+        parentBodyRef,
+        ref,
+        isAlternative = false,
+        choosable = false,
+    }: TreeNodeProps) => {
         const [connectorPath, setConnectorPath] = useState('');
         const [probabilityLayout, setProbabilityLayout] = useState<ProbabilityLayout>();
         const currentBodyRef = useRef<HTMLDivElement>(null);
@@ -97,7 +103,10 @@ export const TreeNode = memo(
                 return;
             }
 
-            const data = calculateConnectorData(parentBodyRef.current, currentBodyRef.current);
+            const data = calculateConnectorData(
+                parentBodyRef.current,
+                currentBodyRef.current
+            );
             setConnectorPath(data.path);
             setProbabilityLayout(data.probabilityLayout);
         }, [parentBodyRef, currentBodyRef, node.children]);
@@ -107,10 +116,7 @@ export const TreeNode = memo(
                 {/*Сюда надо лейбл для OR и AND и норм данные для LEAF */}
                 {parentBodyRef && (
                     <svg className={block('connector')}>
-                        <path
-                            d={connectorPath}
-                            fill="none"
-                        />
+                        <path d={connectorPath} fill="none" />
                     </svg>
                 )}
                 {parentBodyRef && probabilityLayout && isAlternative && (
@@ -123,7 +129,9 @@ export const TreeNode = memo(
                             padding: probabilityLayout.padding,
                         }}
                     >
-                        <span>{(node.getInternalData().probability * 100).toFixed(0) + '%'}</span>
+                        <span>
+                            {(node.getInternalData().probability * 100).toFixed(0) + '%'}
+                        </span>
                     </div>
                 )}
                 <TreeNodeBody
@@ -147,7 +155,9 @@ export const TreeNode = memo(
                                         key={childNode.id}
                                         parentBodyRef={currentBodyRef}
                                         node={childNode}
-                                        isAlternative={parentNodeData.type === ExpressionNodeType.OR}
+                                        isAlternative={
+                                            parentNodeData.type === ExpressionNodeType.OR
+                                        }
                                         choosable={true}
                                     />
                                 );

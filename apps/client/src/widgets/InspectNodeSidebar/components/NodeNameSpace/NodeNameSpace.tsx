@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
-import { SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import type { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
 import { bem } from '@/shared/bem';
 
 import './NodeNameSpace.scss';
@@ -12,8 +12,15 @@ type NodeNameSpaceProps = {
     node: SchemaNode<SchemaNodeModel>;
 };
 
-const NamePercentageItem = ({ name, percentage }: { name: string; percentage: number }) => {
+const NamePercentageItem = ({
+    name,
+    percentage,
+}: {
+    name: string;
+    percentage: number;
+}) => {
     const percentageDisplay = (percentage * 100).toFixed(0) + '%';
+
     return (
         <div className={block('item')}>
             <span className="name">{name}</span>
@@ -28,7 +35,9 @@ export const NodeNameSpace = ({ node }: NodeNameSpaceProps) => {
     const content = useMemo(() => {
         const nodeData = schemaController.getSchemaData()[node.getInternalData().value];
 
-        const sortedTypos = Object.entries(nodeData.typoSpace).sort(([_, probA], [__, probB]) => probB - probA);
+        const sortedTypos = Object.entries(nodeData.typoSpace).sort(
+            ([, probA], [, probB]) => probB - probA
+        );
 
         let typosContent;
         if (sortedTypos.length === 0) {
@@ -38,17 +47,16 @@ export const NodeNameSpace = ({ node }: NodeNameSpaceProps) => {
                 <ul>
                     {sortedTypos.map(([name, probability]) => (
                         <li key={name}>
-                            <div className={block('item')}>
-                                <span className="name">{name}</span>
-                                <span className="probability">{(probability * 100).toFixed(0) + '%'}</span>
-                            </div>
+                            <NamePercentageItem name={name} percentage={probability} />
                         </li>
                     ))}
                 </ul>
             );
         }
 
-        const sortedSemantics = Object.entries(nodeData.semanticSpace).sort(([_, probA], [__, probB]) => probB - probA);
+        const sortedSemantics = Object.entries(nodeData.semanticSpace).sort(
+            ([, probA], [, probB]) => probB - probA
+        );
 
         let semanticsContent;
         if (sortedSemantics.length === 0) {
@@ -58,10 +66,7 @@ export const NodeNameSpace = ({ node }: NodeNameSpaceProps) => {
                 <ul>
                     {sortedSemantics.map(([name, probability]) => (
                         <li key={name}>
-                            <div className={block('item')}>
-                                <span className="name">{name}</span>
-                                <span className="probability">{(probability * 100).toFixed(0) + '%'}</span>
-                            </div>
+                            <NamePercentageItem name={name} percentage={probability} />
                         </li>
                     ))}
                 </ul>

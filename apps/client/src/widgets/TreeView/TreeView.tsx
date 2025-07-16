@@ -22,7 +22,9 @@ const initialTreeContentOffset: Position = {
 
 export const TreeView = () => {
     const [zoom, setZoom] = useState(1); // Начальный масштаб 100%
-    const [treeContentOffset, setTreeContentOffset] = useState<Position>(initialTreeContentOffset);
+    const [treeContentOffset, setTreeContentOffset] = useState<Position>(
+        initialTreeContentOffset
+    );
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
     const dragStartRef = useRef<Position>(initialTreeContentOffset); // Начальная позиция мыши
@@ -42,6 +44,7 @@ export const TreeView = () => {
 
             setZoom(prevZoom => {
                 const newZoom = Math.min(Math.max(prevZoom + delta, 0.1), 1);
+
                 return newZoom;
             });
         } else if (!isDragging) {
@@ -64,7 +67,9 @@ export const TreeView = () => {
 
         const treeNodeBodyClassName = rootNodeRef.current.className.split(' ')[0];
         console.log(treeNodeBodyClassName);
-        const isTreeNode = (event.target as HTMLElement).closest(`.${treeNodeBodyClassName}`);
+        const isTreeNode = (event.target as HTMLElement).closest(
+            `.${treeNodeBodyClassName}`
+        );
         if (isTreeNode) {
             return;
         }
@@ -130,7 +135,9 @@ export const TreeView = () => {
                         style={{ transform: `scale(${zoom})` }}
                     >
                         <TreeNode
-                            node={workingSchemaController.getVirtualSchemaModel().getRoot()}
+                            node={workingSchemaController
+                                .getVirtualSchemaModel()
+                                .getRoot()}
                             ref={rootNodeRef}
                             parentBodyRef={undefined}
                         />

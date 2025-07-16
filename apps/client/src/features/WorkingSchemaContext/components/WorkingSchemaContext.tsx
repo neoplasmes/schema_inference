@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from 'react';
 
-import { SchemaDataEntry } from '../../../model/treeModel';
+import type { SchemaDataEntry } from '../../../model/treeModel';
 import { createVirtualModelFromSchemaData } from '../helpers/createVirtualModelFromSchemaData';
 import { WorkingSchemaController } from '../model/WorkingSchemaController';
-import { WorkingSchemaWorkspace, WorkingSchemaWorkspaceData } from '../model/WorkingSchemaWorkspace';
+import type { WorkingSchemaWorkspaceData } from '../model/WorkingSchemaWorkspace';
+import { WorkingSchemaWorkspace } from '../model/WorkingSchemaWorkspace';
 
 type WorkingSchemaContextType = {
     workingSchemaController: WorkingSchemaController | null;
@@ -12,7 +13,9 @@ type WorkingSchemaContextType = {
 
 type WorkingSchemaContextProviderProps = React.PropsWithChildren<{}>;
 
-const WorkingSchemaContext = createContext<WorkingSchemaContextType>({} as WorkingSchemaContextType);
+const WorkingSchemaContext = createContext<WorkingSchemaContextType>(
+    {} as WorkingSchemaContextType
+);
 
 export const useWorkingSchemaContext = () => {
     const context = useContext(WorkingSchemaContext);
@@ -30,7 +33,9 @@ export const useSafelyWorkingSchemaController = () => {
     return workingSchemaController;
 };
 
-export const WorkingSchemaContextProvider = ({ children }: WorkingSchemaContextProviderProps) => {
+export const WorkingSchemaContextProvider = ({
+    children,
+}: WorkingSchemaContextProviderProps) => {
     const [controller, setController] = useState<WorkingSchemaController | null>(null);
 
     const initialize = (schemaData: Record<string, SchemaDataEntry>) => {
@@ -54,7 +59,9 @@ export const WorkingSchemaContextProvider = ({ children }: WorkingSchemaContextP
     };
 
     return (
-        <WorkingSchemaContext.Provider value={{ workingSchemaController: controller, initialize }}>
+        <WorkingSchemaContext.Provider
+            value={{ workingSchemaController: controller, initialize }}
+        >
             {children}
         </WorkingSchemaContext.Provider>
     );

@@ -1,8 +1,11 @@
-import { XSDType } from '@/entities/node';
-import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel, VirtualSchemaModel } from '@/model/treeModel';
+import type { SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { ExpressionNodeType, VirtualSchemaModel } from '@/model/treeModel';
 import { assignObjectSkippingProperties } from '@/shared/assignWithOmit/assignWithOmit';
 
-export type FinalSchemaNodeModel = Pick<SchemaNodeModel, 'type' | 'name' | 'minOccurs' | 'maxOccurs'> & {
+export type FinalSchemaNodeModel = Pick<
+    SchemaNodeModel,
+    'type' | 'name' | 'minOccurs' | 'maxOccurs'
+> & {
     /**
      * список атрибутов
      * key: имя - value: тип
@@ -60,12 +63,13 @@ export const convertSchemaModelToFinalSchema = (
 
     const result = new VirtualSchemaModel<FinalSchemaNodeModel>(finalRootNewData);
 
-    const stack: Array<{ oldNode: SchemaNode<SchemaNodeModel>; finalParent: SchemaNode<FinalSchemaNodeModel> }> = model
-        .getRoot()
-        .children.map(child => ({
-            oldNode: child,
-            finalParent: result.getRoot(),
-        }));
+    const stack: Array<{
+        oldNode: SchemaNode<SchemaNodeModel>;
+        finalParent: SchemaNode<FinalSchemaNodeModel>;
+    }> = model.getRoot().children.map(child => ({
+        oldNode: child,
+        finalParent: result.getRoot(),
+    }));
 
     while (stack.length) {
         const { oldNode, finalParent } = stack.pop()!;
@@ -88,12 +92,11 @@ export const convertSchemaModelToFinalSchema = (
 
             newNode = result.addNode(
                 finalParent.id,
-                assignObjectSkippingProperties({}, Object.assign(oldDataCopy, { attributes }), [
-                    'chosen',
-                    'probability',
-                    'chosenAttributes',
-                    'value',
-                ])
+                assignObjectSkippingProperties(
+                    {},
+                    Object.assign(oldDataCopy, { attributes }),
+                    ['chosen', 'probability', 'chosenAttributes', 'value']
+                )
             );
         }
 

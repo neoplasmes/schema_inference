@@ -3,7 +3,7 @@ export const bem = (block: string) => {
         const base = element ? `${block}__${element}` : block;
 
         const mods = Object.entries(modifiers)
-            .filter(([_, value]) => value)
+            .filter(([, value]) => value)
             .map(([key]) => `${base}_${key}`);
 
         return [base, ...mods].join(' ');

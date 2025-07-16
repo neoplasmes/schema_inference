@@ -64,16 +64,10 @@ export const EditPage = () => {
     return (
         <div className={block()}>
             <div className={block('panel')}>
-                <button
-                    className="control"
-                    onClick={selectMostProbableSchema}
-                >
+                <button className="control" onClick={selectMostProbableSchema}>
                     Выбрать наиболее вероятный вариант
                 </button>
-                <button
-                    className="control"
-                    onClick={handleSchemaConfirmation}
-                >
+                <button className="control" onClick={handleSchemaConfirmation}>
                     Подтвердить
                 </button>
             </div>

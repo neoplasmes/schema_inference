@@ -3,8 +3,7 @@ import { useMemo } from 'react';
 import { XSDType } from '@/entities/node';
 import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
 import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
-import { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
-import { assignObjectSkippingProperties } from '@/shared/assignWithOmit';
+import type { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
 import { bem } from '@/shared/bem';
 
 import './XSDTypesSpace.scss';
@@ -27,7 +26,8 @@ export const XSDTypesSpace = ({ node }: XSDTypesSpaceProps) => {
     const chosenType = useReactiveState(node, state => state.chosenType);
 
     const XSDTypesList = useMemo(() => {
-        const nativeXSDTypes = schemaController.getSchemaData()[node.getInternalData().value].XSDTypes;
+        const nativeXSDTypes =
+            schemaController.getSchemaData()[node.getInternalData().value].XSDTypes;
 
         const result: Array<NormalizedXSDTypesData> = [];
         Object.entries(nativeXSDTypes).forEach(([name, probability]) => {
@@ -70,7 +70,9 @@ export const XSDTypesSpace = ({ node }: XSDTypesSpaceProps) => {
                             {data.name}
                         </label>
                     </div>
-                    <span className="probability">{(data.probability * 100).toFixed(0) + '%'}</span>
+                    <span className="probability">
+                        {(data.probability * 100).toFixed(0) + '%'}
+                    </span>
                 </div>
             </li>
         ));

@@ -1,6 +1,6 @@
-import { XSDType } from '@/entities/node';
+import type { XSDType } from '@/entities/node';
 
-import { Reactive } from '../interfaces/Reactive/Reactive';
+import type { Reactive } from '../interfaces/Reactive/Reactive';
 import { assignObjectSkippingProperties } from '../shared/assignWithOmit/assignWithOmit';
 
 export enum ExpressionNodeType {
@@ -81,14 +81,18 @@ export type SchemaNodeDataType = Record<string, unknown>;
  */
 type Listener<T> = (value: T) => void;
 
-type SchemaNodeDataWithChildren<T extends SchemaNodeDataType> = T & { children: SchemaNode<T>[] };
+type SchemaNodeDataWithChildren<T extends SchemaNodeDataType> = T & {
+    children: SchemaNode<T>[];
+};
 
 /**
  * Представление узла модели {@link VirtualSchemaModel}
  *
  * @template T - тип данных узла. для большей гибкости задаётся именно как дженерик.
  */
-export class SchemaNode<T extends SchemaNodeDataType> implements Reactive<SchemaNodeDataWithChildren<T>> {
+export class SchemaNode<T extends SchemaNodeDataType>
+    implements Reactive<SchemaNodeDataWithChildren<T>>
+{
     id: number;
     parentId: number;
     private data: T;
@@ -112,6 +116,7 @@ export class SchemaNode<T extends SchemaNodeDataType> implements Reactive<Schema
 
     subscribe(listener: Listener<SchemaNodeDataWithChildren<T>>): () => void {
         this.listeners.add(listener);
+
         return () => this.listeners.delete(listener);
     }
 
@@ -165,7 +170,7 @@ export class VirtualSchemaModel<T extends SchemaNodeDataType> {
         const result = this.nodes.get(id);
 
         if (!result) {
-            throw new Error(`Node with id \'${id}\ doesn't exist'`);
+            throw new Error(`Node with id '${id}' doesn't exist`);
         }
 
         return result;
@@ -197,7 +202,7 @@ export class VirtualSchemaModel<T extends SchemaNodeDataType> {
         const parent = this.nodes.get(parentId);
 
         if (!parent) {
-            throw new Error(`Parent with id \'${parentId}\ doesn't exist'`);
+            throw new Error(`Parent with id '${parentId}' doesn't exist`);
         }
 
         const newNode = new SchemaNode<T>(this.identeficationSequence++, parentId, value);
