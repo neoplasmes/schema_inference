@@ -6,3 +6,6 @@ apps/client/config/
 **/build/
 **/nltk_data/
 .proto/
+*.md
+*.yml
+*.yaml

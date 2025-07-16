@@ -7,3 +7,10 @@ tasks:
     local: true
     options:
       persistent: true
+
+  lint:
+    command: npm run lint
+
+  lint-fix:
+    command: npm run lint:fix
+    local: true
