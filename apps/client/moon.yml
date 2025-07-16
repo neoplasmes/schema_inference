@@ -1,16 +1,54 @@
 language: typescript
 type: application
 
+fileGroups:
+  configs:
+    - package.json
+    - tsconfig.json
+    - '*.config.js'
+  sources:
+    - index.html
+    - src/**/*
+
 tasks:
   dev:
-    command: npm run start
+    command: pnpm dev
     local: true
     options:
       persistent: true
 
+  build:
+    command: pnpm build
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    outputs:
+      - dist
+
+  typecheck:
+    command: pnpm typecheck
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+
+  test:
+    command: pnpm test
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+
   lint:
-    command: npm run lint
+    command: pnpm lint
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
 
   lint-fix:
-    command: npm run lint:fix
+    command: pnpm lint:fix
     local: true
+
+  fmt:
+    command: pnpm prettier
+    options:
+      cache: false
+      runInCI: false

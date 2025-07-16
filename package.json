@@ -1,0 +1,16 @@
+{
+    "name": "third-course-reimagined",
+    "private": true,
+    "type": "module",
+    "packageManager": "pnpm@10.13.1",
+    "scripts": {
+        "prepare": "lefthook install"
+    },
+    "devDependencies": {
+        "lefthook": "^1.12.2",
+        "prettier": "^3.6.2"
+    },
+    "engines": {
+        "node": "22.15.0"
+    }
+}

@@ -1,0 +1,3 @@
+implicitInputs:
+  - /pyproject.toml
+  - /uv.lock

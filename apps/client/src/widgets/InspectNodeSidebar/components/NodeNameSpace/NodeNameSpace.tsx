@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
-import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext';
-import { SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@model/treeModel';
-import { bem } from '@shared/bem';
+import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
+import { SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { bem } from '@/shared/bem';
 
 import './NodeNameSpace.scss';
 

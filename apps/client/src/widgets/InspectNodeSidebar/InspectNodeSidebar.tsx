@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 
-import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext';
-import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
-import { bem } from '@shared/bem/bem';
+import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
+import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
+import { bem } from '@/shared/bem/bem';
 
 import { AttributesSpace } from './components/AttributesSpace/AttributesSpace';
 import { NodeNameSpace } from './components/NodeNameSpace/NodeNameSpace';

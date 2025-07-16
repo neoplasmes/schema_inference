@@ -1,4 +1,4 @@
-import { XSDType } from '@entities/node';
+import { XSDType } from '@/entities/node';
 import {
     ExpressionNode,
     ExpressionNodeType,
@@ -6,8 +6,8 @@ import {
     SchemaNode,
     SchemaNodeModel,
     VirtualSchemaModel,
-} from '@model/treeModel';
-import { assignObjectSkippingProperties } from '@shared/assignWithOmit';
+} from '@/model/treeModel';
+import { assignObjectSkippingProperties } from '@/shared/assignWithOmit';
 
 import { createGlobalExpressionFromSchemaData } from './createGlobalExpressionFromSchemaData';
 

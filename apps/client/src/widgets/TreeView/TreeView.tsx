@@ -2,8 +2,8 @@ import { useCallback, useRef, useState } from 'react';
 
 import { Navigate } from 'react-router';
 
-import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
-import { bem } from '@shared/bem/bem';
+import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { bem } from '@/shared/bem/bem';
 
 import { TreeNode } from './components/TreeNode/TreeNode';
 import './TreeView.scss';

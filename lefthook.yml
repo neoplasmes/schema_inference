@@ -1,0 +1,23 @@
+assert_lefthook_installed: true
+
+pre-commit:
+  parallel: false
+  jobs:
+    - name: prettier
+      glob: '*.{js,jsx,ts,tsx,json,css,scss,html}'
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+    - name: client eslint
+      root: apps/client/
+      glob: 'apps/client/src/**/*.{ts,tsx}'
+      run: pnpm exec eslint --fix {staged_files}
+      stage_fixed: true
+
+    - name: ruff
+      glob: '*.py'
+      run: uv run --no-sync ruff check --fix {staged_files} && uv run --no-sync ruff format {staged_files}
+      stage_fixed: true
+
+    - name: lint and typecheck
+      run: moon run :lint :typecheck

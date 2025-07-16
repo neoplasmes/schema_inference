@@ -1,0 +1,9 @@
+packages:
+  - apps/client
+
+onlyBuiltDependencies:
+  - esbuild
+  - lefthook
+
+ignoredBuiltDependencies:
+  - '@parcel/watcher'

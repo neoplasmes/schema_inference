@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 
-import { XSDType } from '@entities/node';
-import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext';
-import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
-import { SchemaNode, SchemaNodeModel } from '@model/treeModel';
-import { assignObjectSkippingProperties } from '@shared/assignWithOmit';
-import { bem } from '@shared/bem';
+import { XSDType } from '@/entities/node';
+import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
+import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
+import { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { assignObjectSkippingProperties } from '@/shared/assignWithOmit';
+import { bem } from '@/shared/bem';
 
 import './XSDTypesSpace.scss';
 

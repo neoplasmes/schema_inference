@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { XSDType } from '@entities/node';
-import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext';
-import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
-import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@model/treeModel';
-import { bem } from '@shared/bem';
+import { XSDType } from '@/entities/node';
+import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext';
+import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
+import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { bem } from '@/shared/bem';
 
 import './TreeNodeBody.scss';
 

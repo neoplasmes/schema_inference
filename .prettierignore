@@ -1,5 +1,5 @@
 node_modules/
-apps/client/config/
+pnpm-lock.yaml
 .moon/cache/
 **/.venv/
 **/dist/

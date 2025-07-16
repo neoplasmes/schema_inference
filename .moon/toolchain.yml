@@ -1,5 +1,5 @@
 node:
-  packageManager: npm
+  packageManager: pnpm
 
 python:
   packageManager: uv

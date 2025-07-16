@@ -1,8 +1,8 @@
 import { memo, useLayoutEffect, useRef, useState } from 'react';
 
-import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
-import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@model/treeModel';
-import { bem } from '@shared/bem';
+import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
+import { ExpressionNodeType, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { bem } from '@/shared/bem';
 
 import { TreeNodeBody } from './components/TreeNodeBody';
 import './TreeNode.scss';

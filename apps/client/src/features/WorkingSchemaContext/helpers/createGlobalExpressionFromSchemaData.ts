@@ -1,4 +1,4 @@
-import { ExpressionNode, ExpressionNodeType, SchemaDataEntryBase } from '@model/treeModel';
+import { ExpressionNode, ExpressionNodeType, SchemaDataEntryBase } from '@/model/treeModel';
 
 /**
  * Метод используемый для создания глобального дерева-выражения XSD-схемы.

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
-import { useSafelyWorkingSchemaController } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
-import { useReactiveState } from '@interfaces/Reactive/useReactiveState';
-import { SchemaNode, SchemaNodeModel } from '@model/treeModel';
-import { bem } from '@shared/bem/bem';
+import { useSafelyWorkingSchemaController } from '@/features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { useReactiveState } from '@/interfaces/Reactive/useReactiveState';
+import { SchemaNode, SchemaNodeModel } from '@/model/treeModel';
+import { bem } from '@/shared/bem/bem';
 
 import './AttributesSpace.scss';
 

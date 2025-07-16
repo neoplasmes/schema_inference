@@ -1,4 +1,4 @@
-import { XSDType } from '@entities/node';
+import { XSDType } from '@/entities/node';
 
 import { Reactive } from '../interfaces/Reactive/Reactive';
 import { assignObjectSkippingProperties } from '../shared/assignWithOmit/assignWithOmit';

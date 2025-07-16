@@ -1,5 +1,5 @@
-import { XSDType } from '@entities/node';
-import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@model/treeModel';
+import { XSDType } from '@/entities/node';
+import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel } from '@/model/treeModel';
 
 export const selectMostProbableSubtrees = (
     startNode: SchemaNode<SchemaNodeModel>,

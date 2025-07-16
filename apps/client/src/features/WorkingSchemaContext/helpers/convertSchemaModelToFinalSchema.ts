@@ -1,6 +1,6 @@
-import { XSDType } from '@entities/node';
-import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel, VirtualSchemaModel } from '@model/treeModel';
-import { assignObjectSkippingProperties } from '@shared/assignWithOmit/assignWithOmit';
+import { XSDType } from '@/entities/node';
+import { ExpressionNodeType, SchemaDataEntry, SchemaNode, SchemaNodeModel, VirtualSchemaModel } from '@/model/treeModel';
+import { assignObjectSkippingProperties } from '@/shared/assignWithOmit/assignWithOmit';
 
 export type FinalSchemaNodeModel = Pick<SchemaNodeModel, 'type' | 'name' | 'minOccurs' | 'maxOccurs'> & {
     /**

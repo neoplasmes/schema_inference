@@ -1,9 +1,9 @@
 import { Navigate } from 'react-router';
 
-import { useWorkingSchemaContext } from '@features/WorkingSchemaContext/components/WorkingSchemaContext';
-import { bem } from '@shared/bem';
-import { InspectNodeSidebar } from '@widgets/InspectNodeSidebar';
-import { TreeView } from '@widgets/TreeView';
+import { useWorkingSchemaContext } from '@/features/WorkingSchemaContext/components/WorkingSchemaContext';
+import { bem } from '@/shared/bem';
+import { InspectNodeSidebar } from '@/widgets/InspectNodeSidebar';
+import { TreeView } from '@/widgets/TreeView';
 
 import './EditPage.scss';
 
