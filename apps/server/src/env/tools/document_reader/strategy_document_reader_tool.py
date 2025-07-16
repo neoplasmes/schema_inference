@@ -7,7 +7,7 @@ from app.ports.tools.document_reader import (
     DocumentReaderTool,
     InvalidDocumentError,
 )
-from core.entities import ProbabilitySpaceNode
+from core.entities import DocumentNode
 
 
 class StrategyDocumentReaderTool(DocumentReaderTool):
@@ -16,7 +16,7 @@ class StrategyDocumentReaderTool(DocumentReaderTool):
     def __init__(self, strategies: Mapping[str, DocumentParserStrategy]) -> None:
         self._strategies = dict(strategies)
 
-    def read(self, source: BinaryIO, filename: str) -> ProbabilitySpaceNode:
+    def read(self, source: BinaryIO, filename: str) -> DocumentNode:
         extension = Path(filename).suffix.casefold()
         strategy = self._strategies.get(extension)
 

@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 from typing import ClassVar, Self
 
-from core.entities import ProbabilitySpaceNode
+from core.entities import DocumentNode
 
 
 @dataclass(init=False)
-class XmlProbabilitySpaceNode(ProbabilitySpaceNode):
+class XmlDocumentNode(DocumentNode):
     """Keep element content and the namespace bindings available at that element."""
 
     attributes: dict[str, str] = field(default_factory=dict)

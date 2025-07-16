@@ -3,13 +3,13 @@ from typing import BinaryIO, cast
 
 from app.ports.tools.document_reader import InvalidDocumentError
 from app.ports.tools.xml_document import XmlDocumentTool
-from core.entities import XmlProbabilitySpaceNode
+from core.entities import XmlDocumentNode
 
 
 class ElementTreeXmlDocumentTool(XmlDocumentTool):
     """Read XML elements into common nodes while retaining XML-specific content."""
 
-    def read(self, source: BinaryIO) -> XmlProbabilitySpaceNode:
+    def read(self, source: BinaryIO) -> XmlDocumentNode:
         """Retain namespace scopes and copy text after the complete parse."""
         contexts: dict[ET.Element, dict[str, str]] = {}
         scopes: list[dict[str, str]] = []
@@ -61,8 +61,8 @@ class ElementTreeXmlDocumentTool(XmlDocumentTool):
     @staticmethod
     def _convert_node(
         element: ET.Element, namespaces: dict[str, str]
-    ) -> XmlProbabilitySpaceNode:
-        return XmlProbabilitySpaceNode(
+    ) -> XmlDocumentNode:
+        return XmlDocumentNode(
             element.tag,
             element.text,
             dict(element.attrib),

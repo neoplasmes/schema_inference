@@ -1,5 +1,5 @@
 from .infer_schema_error import InferSchemaError
-from .infer_schema_case import InferSchema
+from .infer_schema import InferSchema
 
 __all__ = [
     "InferSchema",

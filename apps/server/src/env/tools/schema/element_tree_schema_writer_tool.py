@@ -2,11 +2,11 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 from app.ports.tools.schema_writer import SchemaWriter
-from core.entities import XmlNode
+from core.entities import XmlDocumentNode
 
 
 class ElementTreeSchemaWriterTool(SchemaWriter):
-    def generate(self, root: XmlNode) -> str:
+    def generate(self, root: XmlDocumentNode) -> str:
         element = self._convert_node(root)
         pending = [(root, element)]
         while pending:
@@ -21,7 +21,7 @@ class ElementTreeSchemaWriterTool(SchemaWriter):
         return formatted.toprettyxml(indent="  ", encoding="utf-8").decode("utf-8")
 
     @staticmethod
-    def _convert_node(node: XmlNode) -> ET.Element:
+    def _convert_node(node: XmlDocumentNode) -> ET.Element:
         element = ET.Element(node.tag, node.attributes)
         element.text = node.text
         return element

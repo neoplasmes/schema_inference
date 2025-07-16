@@ -1,12 +1,16 @@
-from core.entities import SchemaNode, XmlNode
+from core.entities import SelectedSchemaNode, XmlDocumentNode
 
 
 class XSDBuilder:
+    """Translate a selected schema into an XML tree of XSD declarations."""
+
     def __init__(self):
+        """Set the namespace used by generated XSD declarations."""
         self.namespace = "http://www.w3.org/2001/XMLSchema"
 
-    def build(self, root: SchemaNode) -> XmlNode:
-        schema = XmlNode(
+    def build(self, root: SelectedSchemaNode) -> XmlDocumentNode:
+        """Build the XSD schema wrapper and its selected root element."""
+        schema = XmlDocumentNode(
             "xs:schema",
             attributes={
                 "xmlns:xs": self.namespace,
@@ -19,25 +23,30 @@ class XSDBuilder:
         return schema
 
     def _process_node(
-        self, node: SchemaNode, parent: XmlNode, *, is_root: bool = False
+        self,
+        node: SelectedSchemaNode,
+        parent: XmlDocumentNode,
+        *,
+        is_root: bool = False,
     ) -> None:
+        """Append an element declaration with its selected children and attributes."""
         attributes = {"name": node.name}
-        value_type = node.chosenType
+        value_type = node.chosen_type
 
-        if value_type in ("null", "empty"):
+        if value_type == "null":
             value_type = "string"
             attributes["nillable"] = "true"
 
         if not is_root:
             attributes.update(
                 {
-                    "minOccurs": str(node.minOccurs),
-                    "maxOccurs": str(node.maxOccurs),
+                    "minOccurs": str(node.min_occurs),
+                    "maxOccurs": str(node.max_occurs),
                 }
             )
         element = parent.add_child("xs:element", attributes)
 
-        if node.chosenType == "parent":
+        if node.chosen_type == "parent":
             complex_type = element.add_child("xs:complexType")
             if node.children:
                 sequence = complex_type.add_child("xs:sequence")
@@ -73,5 +82,6 @@ class XSDBuilder:
                 element.attributes["type"] = f"xs:{value_type}"
 
 
-def build_xsd(root: SchemaNode) -> XmlNode:
+def build_xsd(root: SelectedSchemaNode) -> XmlDocumentNode:
+    """Convert a selected schema into an XSD tree ready for serialization."""
     return XSDBuilder().build(root)

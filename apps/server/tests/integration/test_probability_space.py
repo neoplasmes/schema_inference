@@ -6,6 +6,8 @@ from documents_generator import GenerationOptions, generate_dataset
 
 from app.use_cases.infer_schema import InferSchema
 from env.tools.lexical import CorpusLexicalResourceTool
+from env.tools.probability_space import serialize_probability_space
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 from main import build_document_reader
 
 from .support import evaluate_manifest
@@ -15,7 +17,10 @@ FIXTURES = Path(__file__).parents[1] / "fixtures" / "claude_tests"
 
 @pytest.fixture(scope="module")
 def inference():
-    return InferSchema(lexical_resource=CorpusLexicalResourceTool())
+    return InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(),
+        lexical_resource=CorpusLexicalResourceTool(),
+    )
 
 
 def check_collection(inference, manifest, directory):
@@ -24,7 +29,7 @@ def check_collection(inference, manifest, directory):
     for document in manifest["documents"]:
         with (directory / document["path"]).open("rb") as source:
             roots.append(reader.read(source, document["path"]))
-    space = inference.analyze(roots)
+    space = serialize_probability_space(inference.analyze(roots))
     report = evaluate_manifest(manifest, directory, space)
 
     assert not report["forbidden_field_merges"], report["forbidden_field_merges"]

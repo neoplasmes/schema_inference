@@ -3,8 +3,8 @@ from typing import ClassVar, Self
 
 
 @dataclass
-class ProbabilitySpaceNode:
-    """Keep a document node's name, content and role before collecting alternatives."""
+class DocumentNode:
+    """Keep the original name, content and role of a parsed document node."""
 
     tag: str
     text: str | None = None

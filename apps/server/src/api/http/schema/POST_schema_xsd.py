@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
-from app.use_cases.generate_schema import GenerateSchema
+from app.use_cases.generate_schema import GenerateSchema, GenerateSchemaError
 
 
 def register(router: APIRouter, generate_schema: GenerateSchema) -> None:
@@ -19,6 +19,8 @@ def register(router: APIRouter, generate_schema: GenerateSchema) -> None:
 
         try:
             xsd_content = await run_in_threadpool(generate_schema.execute, schema)
+        except GenerateSchemaError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
         except Exception as error:
             raise HTTPException(
                 status_code=500, detail=f"Error generating XSD: {error}"

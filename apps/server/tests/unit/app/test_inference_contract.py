@@ -4,9 +4,11 @@ from itertools import permutations
 import pytest
 
 from app.use_cases.infer_schema import InferSchema, InferSchemaError
-from core.entities import XmlNode
+from core.entities import XmlDocumentNode
 from core.entities.inference import InferenceLimits
 from core.entities.lexical import LexiconData
+from env.tools.probability_space import serialize_probability_space
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 
 
 class MemoryLexicalResource:
@@ -21,9 +23,11 @@ class MemoryLexicalResource:
 
 def test_empty_input_does_not_load_dictionaries():
     resource = MemoryLexicalResource()
-    inference = InferSchema(lexical_resource=resource)
+    inference = InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(), lexical_resource=resource
+    )
 
-    assert inference.analyze([])["nodes"] == []
+    assert serialize_probability_space(inference.analyze([]))["nodes"] == []
     assert json.loads(inference.execute([])) == {}
     assert resource.calls == 0
 
@@ -31,20 +35,24 @@ def test_empty_input_does_not_load_dictionaries():
 def test_limits_are_reported_before_loading_dictionaries():
     resource = MemoryLexicalResource()
     inference = InferSchema(
-        lexical_resource=resource, limits=InferenceLimits(max_documents=1)
+        expression_writer=EditorSchemaExpressionWriter(),
+        lexical_resource=resource,
+        limits=InferenceLimits(max_documents=1),
     )
 
     with pytest.raises(InferSchemaError):
-        inference.execute([XmlNode("aa"), XmlNode("bb")])
+        inference.execute([XmlDocumentNode("aa"), XmlDocumentNode("bb")])
 
     assert resource.calls == 0
 
 
 def test_inference_leaves_input_unchanged_and_loads_once():
     resource = MemoryLexicalResource()
-    node = XmlNode("order", children=[XmlNode("price", "10")])
-    inference = InferSchema(lexical_resource=resource)
-    result = inference.analyze([node])
+    node = XmlDocumentNode("order", children=[XmlDocumentNode("price", "10")])
+    inference = InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(), lexical_resource=resource
+    )
+    result = serialize_probability_space(inference.analyze([node]))
 
     assert resource.calls == 1
     assert node.children[0].tag == "price"
@@ -54,15 +62,19 @@ def test_inference_leaves_input_unchanged_and_loads_once():
 
 def test_editor_receives_expanded_legacy_expressions_and_valid_references():
     roots = [
-        XmlNode(
+        XmlDocumentNode(
             "order",
             children=[
-                XmlNode("buyer", children=[XmlNode("name", "a")]),
-                XmlNode("seller", children=[XmlNode("name", "b")]),
+                XmlDocumentNode("buyer", children=[XmlDocumentNode("name", "a")]),
+                XmlDocumentNode("seller", children=[XmlDocumentNode("name", "b")]),
             ],
         )
     ]
-    result = json.loads(InferSchema().execute(roots))
+    result = json.loads(
+        InferSchema(
+            expression_writer=EditorSchemaExpressionWriter(),
+        ).execute(roots)
+    )
     (root,) = [key for key in result if key.startswith("begin-c/")]
     pending = [result[root]["expression"]]
     names = []
@@ -84,9 +96,9 @@ def test_editor_receives_expanded_legacy_expressions_and_valid_references():
 def test_document_order_preserves_structures_and_frequencies():
     """Compare observed meaning across permutations without depending on local IDs."""
     roots = [
-        XmlNode("order", children=[XmlNode("aa", "1")]),
-        XmlNode("order", children=[XmlNode("bb", "2")]),
-        XmlNode("order", children=[XmlNode("aa", "3")]),
+        XmlDocumentNode("order", children=[XmlDocumentNode("aa", "1")]),
+        XmlDocumentNode("order", children=[XmlDocumentNode("bb", "2")]),
+        XmlDocumentNode("order", children=[XmlDocumentNode("aa", "3")]),
     ]
 
     def observations(space):
@@ -131,12 +143,14 @@ def test_document_order_preserves_structures_and_frequencies():
             frozenset(editor_structure(child) for child in expression["children"]),
         )
 
-    inference = InferSchema()
-    expected = observations(inference.analyze(roots))
+    inference = InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(),
+    )
+    expected = observations(serialize_probability_space(inference.analyze(roots)))
     expected_editor = None
 
     for order in permutations(roots):
-        space = inference.analyze(order)
+        space = serialize_probability_space(inference.analyze(order))
         assert observations(space) == expected
         exported = json.loads(inference.execute(order))
         (root,) = [key for key in exported if key.startswith("begin-c/")]
@@ -149,10 +163,10 @@ def test_document_order_preserves_structures_and_frequencies():
 
 
 def test_selected_null_type_produces_a_nillable_xsd_element():
-    from core.entities import SchemaNode
+    from core.entities import SelectedSchemaNode
     from core.processes.build_xsd import build_xsd
 
-    root = SchemaNode("empty", "name", "LEAF", 1, 1, [], {})
+    root = SelectedSchemaNode(name="name", chosen_type="null")
     element = build_xsd(root).children[0]
 
     assert element.attributes["type"] == "xs:string"

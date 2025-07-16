@@ -3,7 +3,7 @@ from io import BytesIO
 import pytest
 
 from app.use_cases.infer_schema import InferSchema
-from core.entities import XmlNode
+from core.entities import XmlDocumentNode
 from core.entities.inference import InferenceLimits
 from core.entities.lexical import LexiconData
 from core.processes.build_probability_space import build_probability_space
@@ -13,6 +13,8 @@ from core.processes.normalize_documents import (
 )
 from env.tools.document_reader.strategies import ElementTreeXmlDocumentTool
 from env.tools.lexical import CorpusLexicalResourceTool
+from env.tools.probability_space import serialize_probability_space
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 
 
 def infer(*documents):
@@ -22,7 +24,11 @@ def infer(*documents):
         include_wordnet=False, include_word_frequencies=False
     )
 
-    return InferSchema(lexical_resource=resource).analyze(roots)
+    return serialize_probability_space(
+        InferSchema(
+            expression_writer=EditorSchemaExpressionWriter(), lexical_resource=resource
+        ).analyze(roots)
+    )
 
 
 def field(space, *path):
@@ -175,7 +181,7 @@ def test_mixed_content_is_flattened_without_losing_text():
 
     assert [node.value for node in normalized] == ["Очень важный заказ"] * 2
     assert all(not node.children for node in normalized)
-    space = build_probability_space(normalized)
+    space = serialize_probability_space(build_probability_space(normalized))
     assert len(space["nodes"]) == 1
     assert len(field(space, "description")["content"]["alternatives"]) == 1
 
@@ -288,7 +294,7 @@ def test_each_value_contributes_to_one_type(value, kind):
 
 
 def test_limits_and_cycles_are_rejected():
-    node = XmlNode("root")
+    node = XmlDocumentNode("root")
     node.children.append(node)
 
     with pytest.raises(NormalizeDocumentsError, match="cycle"):
@@ -296,7 +302,8 @@ def test_limits_and_cycles_are_rejected():
 
     with pytest.raises(NormalizeDocumentsError, match="max_documents"):
         normalize_documents(
-            [XmlNode("aa"), XmlNode("bb")], InferenceLimits(max_documents=1)
+            [XmlDocumentNode("aa"), XmlDocumentNode("bb")],
+            InferenceLimits(max_documents=1),
         )
 
 
@@ -318,12 +325,16 @@ def test_ambiguous_dictionary_aliases_remain_separate():
 
 def test_production_dictionary_recognizes_price_typo():
     resource = CorpusLexicalResourceTool()
-    engine = InferSchema(lexical_resource=resource)
-    result = engine.analyze(
-        [
-            XmlNode("order", children=[XmlNode(name, "100")])
-            for name in ("price", "pirce")
-        ]
+    engine = InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(), lexical_resource=resource
+    )
+    result = serialize_probability_space(
+        engine.analyze(
+            [
+                XmlDocumentNode("order", children=[XmlDocumentNode(name, "100")])
+                for name in ("price", "pirce")
+            ]
+        )
     )
 
     assert field(result, "order", "price")["typos"][0]["value"] == "pirce"

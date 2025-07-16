@@ -6,6 +6,8 @@ from documents_generator import GenerationOptions, generate_collections
 
 from app.use_cases.infer_schema import InferSchema
 from env.tools.lexical import CorpusLexicalResourceTool
+from env.tools.probability_space import serialize_probability_space
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 from integration.support import evaluate_manifest, write_evaluation_artifacts
 from main import build_document_reader
 
@@ -36,7 +38,10 @@ def main() -> None:
         generate_collections(directory, GenerationOptions(scenario="all"))
         paths.extend(sorted(directory.glob("*/manifest.json")))
 
-    inference = InferSchema(lexical_resource=CorpusLexicalResourceTool())
+    inference = InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(),
+        lexical_resource=CorpusLexicalResourceTool(),
+    )
     reader = build_document_reader()
     summary = []
 
@@ -48,7 +53,7 @@ def main() -> None:
             with (path.parent / document["path"]).open("rb") as source:
                 roots.append(reader.read(source, document["path"]))
 
-        result = inference.analyze(roots)
+        result = serialize_probability_space(inference.analyze(roots))
         report = evaluate_manifest(manifest, path.parent, result)
         report["input_manifest"] = str(path.resolve())
         name = manifest["scenario"]

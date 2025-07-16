@@ -5,13 +5,13 @@ import yaml
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from app.ports.tools.document_reader import InvalidDocumentError
-from core.entities import YamlProbabilitySpaceNode
+from core.entities import YamlDocumentNode
 
 
 class PyyamlDocumentStrategy:
     """Read ordinary YAML mappings, lists and scalars without custom tags or aliases."""
 
-    def read(self, source: BinaryIO) -> YamlProbabilitySpaceNode:
+    def read(self, source: BinaryIO) -> YamlDocumentNode:
         """Use a single named field as the root, otherwise keep a document container."""
         loader = None
 
@@ -49,7 +49,7 @@ class PyyamlDocumentStrategy:
         loader: yaml.SafeLoader,
         visited: set[int],
         depth: int,
-    ) -> YamlProbabilitySpaceNode:
+    ) -> YamlDocumentNode:
         if id(source) in visited:
             raise InvalidDocumentError("YAML aliases are not supported.")
 
@@ -64,7 +64,7 @@ class PyyamlDocumentStrategy:
             return self._scalar(source, tag, role, loader)
 
         if isinstance(source, MappingNode) and source.tag == "tag:yaml.org,2002:map":
-            result = YamlProbabilitySpaceNode(
+            result = YamlDocumentNode(
                 tag, node_kind="mapping", role=role, ordered=False
             )
             keys: set[str] = set()
@@ -83,7 +83,7 @@ class PyyamlDocumentStrategy:
             return result
 
         if isinstance(source, SequenceNode) and source.tag == "tag:yaml.org,2002:seq":
-            result = YamlProbabilitySpaceNode(tag, node_kind="sequence", role=role)
+            result = YamlDocumentNode(tag, node_kind="sequence", role=role)
 
             for value in source.value:
                 result.children.append(
@@ -108,7 +108,7 @@ class PyyamlDocumentStrategy:
     @staticmethod
     def _scalar(
         source: ScalarNode, tag: str, role: str, loader: yaml.SafeLoader
-    ) -> YamlProbabilitySpaceNode:
+    ) -> YamlDocumentNode:
         types = {
             "tag:yaml.org,2002:str": "string",
             "tag:yaml.org,2002:int": "integer",
@@ -129,7 +129,7 @@ class PyyamlDocumentStrategy:
         if isinstance(value, float) and not math.isfinite(value):
             raise InvalidDocumentError("YAML numeric values must be finite.")
 
-        return YamlProbabilitySpaceNode(
+        return YamlDocumentNode(
             tag,
             text=source.value,
             node_kind="scalar",

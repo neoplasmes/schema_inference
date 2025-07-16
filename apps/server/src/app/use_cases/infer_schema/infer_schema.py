@@ -1,14 +1,13 @@
-import json
 from collections.abc import Sequence
-from typing import Any
 
 from app.ports.tools.lexical_resource import LexicalResourceTool
+from app.ports.tools.schema_expression import SchemaExpressionWriter
 from app.use_cases.infer_schema import InferSchemaError
-from core.entities import ProbabilitySpaceNode
+from core.entities import DocumentNode
 from core.entities.inference import InferenceLimits
 from core.entities.lexical import LexiconData
+from core.entities.probability_space import ProbabilitySpace
 from core.processes.build_probability_space import build_probability_space
-from core.processes.export_schema_expression import export_schema_expression
 from core.processes.normalize_documents import (
     NormalizeDocumentsError,
     normalize_documents,
@@ -21,13 +20,15 @@ class InferSchema:
     def __init__(
         self,
         *,
+        expression_writer: SchemaExpressionWriter,
         lexical_resource: LexicalResourceTool | None = None,
         limits: InferenceLimits | None = None,
     ) -> None:
+        self._expression_writer = expression_writer
         self._lexical_resource = lexical_resource
         self._limits = limits or InferenceLimits()
 
-    def analyze(self, roots: Sequence[ProbabilitySpaceNode]) -> dict[str, Any]:
+    def analyze(self, roots: Sequence[DocumentNode]) -> ProbabilitySpace:
         """Return empirical field and structure frequencies without semantic hypotheses."""
         try:
             normalized = normalize_documents(roots, self._limits)
@@ -42,10 +43,6 @@ class InferSchema:
 
         return build_probability_space(normalized, lexicon, self._limits)
 
-    def execute(self, roots: Sequence[ProbabilitySpaceNode]) -> str:
+    def execute(self, roots: Sequence[DocumentNode]) -> str:
         """Return the editor's schema dictionary with expanded observed alternatives."""
-        return json.dumps(
-            export_schema_expression(self.analyze(roots)),
-            ensure_ascii=False,
-            allow_nan=False,
-        )
+        return self._expression_writer.generate(self.analyze(roots))

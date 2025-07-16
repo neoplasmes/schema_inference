@@ -24,6 +24,7 @@ from env.tools.document_reader.strategies import (
 from env.tools.document_storage import FilesystemDocumentStorageTool
 from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 
 
 def build_settings() -> Settings:
@@ -35,6 +36,7 @@ def build_settings() -> Settings:
 
 def build_infer_schema(settings: Settings) -> InferSchema:
     return InferSchema(
+        expression_writer=EditorSchemaExpressionWriter(),
         lexical_resource=CorpusLexicalResourceTool(
             corpus_directory=settings.wordnet_root
         ),

@@ -11,7 +11,7 @@ src/
         processes/ <———————————— core business processes (e.g. (the most stupid eg on the Earth) — price calculation)
             do_something/
                 __init__.py
-                do_something_proc.py
+                do_something.py
                 do_something_error.py
         
 --------------------------------------------------------
@@ -19,7 +19,7 @@ src/
         use_cases/  <———————————— the so called SACRED BUSINESS LOGIC ffs.
             create_user/
                 __init__.py
-                create_user_case.py
+                create_user.py
                 create_user_error.py <———————————— all errors, related to this specific use case, are stacked in this file (also see notes on errors)
 
         workflows/ <———————————— a set of related consequetive use_cases, united in a one workflow. I mean something, what need a SAGA/Temporal/Cadence to be invloved. Needs more detalization.
@@ -90,19 +90,20 @@ We should be using dots (.) instead of _ in filenames, when we are logically dis
 
 ### A note on errors
 
-- We always keep errors close to their entities/processes/use_cases/etc with the corresponding namin, e.g. something_smth_error.py.
+- Any component with a separate error file has its own package: `name/name.py`, `name/name_error.py`, and `name/__init__.py`. This applies to entities, processes, use cases, ports, tools, and any other component.
+- In these packages, the implementation uses the package name without an additional `_case`, `_proc`, or `_tool` suffix. Export the implementation and errors through the package interface.
 - Every use case has its own folder under `app/use_cases`. Its implementation and use-case-specific error files live together in that folder.
 
 ### Process folders
 
-- Every process has its own folder directly under `core/processes`: `<process_name>/<process_name>_proc.py`, with an `__init__.py`. This applies to all processes, even those implemented in one file.
+- Every process has its own folder directly under `core/processes`: `<process_name>/<process_name>_proc.py`, with an `__init__.py`. This applies to all processes, even those implemented in one file. When a process has a separate error file, use `<process_name>/<process_name>.py` according to the error-package rule above.
 - Do not mix standalone process files with process folders or group several processes in a category folder such as `merging` or `document_grammar`.
 - Helpers used by only one process stay inside that process's folder; they can have separate files only when that makes the implementation easier to read. (the same has been said in i do not remember where)
 - Core processes only accept and return data. External capability contracts should belong to `app/ports`.
 
 ### Package imports
 
-- Import project symbols from packages (folders), not implementation files. For example, use `from app.use_cases.infer_schema import InferSchema` and not `app.use_cases.infer_schema.infer_schema_case import ...`.
+- Import project symbols from packages (folders), not implementation files. For example, use `from app.use_cases.infer_schema import InferSchema` and not `app.use_cases.infer_schema.infer_schema import ...`.
 - Every package with public functionality exposes its names through explicit re-exports and `__all__` in `__init__.py`. Only `__init__.py` imports implementation files directly. Thus, `__init__.py` is a kind of public interface for each folder, it plays a role similar to `index.js` files.
 - Export at the owning package boundary: a use case, process, tool group, entity collection or API package. 
 - Only imports and `__all__` should be kept in `__init__.py`.

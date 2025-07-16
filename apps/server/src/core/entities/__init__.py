@@ -1,15 +1,14 @@
-from .probability_space_node import ProbabilitySpaceNode
-from .schema_node import SchemaNode
+from .document_node import DocumentNode
+from .selected_schema_node import SelectedSchemaNode, SelectedSchemaNodeError
 from .session import Session
-from .xml_probability_space_node import XmlProbabilitySpaceNode
-from .xml_probability_space_node import XmlProbabilitySpaceNode as XmlNode
-from .yaml_probability_space_node import YamlProbabilitySpaceNode
+from .xml_document_node import XmlDocumentNode
+from .yaml_document_node import YamlDocumentNode
 
 __all__ = [
-    "ProbabilitySpaceNode",
-    "SchemaNode",
+    "DocumentNode",
+    "SelectedSchemaNode",
+    "SelectedSchemaNodeError",
     "Session",
-    "XmlNode",
-    "XmlProbabilitySpaceNode",
-    "YamlProbabilitySpaceNode",
+    "XmlDocumentNode",
+    "YamlDocumentNode",
 ]

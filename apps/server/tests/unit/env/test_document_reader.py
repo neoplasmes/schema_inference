@@ -1,6 +1,8 @@
 from io import BytesIO
 
 from app.use_cases.infer_schema import InferSchema
+from env.tools.probability_space import serialize_probability_space
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 from main import build_document_reader
 
 
@@ -9,7 +11,14 @@ def test_yaml_keeps_native_scalar_types():
     root = reader.read(
         BytesIO(b"order: {code: '001', paid: false, note: null}"), "order.yaml"
     )
-    nodes = {node["name"]: node for node in InferSchema().analyze([root])["nodes"]}
+    nodes = {
+        node["name"]: node
+        for node in serialize_probability_space(
+            InferSchema(
+                expression_writer=EditorSchemaExpressionWriter(),
+            ).analyze([root])
+        )["nodes"]
+    }
 
     assert nodes["code"]["data_types"][0]["value"] == "string"
     assert nodes["paid"]["data_types"][0]["value"] == "boolean"
@@ -25,7 +34,14 @@ def test_yaml_order_and_repetition_do_not_add_structures():
             b"order: {name: Ben, items: [{price: 15}, {price: 20}]}",
         )
     ]
-    nodes = {node["name"]: node for node in InferSchema().analyze(roots)["nodes"]}
+    nodes = {
+        node["name"]: node
+        for node in serialize_probability_space(
+            InferSchema(
+                expression_writer=EditorSchemaExpressionWriter(),
+            ).analyze(roots)
+        )["nodes"]
+    }
 
     assert len(nodes["order"]["content"]["alternatives"]) == 1
     assert len(nodes["items"]["content"]["alternatives"]) == 1

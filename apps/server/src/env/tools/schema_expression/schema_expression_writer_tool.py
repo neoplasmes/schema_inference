@@ -1,8 +1,24 @@
+import json
 from itertools import count
 from typing import Any
 
+from core.entities.probability_space import ProbabilitySpace
+from env.tools.probability_space import serialize_probability_space
 
-def export_schema_expression(space: dict[str, Any]) -> dict[str, Any]:
+
+class EditorSchemaExpressionWriter:
+    """Serialize observed alternatives for the existing schema editor."""
+
+    def generate(self, space: ProbabilitySpace) -> str:
+        """Return the editor contract as JSON."""
+        return json.dumps(
+            _export_schema_expression(serialize_probability_space(space)),
+            ensure_ascii=False,
+            allow_nan=False,
+        )
+
+
+def _export_schema_expression(space: dict[str, Any]) -> dict[str, Any]:
     """Project counted variants into the existing editor's AND/OR expression format."""
     nodes = {node["id"]: node for node in space["nodes"]}
     result: dict[str, Any] = {}

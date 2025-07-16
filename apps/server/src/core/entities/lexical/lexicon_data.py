@@ -20,6 +20,9 @@ class LexiconData:
     warnings: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
+        """Filter unusable lexical evidence and freeze the snapshot for inference."""
+        # Lexical frequencies represent evidence for observed words and phrases;
+        # zero, negative or nonfinite weights cannot serve as usable frequency evidence.
         unigrams = {
             word: float(count)
             for word, count in self.unigrams.items()
@@ -31,6 +34,8 @@ class LexiconData:
             if isfinite(count) and count > 0
         }
 
+        # All name comparisons in an analysis must use the same lexical evidence,
+        # even if the loader's original dictionaries or sets are later modified.
         object.__setattr__(self, "unigrams", MappingProxyType(unigrams))
         object.__setattr__(self, "bigrams", MappingProxyType(bigrams))
         object.__setattr__(

@@ -11,6 +11,9 @@ class InferenceLimits:
     max_names: int = 256
 
     def __post_init__(self) -> None:
+        """Require usable whole-number budgets for document inference."""
+        # Limits count documents, nodes, tree levels and candidate names. Each
+        # budget must permit at least one item rather than disable that analysis step.
         for value in (
             self.max_documents,
             self.max_nodes,

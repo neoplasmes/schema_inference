@@ -5,6 +5,8 @@ import pytest
 from app.ports.tools.document_reader import InvalidDocumentError
 from app.use_cases.infer_schema import InferSchema
 from env.tools.document_reader.strategies import ElementTreeXmlDocumentTool
+from env.tools.probability_space import serialize_probability_space
+from env.tools.schema_expression import EditorSchemaExpressionWriter
 
 
 def test_xml_reader_preserves_text_tail_expanded_names_and_attributes():
@@ -33,8 +35,16 @@ def test_namespace_prefix_aliases_have_the_same_profile_identity():
         BytesIO(b'<b:root xmlns:b="urn:orders"><b:item b:id="1"/></b:root>')
     )
 
-    first_space = InferSchema().analyze([first])
-    second_space = InferSchema().analyze([second])
+    first_space = serialize_probability_space(
+        InferSchema(
+            expression_writer=EditorSchemaExpressionWriter(),
+        ).analyze([first])
+    )
+    second_space = serialize_probability_space(
+        InferSchema(
+            expression_writer=EditorSchemaExpressionWriter(),
+        ).analyze([second])
+    )
 
     assert first_space == second_space
     assert first.namespaces["a"] == second.namespaces["b"] == "urn:orders"

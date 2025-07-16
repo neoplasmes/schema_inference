@@ -7,6 +7,7 @@ from core.entities.lexical import LexiconData
 
 
 def _words(name: str, lexicon: LexiconData) -> tuple[str, ...]:
+    """Tokenize a field name using separators, lexical splits and known aliases."""
     separated = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", name)
     chunks = re.findall(r"[a-z0-9]+", separated.lower())
     words: list[str] = []
@@ -50,6 +51,7 @@ def _words(name: str, lexicon: LexiconData) -> tuple[str, ...]:
 
 
 def _one_edit(left: str, right: str) -> bool:
+    """Recognize one edit or adjacent transposition between names of sufficient length."""
     if abs(len(left) - len(right)) > 1 or min(len(left), len(right)) < 4:
         return False
 
@@ -76,6 +78,8 @@ def match_field_names(
     names = sorted(counts)
     result = {name: (name, "original") for name in names}
 
+    # Exceeding the comparison budget preserves original field identities instead
+    # of merging a subset whose matches depend on which names were examined first.
     if len(names) > max_names:
         return result
 
@@ -86,17 +90,24 @@ def match_field_names(
     tokens = {name: _words(name.rsplit("}", 1)[-1], lexicon) for name in names}
 
     def relation(left: str, right: str) -> str | None:
+        """Classify a permitted name correspondence within the current parent context."""
         if left == right:
             return "original"
 
+        # Distinct fields observed together have separate roles in that parent;
+        # a spelling or synonym match must not collapse them into one field.
         if occurrences[left] & occurrences[right]:
             return None
 
+        # Namespace identity is part of the field's meaning, even when two local
+        # names have identical spelling or belong to the same synonym group.
         if left.rpartition("}")[0] != right.rpartition("}")[0]:
             return None
 
         first, second = tokens[left], tokens[right]
 
+        # Known opposites express different roles, so lexical resemblance cannot
+        # justify merging them into a single canonical field.
         if any(
             tuple(sorted((a, b))) in lexicon.opposites for a in first for b in second
         ):
@@ -145,6 +156,8 @@ def match_field_names(
         name: [other for other in names if other != name and relation(name, other)]
         for name in names
     }
+    # Competing matches that disagree with each other are insufficient evidence
+    # for one field identity; preserve those names rather than pick a merge order.
     ambiguous = {
         name
         for name, matches in compatible.items()
@@ -173,6 +186,8 @@ def match_field_names(
             if name in assigned or name in ambiguous:
                 continue
 
+            # Every spelling in a group must agree with every other spelling;
+            # a chain of pairwise matches alone cannot establish one field identity.
             if all(relation(member, name) for member in group):
                 result[name] = (canonical, relation(canonical, name) or "alias")
                 group.append(name)
