@@ -40,8 +40,10 @@ from core.processes.normalize_documents import normalize_documents
 )
 def test_selected_schema_rejects_invalid_states(changes: dict[str, Any]):
     """Reject invalid domain data even when no HTTP validation is involved."""
+    fields: dict[str, Any] = {"name": "field", "chosen_type": "string", **changes}
+
     with pytest.raises(SelectedSchemaNodeError):
-        SelectedSchemaNode(**{"name": "field", "chosen_type": "string", **changes})
+        SelectedSchemaNode(**fields)
 
 
 def test_selection_copies_collections_and_cannot_be_mutated():

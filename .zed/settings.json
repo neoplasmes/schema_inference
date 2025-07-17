@@ -1,0 +1,17 @@
+{
+    "lsp": {
+        "yaml-language-server": {
+            "settings": {
+                "yaml": {
+                    "schemas": {
+                        "./.moon/cache/schemas/workspace.json": [".moon/workspace.yml"],
+                        "./.moon/cache/schemas/toolchain.json": [".moon/toolchain.yml"],
+                        "./.moon/cache/schemas/tasks.json": [".moon/tasks/*.yml"],
+                        "./.moon/cache/schemas/project.json": ["**/moon.yml"],
+                        "./.moon/cache/schemas/template.json": ["**/template.yml"]
+                    }
+                }
+            }
+        }
+    }
+}
