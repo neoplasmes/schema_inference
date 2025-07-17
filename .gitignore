@@ -26,6 +26,10 @@ build/
 /.proto/
 nltk_data/
 
+.env
+.env.*
+!.env.example
+
 apps/server/**/fineTuning
 apps/server/**/FinetunedModel
 apps/server/**/generated_xml

@@ -3,22 +3,22 @@ type: application
 
 tasks:
   lint:
-    command: uv run --no-sync ruff check src tests
+    command: uv run --no-sync poe lint
 
   fmt:
-    command: uv run --no-sync ruff format src tests
+    command: uv run --no-sync poe fmt
     options:
       cache: false
       runInCI: false
 
   typecheck:
-    command: uv run --no-sync pyright
+    command: uv run --no-sync poe typecheck
 
   test:
-    command: uv run --no-sync pytest
+    command: uv run --no-sync poe test
 
   build:
-    command: uv build
+    command: uv run --no-sync poe build
     outputs:
       - dist
 
@@ -29,26 +29,18 @@ tasks:
       - ~:test
       - ~:build
 
-  dev:
-    command: uv run --no-sync uvicorn main:create_app --factory --reload --host 127.0.0.1 --port 8000
-    local: true
-    options:
-      persistent: true
-
   start:
-    command: uv run --no-sync start
+    command: uv run --no-sync poe start
     local: true
     options:
       persistent: true
 
   download-wordnet:
-    command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
+    command: uv run --no-sync poe download-wordnet
     local: true
 
   evaluate:
-    command: uv run --no-sync python -m integration.evaluate --all --output ../../artifacts/inference-review --fail-on-forbidden
-    env:
-      PYTHONPATH: tests
+    command: uv run --no-sync poe evaluate
     options:
       cache: false
       runInCI: false

@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 from fastapi import FastAPI
 
 from api.http import create_http_server
@@ -14,7 +11,7 @@ from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.infer_schema import InferSchema
 from app.use_cases.process_documents import ProcessDocuments
 from app.use_cases.upload_documents import UploadDocuments
-from env.config import Settings
+from env.config import Settings, load_settings
 from env.repos.session import InMemorySessionRepository
 from env.tools.document_reader import StrategyDocumentReaderTool
 from env.tools.document_reader.strategies import (
@@ -25,13 +22,6 @@ from env.tools.document_storage import FilesystemDocumentStorageTool
 from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
 from env.tools.schema_expression import EditorSchemaExpressionWriter
-
-
-def build_settings() -> Settings:
-    upload_root = Path(os.environ.get("UPLOAD_ROOT", "uploaded_files")).resolve()
-    wordnet_root = Path(os.environ.get("WORDNET_ROOT", "nltk_data")).resolve()
-
-    return Settings(upload_root=upload_root, wordnet_root=wordnet_root)
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:
@@ -67,7 +57,7 @@ def create_app(
     infer_schema: InferSchema | None = None,
     generate_schema: GenerateSchema | None = None,
 ) -> FastAPI:
-    configuration = settings if settings is not None else build_settings()
+    configuration = settings if settings is not None else load_settings()
     sessions = (
         session_repository
         if session_repository is not None
@@ -105,10 +95,17 @@ def create_app(
 
 
 def start() -> None:
+    """Serve the application, reloading on source changes in development."""
     import uvicorn
 
-    settings = build_settings()
-    uvicorn.run("main:create_app", factory=True, host=settings.host, port=settings.port)
+    settings = load_settings()
+    uvicorn.run(
+        "main:create_app",
+        factory=True,
+        host=settings.host,
+        port=settings.port,
+        reload=settings.is_development,
+    )
 
 
 if __name__ == "__main__":

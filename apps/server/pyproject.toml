@@ -14,12 +14,26 @@ dependencies = [
     "uvicorn[standard] (>=0.34.2,<0.35.0)",
     "python-multipart (>=0.0.20,<0.0.21)",
     "websockets (>=15.0.1,<16.0.0)",
-    "wsproto (>=1.2.0,<2.0.0)"
+    "wsproto (>=1.2.0,<2.0.0)",
+    "python-dotenv (>=1.1.0,<2.0.0)"
 ]
 
 
 [project.scripts]
 start = "main:start"
+
+[tool.poe.tasks]
+lint = "ruff check src tests"
+fmt = "ruff format src tests"
+typecheck = "pyright"
+test = "pytest"
+build = "uv build"
+start = { script = "main:start" }
+download-wordnet = "python -m env.tools.lexical --directory nltk_data"
+
+[tool.poe.tasks.evaluate]
+cmd = "python -m integration.evaluate --all --output ../../artifacts/inference-review --fail-on-forbidden"
+env = { PYTHONPATH = "tests" }
 
 [tool.poetry]
 packages = [

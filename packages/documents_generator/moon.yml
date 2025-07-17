@@ -3,20 +3,20 @@ type: tool
 
 tasks:
   generate:
-    command: uv run --no-sync documents-generator --output generated --scenario all --documents 100 --seed 42
+    command: uv run --no-sync poe generate
     outputs:
       - generated
     options:
       cache: false
 
   lint:
-    command: uv run --no-sync ruff check src
+    command: uv run --no-sync poe lint
 
   typecheck:
-    command: uv run --no-sync pyright
+    command: uv run --no-sync poe typecheck
 
   fmt:
-    command: uv run --no-sync ruff format src
+    command: uv run --no-sync poe fmt
     options:
       cache: false
       runInCI: false

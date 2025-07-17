@@ -8,6 +8,12 @@ dependencies = ["PyYAML==6.0.2"]
 [project.scripts]
 documents-generator = "documents_generator.cli:main"
 
+[tool.poe.tasks]
+lint = "ruff check src"
+fmt = "ruff format src"
+typecheck = "pyright"
+generate = "documents-generator --output generated --scenario all --documents 100 --seed 42"
+
 [tool.poetry]
 packages = [{ include = "documents_generator", from = "src" }]
 
