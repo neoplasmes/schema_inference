@@ -1,0 +1,41 @@
+language: system
+type: configuration
+
+tasks:
+  lint:
+    deps:
+      - client:lint
+      - server:lint
+      - documents-generator:lint
+
+  fmt:
+    deps:
+      - client:fmt
+      - server:fmt
+      - documents-generator:fmt
+    options:
+      cache: false
+      runInCI: false
+
+  typecheck:
+    deps:
+      - client:typecheck
+      - server:typecheck
+      - documents-generator:typecheck
+
+  test:
+    deps:
+      - client:test
+      - server:test
+
+  build:
+    deps:
+      - client:build
+      - server:build
+
+  ci:
+    deps:
+      - ~:lint
+      - ~:typecheck
+      - ~:test
+      - ~:build
