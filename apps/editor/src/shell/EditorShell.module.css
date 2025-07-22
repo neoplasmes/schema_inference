@@ -1,0 +1,614 @@
+.shell {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    color: var(--label);
+    font: 13px/18px var(--font-sans);
+}
+.panel {
+    position: absolute;
+    box-sizing: border-box;
+    border-radius: var(--radius-panel);
+    padding: 8px;
+    background: var(--surface-sidebar);
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--shadow-glass);
+    pointer-events: auto;
+}
+.toolbar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.projectTitle {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 0 8px;
+    white-space: nowrap;
+}
+.projectTitle strong {
+    font-size: 15px;
+    font-weight: 600;
+}
+.projectTitle span {
+    font-size: 12px;
+}
+.toolbarActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+.secondary,
+.count,
+.description {
+    color: var(--label-secondary);
+}
+.button,
+.primary,
+.treeItem,
+.iconButton,
+.saveStatus,
+.segment button,
+.paletteItem,
+.variantMetric,
+.evidenceActions button,
+.textButton,
+.detailButton,
+.arrange {
+    color: inherit;
+    font: inherit;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
+}
+.button {
+    border-radius: 10px;
+    padding: 7px 10px;
+    white-space: nowrap;
+}
+.iconButton {
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--label-secondary);
+    flex: 0 0 36px;
+}
+.button:hover,
+.iconButton:hover,
+.treeItem:hover,
+.paletteItem:hover,
+.evidenceActions button:hover {
+    background: var(--fill-hover);
+}
+.button:disabled,
+.iconButton:disabled,
+.primary:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+.saveStatus {
+    font-size: 12px;
+    color: var(--label-secondary);
+    padding: 0 10px;
+    white-space: nowrap;
+}
+.saveStatus:disabled {
+    cursor: default;
+}
+.shell button:focus-visible,
+.search:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+.primary {
+    height: 36px;
+    padding: 0 16px;
+    background: var(--accent);
+    color: var(--accent-on);
+    border-radius: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.segment {
+    display: flex;
+    align-items: center;
+    border-radius: 17px;
+    background: var(--fill-control);
+    padding: 3px;
+    gap: 0;
+}
+.segment button {
+    height: 28px;
+    padding: 0 14px;
+    border-radius: 14px;
+    white-space: nowrap;
+}
+.segment button[aria-pressed='true'] {
+    background: var(--surface-card);
+    color: var(--label);
+    box-shadow: var(--shadow-thumb);
+    font-weight: 600;
+}
+.search {
+    flex: 0 1 360px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: 14px;
+    background: var(--fill-control);
+    color: var(--label-secondary);
+    margin-left: auto;
+}
+.search input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--label);
+    font: inherit;
+}
+.search input::placeholder {
+    color: var(--label-secondary);
+}
+.navigator {
+    top: 68px;
+    bottom: 8px;
+    left: 8px;
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: auto;
+}
+.navigatorTabs button {
+    flex: 1;
+    padding: 0 8px;
+}
+.separator {
+    height: 1px;
+    flex: 0 0 1px;
+    margin: 8px 10px;
+    background: var(--separator);
+}
+.tree {
+    overflow: auto;
+    flex: 0 1 auto;
+    min-height: 120px;
+}
+.treeItem {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 30px;
+    height: 30px;
+    border-radius: 14px;
+    padding: 0 10px;
+    text-align: left;
+}
+.treeItem[aria-selected='true'] {
+    background: var(--accent-fill);
+    font-weight: 600;
+}
+.treeItem span:not(.icon):not(.count):not(.variantCount):not(.treeGuide) {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.treeGuide {
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    width: 1px;
+    background: var(--separator);
+}
+.icon {
+    color: var(--label-secondary);
+    flex: 0 0 14px;
+    font-size: 14px;
+    text-align: center;
+}
+.count {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+.variantCount {
+    margin-left: auto;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--surface-sidebar);
+    color: var(--accent-ink);
+    font-size: 11px;
+    white-space: nowrap;
+}
+.sectionLabel {
+    padding: 2px 10px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--label-secondary);
+}
+.palette {
+    display: flex;
+    flex-direction: column;
+}
+.paletteItem {
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    border-radius: 14px;
+    text-align: left;
+}
+.paletteItem span {
+    width: 22px;
+    font: 11px var(--font-mono);
+    color: var(--label-secondary);
+}
+.inspector {
+    top: 68px;
+    bottom: 8px;
+    right: 8px;
+    width: 320px;
+    overflow: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.inspector .separator {
+    margin: -6px 0;
+}
+.inspectorTitle {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.inspectorTitle > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.inspectorTitle strong {
+    font-size: 20px;
+    line-height: 25px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+.inspectorTitle > div > span {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.path {
+    font: 12px/16px var(--font-mono);
+    color: var(--label-secondary);
+}
+.propertyGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.propertyGrid label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--label-secondary);
+    min-width: 0;
+}
+.propertyGrid input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 32px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--fill-control);
+    color: var(--label);
+    font: 12px var(--font-mono);
+    outline: 0;
+}
+.fullProperty {
+    grid-column: span 2;
+}
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.section h2 {
+    margin: 0;
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 600;
+    color: var(--label-secondary);
+}
+.section p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--label-secondary);
+}
+.variantMetric {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    text-align: left;
+    min-height: 18px;
+}
+.variantMetric > span:first-child {
+    width: 60px;
+}
+.variantMetric > span:last-child {
+    width: 42px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+}
+.variantMetric[aria-pressed='true'] > span:first-child {
+    font-weight: 600;
+}
+.metricTrack {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--fill-pressed);
+    display: flex;
+}
+.metricTrack > span {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--label-tertiary);
+}
+.variantMetric[aria-pressed='true'] .metricTrack > span {
+    background: var(--accent);
+}
+.evidenceActions {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0 -8px;
+}
+.evidenceActions button {
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 14px;
+}
+.evidenceActions button > span:last-child {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--label-secondary);
+}
+.nameMetric {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+.nameMetric > span:first-child {
+    font-family: var(--font-mono);
+}
+.nameMetric > span:last-child {
+    margin-left: auto;
+    font-weight: 600;
+}
+.nameMetric i {
+    color: var(--label-secondary);
+}
+.textButton {
+    align-self: flex-start;
+    padding: 0;
+    color: var(--accent-ink);
+    font-size: 12px;
+    font-weight: 500;
+}
+.sources {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font: 11px/14px var(--font-mono);
+}
+.sources > span > span {
+    color: var(--label-secondary);
+}
+.description {
+    margin: 0;
+    font-size: 12px;
+    line-height: 18px;
+}
+.message {
+    margin: 0;
+    color: var(--accent-ink);
+    font-size: 12px;
+    line-height: 18px;
+}
+.viewportControls {
+    bottom: 16px;
+    left: calc(50% - 200px);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 22px;
+    height: 44px;
+    padding: 4px;
+}
+.zoom {
+    width: 44px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+.detailButton {
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--label-secondary);
+    white-space: nowrap;
+}
+.arrange {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 18px;
+    background: var(--fill-control);
+    font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+    .search {
+        flex-basis: 240px;
+    }
+    .projectTitle > span {
+        display: none;
+    }
+    .saveStatus {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+@media (max-width: 760px) {
+    .navigator {
+        width: 180px;
+    }
+    .inspector {
+        display: none;
+    }
+    .toolbar {
+        gap: 4px;
+    }
+    .projectTitle {
+        padding: 0 4px;
+    }
+    .search {
+        display: none;
+    }
+    .saveStatus {
+        max-width: 74px;
+    }
+    .segment button {
+        padding: 0 8px;
+    }
+}
+
+.comparison {
+    top: 8px;
+    bottom: 8px;
+    right: 8px;
+    width: 340px;
+    padding: 20px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: auto;
+}
+.comparisonHeading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.comparisonHeading h1 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 25px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+.comparisonHeading > span {
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.comparisonMetrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+.comparisonMetrics > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.comparisonMetrics strong {
+    font-size: 22px;
+    line-height: 27px;
+    font-weight: 600;
+}
+.comparisonMetrics span {
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.comparisonWarning {
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--fill-control);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    line-height: 16px;
+}
+.comparisonWarning strong {
+    font-size: 13px;
+}
+.comparisonWarning span:last-child {
+    color: var(--label-secondary);
+}
+.comparisonChoices {
+    flex: 1;
+    gap: 8px;
+}
+.comparisonChoices > .primary {
+    height: 40px;
+}
+.comparisonChoice {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: left;
+    padding: 8px;
+    margin: 0 -8px;
+    background: transparent;
+    border: 0;
+    border-radius: 14px;
+    font: inherit;
+    color: var(--label);
+    cursor: pointer;
+}
+.comparisonChoice:nth-of-type(3) {
+    background: var(--fill-hover);
+}
+.comparisonChoice strong {
+    font-weight: 500;
+}
+.comparisonChoice span {
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.comparisonFooter {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--label-secondary);
+}
