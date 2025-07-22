@@ -1,0 +1,201 @@
+.scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--glass-scrim);
+    backdrop-filter: var(--glass-blur-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dialog {
+    width: 760px;
+    height: min(752px, calc(100% - 48px));
+    box-sizing: border-box;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-radius: 20px;
+    background: var(--glass-dialog);
+    backdrop-filter: var(--glass-blur-strong);
+    box-shadow: var(--shadow-overlay);
+    overflow: auto;
+}
+.heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.heading > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.heading h1 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 25px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+.heading span {
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.dialog button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.heading > button {
+    margin-left: auto;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    background: var(--fill-control);
+    color: var(--label-secondary);
+    font-size: 20px;
+}
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+.metrics > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.metrics strong {
+    font-size: 24px;
+    line-height: 29px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.metrics span {
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.manual {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--fill-control);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.manual h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+.manual > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+}
+.manual > div > span:first-child {
+    flex: 1;
+    font-family: var(--font-mono);
+}
+.manual > div > span:nth-child(2) {
+    color: var(--label-secondary);
+}
+.manual button,
+.dialog .textButton {
+    padding: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent-ink);
+}
+.diff {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.diffHeading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 4px 8px;
+    font-size: 12px;
+    color: var(--label-secondary);
+}
+.diffHeading h2 {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 600;
+}
+.rows {
+    display: flex;
+    flex-direction: column;
+    font: 12px/16px var(--font-mono);
+}
+.rows > div {
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 4px;
+    box-shadow: inset 0 -1px 0 var(--separator);
+}
+.rows > div:last-child {
+    box-shadow: none;
+}
+.rows > div > span:first-child {
+    width: 12px;
+    font-weight: 600;
+}
+.rows > div > span:nth-child(2) {
+    flex: 1;
+}
+.rows > div > span:last-child {
+    color: var(--label-secondary);
+}
+.rows .removed,
+.rows .removed > span:last-child {
+    color: var(--label-removed);
+}
+.added {
+    color: var(--accent-ink);
+}
+.diff > .textButton {
+    align-self: flex-start;
+    margin: 10px 4px 0;
+}
+.description {
+    margin: 0;
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--label-secondary);
+}
+.dialog footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.dialog footer button {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 14px;
+    font-weight: 500;
+}
+.dialog footer button:nth-child(2) {
+    margin-left: auto;
+    background: var(--fill-control);
+}
+.dialog footer .primary {
+    padding: 0 18px;
+    background: var(--accent);
+    color: var(--accent-on);
+    font-weight: 600;
+    cursor: default;
+}
+.dialog button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
