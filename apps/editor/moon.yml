@@ -1,0 +1,44 @@
+language: typescript
+type: application
+
+fileGroups:
+  sources:
+    - src/**/*
+    - playground/**/*
+    - scripts/**/*
+    - index.html
+  configs:
+    - package.json
+    - tsconfig.json
+    - '*.config.*'
+
+tasks:
+  dev:
+    command: pnpm dev
+    local: true
+    options:
+      persistent: true
+  playground:
+    command: pnpm playground
+    local: true
+    options:
+      persistent: true
+  build:
+    command: pnpm build
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+    outputs:
+      - dist
+  typecheck:
+    command: pnpm typecheck
+  test:
+    command: pnpm test
+  lint:
+    command: pnpm lint
+  visual:
+    command: pnpm visual
+    local: true
+  perf:
+    command: pnpm perf
+    local: true

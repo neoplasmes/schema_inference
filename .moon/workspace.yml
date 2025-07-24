@@ -1,6 +1,7 @@
 projects:
   root: .
   client: apps/client
+  editor: apps/editor
   server: apps/server
   documents-generator: packages/documents_generator
 

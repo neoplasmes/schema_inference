@@ -1,5 +1,6 @@
 node:
   packageManager: pnpm
+  dedupeOnLockfileChange: false
 
 python:
   packageManager: uv
