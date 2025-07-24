@@ -45,7 +45,7 @@ export const WelcomePage = () => {
                 initializeWorkingSchema(
                     mockData as unknown as Record<string, SchemaDataEntry>
                 );
-                navigate('/edit');
+                navigate('/edit/legacy');
 
                 return;
             }
@@ -125,7 +125,7 @@ export const WelcomePage = () => {
                         data.message
                     );
                     initializeWorkingSchema(jsonSchemaData);
-                    navigate('/edit');
+                    navigate('/edit/legacy');
 
                     break;
                 }

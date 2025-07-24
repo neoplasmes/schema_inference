@@ -9,16 +9,22 @@ fileGroups:
   sources:
     - index.html
     - src/**/*
+    - scripts/**/*
+    - public/**/*
 
 tasks:
   dev:
     command: pnpm dev
+    deps:
+      - editor:dev
     local: true
     options:
       persistent: true
 
   build:
     command: pnpm build
+    deps:
+      - editor:build
     inputs:
       - '@group(sources)'
       - '@group(configs)'
@@ -27,6 +33,8 @@ tasks:
 
   typecheck:
     command: pnpm typecheck
+    deps:
+      - editor:build
     inputs:
       - '@group(sources)'
       - '@group(configs)'

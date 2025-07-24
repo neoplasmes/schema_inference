@@ -14,7 +14,8 @@
         "noFallthroughCasesInSwitch": true,
         "noEmit": true,
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "schema_editor/*": ["./@mf-types/schema_editor/*"]
         }
     },
     "include": ["src"]
