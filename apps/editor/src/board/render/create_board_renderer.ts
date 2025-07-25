@@ -37,6 +37,7 @@ import { createBackground, createShadow } from './background';
 import { drawConnection } from './edges';
 import { paint } from './colors';
 import { resolveTheme } from './theme';
+import { BoardStatusView } from './status_view';
 
 const EMPTY_MODEL: BoardModel = {
     version: 0,
@@ -135,6 +136,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
     let background: Sprite | null = null;
     let shadow: Texture | null = null;
     let metrics: LabelMetrics | null = null;
+    let statusView: BoardStatusView | null = null;
+    let statusDirty = true;
     let snapshot: BoardGeometry = EMPTY_GEOMETRY;
     let geometryDirty = false;
     const stats = {
@@ -621,8 +624,16 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
             overlayDirty = false;
         }
 
+        if (statusDirty) {
+            statusView?.update(model.state, model.cards.length, width, height);
+            statusDirty = false;
+        }
+
         app.render();
-        let textObjects = Number(!!dragLabel) + badgeViews.size;
+        let textObjects =
+            Number(!!dragLabel) +
+            badgeViews.size +
+            Number(statusView?.view.visible ?? false);
 
         for (const view of cardViews.values()) {
             textObjects += view.textCount;
@@ -717,6 +728,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
         );
         app.stage.addChild(world);
         metrics = new LabelMetrics(theme);
+        statusView = new BoardStatusView(metrics, resolution);
+        app.stage.addChild(statusView.view);
         shadow = createShadow(theme);
         app.renderer.resize(width, height);
         replaceBackground();
@@ -734,6 +747,7 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
             const diff = diffBoardModels(model, next);
             const nextLod = next.diagnosticLod ?? levelOfDetail(viewport.zoom);
             model = next;
+            statusDirty = true;
             updateSelectedTargets();
 
             if (
@@ -809,6 +823,7 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
 
             width = w;
             height = h;
+            statusDirty = true;
 
             if (initialized) {
                 app.renderer.resize(width, height);
@@ -936,6 +951,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
             }
 
             const backgroundTexture = background?.texture;
+            statusView?.destroy();
+            statusView = null;
             destroyApplication();
             backgroundTexture?.destroy(true);
             shadow?.destroy(true);

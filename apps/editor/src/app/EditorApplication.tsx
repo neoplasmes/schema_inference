@@ -257,14 +257,9 @@ export default function EditorApplication(props: EditorProps): React.JSX.Element
                 <ReplacePreview onClose={() => setPreviewOpen(false)} />
             )}
             {(controller.error || canvas.error) && (
-                <div className={styles.status} role="alert">
+                <div className={styles.notification} role="alert">
                     <p>{controller.error ?? canvas.error}</p>
                     <button onClick={controller.retry}>Retry loading</button>
-                </div>
-            )}
-            {!controller.session && !controller.error && (
-                <div className={styles.status} role="status">
-                    Loading schema...
                 </div>
             )}
         </div>

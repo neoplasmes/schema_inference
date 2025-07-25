@@ -1,6 +1,7 @@
 import { Texture } from 'pixi.js';
 import { themeRadius, type ResolvedBoardTheme } from './theme';
 import { cssAlpha } from './colors';
+import { grainPixels } from './grain';
 
 /** Stable grain keeps screenshots deterministic and remains fixed in screen space. */
 export function createBackground(
@@ -56,27 +57,21 @@ export function createBackground(
     gradient(width * 0.12, 0, width * 0.7, height * 0.9, 0.65, 'canvas-glow', 1);
 
     const grain = document.createElement('canvas');
-    grain.width = grain.height = 128;
+    const grainSize = Math.max(128, Math.ceil(128 * resolution));
+    grain.width = grain.height = grainSize;
     const grainContext = grain.getContext('2d');
 
     if (grainContext) {
-        const data = grainContext.createImageData(128, 128);
-        let seed = 1729;
-
-        for (let index = 0; index < data.data.length; index += 4) {
-            seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
-            const value = seed >>> 24;
-            data.data[index] = 0;
-            data.data[index + 1] = 0;
-            data.data[index + 2] = 0;
-            data.data[index + 3] = Math.round(value * 0.05);
-        }
-
+        const data = grainContext.createImageData(grainSize, grainSize);
+        data.data.set(grainPixels(grainSize));
         grainContext.putImageData(data, 0, 0);
+        context.save();
+        context.setTransform(1, 0, 0, 1, 0, 0);
         context.globalAlpha = 1;
         context.globalCompositeOperation = 'source-over';
         context.fillStyle = context.createPattern(grain, 'repeat')!;
-        context.fillRect(0, 0, width, height);
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.restore();
     }
 
     return Texture.from(canvas);

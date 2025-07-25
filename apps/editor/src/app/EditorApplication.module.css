@@ -31,21 +31,20 @@
     overflow: hidden;
     border-radius: var(--radius-md);
 }
-.status {
+.notification {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    bottom: 24px;
+    right: 24px;
     max-width: 480px;
     padding: 24px;
     border-radius: var(--radius-panel);
     background: var(--surface-sidebar);
     box-shadow: var(--shadow-glass);
 }
-.status p {
+.notification p {
     margin: 0 0 16px;
 }
-.status button {
+.notification button {
     border: 0;
     border-radius: var(--radius-segment);
     color: var(--accent-on);
