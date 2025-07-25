@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { BoardCard, BoardConnection, BoardModel } from '../model/types';
 import {
     cardSize,
+    cardMetrics,
+    rowScrollbar,
     connectionGeometry,
     createCardGeometry,
     hiddenSourceMembers,
@@ -366,6 +368,95 @@ describe('card geometry', () => {
             blockId: 'empty',
             collectionId: 'members:empty',
         });
+    });
+
+    it('keeps separators and the reserved name column independent from type glyphs', () => {
+        const source = {
+            ...card('comparison'),
+            metrics: { rowGlyphs: false, separators: true, reserveGlyphColumn: true },
+        };
+        expect(cardMetrics(source, 'detailed')).toMatchObject({
+            rowGlyphs: false,
+            separators: true,
+            reserveGlyphColumn: true,
+        });
+        expect(
+            cardMetrics(
+                { ...source, metrics: { ...source.metrics, separators: false } },
+                'detailed'
+            )
+        ).toMatchObject({
+            rowGlyphs: false,
+            separators: false,
+            reserveGlyphColumn: true,
+        });
+    });
+
+    it('places an illustrative partial-window thumb within its loaded rows rather than the server total', () => {
+        const source = {
+            ...card(
+                'anatomy',
+                Array.from({ length: 7 }, (_, index) => `row-${index}`)
+            ),
+            metrics: { rowLimit: 5, row: 36 },
+            rowWindow: {
+                firstMemberId: 'row-0',
+                firstIndex: 2,
+                loadedItems: 50,
+                totalItems: 412,
+                state: 'partial' as const,
+                hasMore: true,
+            },
+        };
+        const geometry = createCardGeometry(source, { x: 0, y: 0 }, 'detailed');
+        const scrollbar = rowScrollbar(source, geometry)!;
+        expect(geometry.rows).toHaveLength(5);
+        expect(scrollbar.thumbTop - scrollbar.trackTop).toBeCloseTo((158 * 2) / 45);
+        expect(scrollbar.thumbTop).toBeGreaterThan(scrollbar.trackTop);
+    });
+
+    it('keeps a real retained page offset separate from the local scrollbar position', () => {
+        const source = {
+            ...card(
+                'paged',
+                Array.from({ length: 50 }, (_, index) => `row-${index}`)
+            ),
+            rowWindow: {
+                firstMemberId: 'row-0',
+                firstIndex: 100,
+                loadedItems: 50,
+                totalItems: 2000,
+                state: 'partial' as const,
+                hasMore: true,
+            },
+        };
+        const top = rowScrollbar(
+            source,
+            createCardGeometry(source, { x: 0, y: 0 }, 'working')
+        )!;
+        const moved = rowScrollbar(
+            source,
+            createCardGeometry(source, { x: 0, y: 0 }, 'working', [], 20)
+        )!;
+        expect(top.thumbTop).toBe(top.trackTop);
+        expect(moved.thumbTop).toBeGreaterThan(top.thumbTop);
+        expect(source.rowWindow.firstIndex).toBe(100);
+        const completeSlice = {
+            ...card('complete'),
+            rowWindow: {
+                firstMemberId: 'one',
+                loadedItems: 14,
+                totalItems: 14,
+                state: 'complete' as const,
+                hasMore: false,
+            },
+        };
+        expect(
+            rowScrollbar(
+                completeSlice,
+                createCardGeometry(completeSlice, { x: 0, y: 0 }, 'working')
+            )
+        ).toBeNull();
     });
 
     it('retains loaded rows and offers Retry on a failed page instead of empty state', () => {

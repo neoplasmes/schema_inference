@@ -55,7 +55,7 @@ export const references = {
         crops: [
             crop('editor', 0, 0, 1200, 900),
             crop('product', 56, 60, 428, 308),
-            crop('states', 876, 88, 288, 508),
+            crop('states', 876, 88, 288, 516),
             crop('renaming', 56, 481, 378, 84),
             crop('reordering', 466, 481, 378, 114),
         ],

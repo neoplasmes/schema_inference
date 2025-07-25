@@ -20,6 +20,8 @@ export const CARD = {
 
 export function cardMetrics(card: BoardCard, lod: BoardLod) {
     const detailed = lod === 'detailed';
+    const rowGlyphs =
+        card.metrics?.rowGlyphs ?? (!detailed && (card.width ?? CARD.width) > 190);
 
     return {
         header: detailed ? 44 : CARD.header,
@@ -29,7 +31,9 @@ export function cardMetrics(card: BoardCard, lod: BoardLod) {
         warning: detailed ? 52 : 44,
         note: detailed ? 40 : 28,
         occurrenceColumn: false,
-        rowGlyphs: !detailed && (card.width ?? CARD.width) > 190,
+        rowGlyphs,
+        separators: card.display !== 'summary' && rowGlyphs,
+        reserveGlyphColumn: card.display !== 'summary' && rowGlyphs,
         ...card.metrics,
     };
 }
@@ -468,6 +472,42 @@ export function createCardGeometry(
             },
         },
     };
+}
+
+export function rowScrollbar(card: BoardCard, geometry: BoardCardGeometry) {
+    const viewport = geometry.rowViewport;
+
+    if (
+        !viewport ||
+        viewport.bounds.height <= 0 ||
+        (card.rowWindow.firstIndex === undefined &&
+            viewport.totalItems <= geometry.rows.length)
+    ) {
+        return null;
+    }
+
+    const loaded = Math.max(
+        card.rows.length,
+        card.rowWindow.loadedItems ?? card.rows.length
+    );
+    const presentationOffset =
+        loaded > card.rows.length ? (card.rowWindow.firstIndex ?? 0) : 0;
+    const visible = geometry.rows.length;
+    const maximum = Math.max(0, loaded - visible);
+    const first = Math.min(
+        maximum,
+        Math.max(0, presentationOffset + viewport.firstIndex)
+    );
+    const trackTop = viewport.bounds.y - geometry.bounds.y + 2;
+    const trackHeight = Math.max(3, viewport.bounds.height - 4);
+    const thumbHeight = Math.min(
+        trackHeight,
+        Math.max(18, (trackHeight * visible) / Math.max(1, loaded))
+    );
+    const thumbTop =
+        trackTop + ((trackHeight - thumbHeight) * first) / Math.max(1, maximum);
+
+    return { trackTop, trackHeight, thumbTop, thumbHeight };
 }
 
 export function connectionGeometry(

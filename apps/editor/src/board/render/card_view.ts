@@ -1,7 +1,13 @@
 import { Container, Graphics, NineSliceSprite, type Texture } from 'pixi.js';
 import type { BoardCard, BoardLod, BoardRow, BoardSelection } from '../model/types';
 import type { BoardCardGeometry } from './types';
-import { CARD, cardMetrics, needsFooter, footerHeight } from '../layout/card_geometry';
+import {
+    CARD,
+    cardMetrics,
+    needsFooter,
+    footerHeight,
+    rowScrollbar,
+} from '../layout/card_geometry';
 import { showSeparator } from '../layout/row_states';
 import { RetainedLabel, type LabelMetrics, type LabelSpec } from '../text/labels';
 import { paint as themePaint, type ColorName } from './colors';
@@ -83,12 +89,11 @@ class RowView extends LabelGroup {
         hovered: boolean,
         separator: boolean,
         y: number,
-        compact: boolean,
         height: number,
         metrics: ReturnType<typeof cardMetrics>
     ): void {
         this.root.position.set(4, y);
-        const signature = `${width}:${lod}:${selected}:${hovered}:${separator}:${compact}:${height}:${metrics.warning}:${metrics.occurrenceColumn}`;
+        const signature = `${width}:${lod}:${selected}:${hovered}:${separator}:${height}:${metrics.warning}:${metrics.occurrenceColumn}:${metrics.rowGlyphs}:${metrics.reserveGlyphColumn}`;
         const rowSignature =
             this.previousRow === row ? this.rowSignature : JSON.stringify(row);
 
@@ -138,9 +143,8 @@ class RowView extends LabelGroup {
                 g.circle(13, center + offset, 0.8).fill(this.paint('label-tertiary'));
             }
         } else if (
-            row.icon === 'attribute' ||
-            row.icon === 'reference' ||
-            row.icon === 'group'
+            metrics.rowGlyphs &&
+            (row.icon === 'attribute' || row.icon === 'reference' || row.icon === 'group')
         ) {
             this.label('glyph', {
                 text:
@@ -238,19 +242,31 @@ class RowView extends LabelGroup {
                     text: type,
                     x: right - reserve,
                     y: center,
-                    role: 'mono',
-                    ink: row.change === 'removed' ? 'label-removed' : 'label-secondary',
+                    role: row.typeEmphasis ? 'body' : 'mono',
+                    ink:
+                        row.change === 'removed'
+                            ? 'label-removed'
+                            : row.typeEmphasis
+                              ? 'label'
+                              : 'label-secondary',
+                    bold: row.typeEmphasis,
                     right: true,
                     maxWidth,
                 });
-                reserve += Math.min(maxWidth, this.metricsWidth(type, 'mono')) + 12;
+                reserve +=
+                    Math.min(
+                        maxWidth,
+                        this.metricsWidth(
+                            type,
+                            row.typeEmphasis ? 'body' : 'mono',
+                            row.typeEmphasis
+                        )
+                    ) + 12;
             }
         }
 
         const nameX =
-            compact && !hovered && row.icon !== 'attribute' && row.change === 'unchanged'
-                ? 10
-                : 32;
+            metrics.reserveGlyphColumn || hovered || row.change !== 'unchanged' ? 32 : 10;
         const nameWidth = Math.max(0, right - reserve - nameX);
         const invalid = !row.name.trim();
         this.label('name', {
@@ -311,9 +327,10 @@ class RowView extends LabelGroup {
 
     private metricsWidth(
         value: string,
-        role: 'body' | 'mono' | 'footnote' | 'count'
+        role: 'body' | 'mono' | 'footnote' | 'count',
+        bold = false
     ): number {
-        return this.rowMetrics.width(value, role);
+        return this.rowMetrics.width(value, role, bold);
     }
 
     constructor(
@@ -364,7 +381,6 @@ export class CardView {
     ): void {
         this.root.position.set(geometry.bounds.x, geometry.bounds.y);
         const metrics = cardMetrics(card, lod);
-        const compact = card.display === 'summary' || !metrics.rowGlyphs;
 
         if (this.previousCard !== card) {
             this.rowModels = new Map(card.rows.map(row => [row.memberId, row]));
@@ -385,6 +401,7 @@ export class CardView {
                 : JSON.stringify([
                       card.title,
                       card.subtitle,
+                      card.subtitleEmphasis,
                       card.namespace,
                       card.note,
                       card.display,
@@ -458,10 +475,9 @@ export class CardView {
                 selection?.blockId === card.blockId &&
                     selection.memberId === row.memberId,
                 hover?.blockId === card.blockId && hover.memberId === row.memberId,
-                !compact &&
+                metrics.separators &&
                     showSeparator(index + 1, geometry.rows.length + 1, highlighted),
                 rowGeometry.bounds.y - geometry.bounds.y,
-                compact,
                 rowGeometry.bounds.height,
                 metrics
             );
@@ -644,6 +660,7 @@ export class CardView {
         }
 
         const compactHeader = lod === 'working' && width <= 190;
+        const subtitleRole = card.subtitleEmphasis ? 'subheadline' : 'mono';
 
         if (
             !compactHeader &&
@@ -671,7 +688,11 @@ export class CardView {
                 (card.suggested
                     ? this.metrics.width('Suggested', 'subheadline') + 24
                     : card.subtitle && !overview
-                      ? this.metrics.width(card.subtitle, 'mono') + 24
+                      ? this.metrics.width(
+                            card.subtitle,
+                            subtitleRole,
+                            !!card.subtitleEmphasis
+                        ) + 24
                       : overview
                         ? 10
                         : 14),
@@ -716,8 +737,9 @@ export class CardView {
                 text: card.subtitle,
                 x: width - 14,
                 y: headerCenter,
-                role: 'mono',
-                ink: 'label-secondary',
+                role: subtitleRole,
+                ink: card.subtitleEmphasis ? 'label' : 'label-secondary',
+                bold: card.subtitleEmphasis,
                 right: true,
                 maxWidth: width * 0.42,
             });
@@ -737,7 +759,11 @@ export class CardView {
                         x -
                         14 -
                         (card.subtitle
-                            ? this.metrics.width(card.subtitle, 'mono') + 8
+                            ? this.metrics.width(
+                                  card.subtitle,
+                                  subtitleRole,
+                                  !!card.subtitleEmphasis
+                              ) + 8
                             : 0)
                 ),
             });
@@ -817,36 +843,21 @@ export class CardView {
 
         const rowViewport = geometry.rowViewport;
 
-        if (
-            rowViewport &&
-            rowViewport.bounds.height &&
-            (rowViewport.totalItems > geometry.rows.length ||
-                card.rowWindow.firstIndex ||
-                (card.rowWindow.loadedItems ?? card.rows.length) > card.rows.length)
-        ) {
-            const top = rowViewport.bounds.y - geometry.bounds.y;
-            const count = Math.max(rowViewport.totalItems, card.rowWindow.totalItems);
-            const thumbHeight = Math.max(
-                18,
-                (rowViewport.bounds.height * geometry.rows.length) / Math.max(1, count)
-            );
-            const first = (card.rowWindow.firstIndex ?? 0) + rowViewport.firstIndex;
-            const thumbTop =
-                top +
-                ((rowViewport.bounds.height - thumbHeight) * first) /
-                    Math.max(1, count - geometry.rows.length);
+        const scrollbar = rowScrollbar(card, geometry);
+
+        if (scrollbar) {
             g.roundRect(
                 width - 7,
-                top + 2,
+                scrollbar.trackTop,
                 3,
-                Math.max(3, rowViewport.bounds.height - 4),
+                scrollbar.trackHeight,
                 1.5
             ).fill(this.paint('fill-control'));
             g.roundRect(
                 width - 7,
-                thumbTop + 2,
+                scrollbar.thumbTop,
                 3,
-                Math.max(3, thumbHeight - 4),
+                scrollbar.thumbHeight,
                 1.5
             ).fill(this.paint('label-tertiary'));
         }

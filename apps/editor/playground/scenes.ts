@@ -252,7 +252,13 @@ function variants(): BoardModel {
                     variants: paymentVariants,
                     activeVariantId: 'invoice',
                     subtitle: 'Previewing Invoice',
-                    metrics: { header: 40, row: 34, rowGlyphs: false },
+                    metrics: {
+                        header: 40,
+                        row: 34,
+                        rowGlyphs: false,
+                        separators: true,
+                        reserveGlyphColumn: true,
+                    },
                 }
             ),
             card(
@@ -264,7 +270,7 @@ function variants(): BoardModel {
                 [row('bank-name', 'name'), row('account', 'account')],
                 {
                     subtitle: 'Preview',
-                    metrics: { header: 40, row: 32, rowGlyphs: false },
+                    metrics: { header: 40, row: 32, rowGlyphs: false, separators: true },
                 }
             ),
         ],
@@ -302,9 +308,18 @@ function anatomy(): BoardModel {
         row('hover', 'title'),
         row('selected', 'title'),
         row('error', ''),
-        row('unloaded', 'dimensions', '3 fields', { expandable: true }),
-        row('reference', 'billingAddress', '↗ Address', { icon: 'reference' }),
-        row('recursion', 'children', '⟳ Category', { icon: 'reference' }),
+        row('unloaded', 'dimensions', '3 fields', {
+            expandable: true,
+            typeEmphasis: true,
+        }),
+        row('reference', 'billingAddress', '↗ Address', {
+            icon: 'reference',
+            typeEmphasis: true,
+        }),
+        row('recursion', 'children', '⟳ Category', {
+            icon: 'reference',
+            typeEmphasis: true,
+        }),
         row('spelling', 'email', 'string', { nameAlias: '+ e-mail' }),
     ];
 
@@ -353,6 +368,7 @@ function anatomy(): BoardModel {
                         occurrenceColumn: true,
                         rowGlyphs: true,
                         rowLimit: 5,
+                        separators: false,
                     },
                     rowWindow: {
                         firstMemberId: 'sku',
@@ -369,7 +385,7 @@ function anatomy(): BoardModel {
                     `state-${stateRow.memberId}`,
                     stateRow.name,
                     880,
-                    93 + index * 66,
+                    95 + index * 67,
                     280,
                     [stateRow],
                     {
@@ -424,7 +440,7 @@ function loading(): BoardModel {
     return {
         version: 1,
         state: 'ready',
-        selection: null,
+        selection: { blockId: 'loading-parent', memberId: 'address-child' },
         cards: [
             card(
                 'not-requested',
@@ -519,12 +535,24 @@ function loading(): BoardModel {
                 x[1],
                 815.984375,
                 168,
-                [row('category-ref', 'Category', 'reference', { icon: 'reference' })],
-                { display: 'summary', subtitle: '↻' }
+                [row('category-ref', 'children', '↻')],
+                { display: 'summary' }
+            ),
+            card(
+                'recursive-definition',
+                'Category',
+                625.328125,
+                819.984375,
+                127.296875,
+                [row('category-link', 'Category', 'go to')],
+                { display: 'summary', metrics: { row: 20 } }
             ),
         ],
         connections: [
             edge('loading-parent', 'address-child', 'loading', { state: 'unloaded' }),
+            edge('recursive', 'category-ref', 'recursive-definition', {
+                kind: 'reference',
+            }),
         ],
     };
 }
@@ -599,7 +627,7 @@ function lod(kind: 'overview' | 'working' | 'detailed'): BoardModel {
                             warning: 'phone has two value types\nstring 4 · integer 2',
                         }),
                     ],
-                    { subtitle: '1 note', note: '+ Add element' }
+                    { subtitle: '1 note', subtitleEmphasis: true, note: '+ Add element' }
                 ),
             ],
             connections: [],
