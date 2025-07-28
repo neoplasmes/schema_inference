@@ -31,6 +31,7 @@ import { SpatialIndex } from '../layout/spatial_index';
 import { hitTestCards } from '../layout/hit_test';
 import { levelOfDetail, normalizeViewport } from '../viewport/coordinates';
 import { diffBoardModels } from '../model/diff';
+import type { RowMeasure } from '../layout/row_columns';
 import { LabelMetrics, RetainedLabel } from '../text/labels';
 import { CardView } from './card_view';
 import { createBackground, createShadow } from './background';
@@ -38,6 +39,7 @@ import { drawConnection } from './edges';
 import { paint } from './colors';
 import { resolveTheme } from './theme';
 import { BoardStatusView } from './status_view';
+import { DragGhostView } from './drag_ghost_view';
 
 const EMPTY_MODEL: BoardModel = {
     version: 0,
@@ -118,7 +120,7 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
         memberId: string;
         position: Point;
     }> | null = null;
-    let dragLabel: RetainedLabel | null = null;
+    let dragGhost: DragGhostView | null = null;
     let width = Math.max(1, options.width ?? options.container.clientWidth);
     let height = Math.max(1, options.height ?? options.container.clientHeight);
     const resolution = Math.min(
@@ -149,6 +151,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
         edgeGraphics: 3,
         edgeLayerRedraws: 0,
     };
+
+    const measureRow: RowMeasure = (text, role, bold) => metrics!.width(text, role, bold);
 
     function rebuildGeometry(): void {
         lod = model.diagnosticLod ?? levelOfDetail(viewport.zoom);
@@ -191,7 +195,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
                 previews.get(card.blockId) ?? layout.get(card.blockId)!,
                 lod,
                 hidden.get(card.blockId),
-                rowOffset(card)
+                rowOffset(card),
+                measureRow
             );
             cards.set(card.blockId, geometry);
             cardIndex.set(card.blockId, {
@@ -252,7 +257,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
             previews.get(card.blockId) ?? layout.get(card.blockId)!,
             lod,
             hidden.get(card.blockId),
-            rowOffset(card)
+            rowOffset(card),
+            measureRow
         );
         cards.set(card.blockId, geometry);
         cardIndex.set(card.blockId, {
@@ -592,33 +598,27 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
                     .get(preview.blockId)
                     ?.rows.find(row => row.memberId === preview.memberId);
 
-                if (source) {
-                    const x = preview.position.x + 12;
-                    const y = preview.position.y + 12;
-                    const ghostWidth = Math.min(
-                        240,
-                        Math.max(100, metrics.width(source.name, 'body') + 40)
-                    );
-                    overlay
-                        .roundRect(x, y, ghostWidth, 32, 12)
-                        .fill(paint('surface-sidebar', theme));
+                const sourceBounds = cards
+                    .get(preview.blockId)
+                    ?.rows.find(row => row.memberId === preview.memberId)?.bounds;
 
-                    if (!dragLabel) {
-                        dragLabel = new RetainedLabel(metrics, textResolution);
-                        world.addChild(dragLabel.view);
+                if (source && sourceBounds) {
+                    if (!dragGhost) {
+                        dragGhost = new DragGhostView(metrics, shadow, textResolution);
+                        world.addChild(dragGhost.root);
                     }
 
-                    dragLabel.update({
-                        text: source.name,
-                        x: x + 14,
-                        y: y + 16,
-                        maxWidth: ghostWidth - 28,
-                    });
+                    dragGhost.update(
+                        source,
+                        sourceBounds,
+                        preview.position,
+                        textResolution
+                    );
+                } else if (dragGhost) {
+                    dragGhost.root.visible = false;
                 }
-            } else if (dragLabel) {
-                dragLabel.view.removeFromParent();
-                dragLabel.view.destroy();
-                dragLabel = null;
+            } else if (dragGhost) {
+                dragGhost.root.visible = false;
             }
 
             overlayDirty = false;
@@ -631,7 +631,7 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
 
         app.render();
         let textObjects =
-            Number(!!dragLabel) +
+            Number(dragGhost?.root.visible ?? false) * 2 +
             badgeViews.size +
             Number(statusView?.view.visible ?? false);
 
@@ -875,7 +875,8 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
                 position ?? layout.get(blockId)!,
                 lod,
                 hidden.get(blockId),
-                rowOffset(card)
+                rowOffset(card),
+                measureRow
             );
             cards.set(blockId, geometry);
             cardIndex.set(blockId, {
@@ -992,7 +993,7 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
             hover = null;
             drop = null;
             dragPreview = null;
-            dragLabel = null;
+            dragGhost = null;
             stats.visibleCards = 0;
             stats.visibleConnections = 0;
             stats.textObjects = 0;
