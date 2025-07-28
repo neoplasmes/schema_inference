@@ -904,7 +904,7 @@ export class CardView {
             const prefix =
                 first === undefined
                     ? `${count} of ${card.rowWindow.totalItems}`
-                    : `Rows ${first + 1}–${first + geometry.rows.length} of ${card.rowWindow.totalItems}`;
+                    : `Rows ${first + 1}-${first + geometry.rows.length} of ${card.rowWindow.totalItems}`;
             const footer = footerHeight(card, lod);
             const label =
                 state === 'loading'
