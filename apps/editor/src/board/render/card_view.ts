@@ -9,6 +9,7 @@ import {
     rowScrollbar,
 } from '../layout/card_geometry';
 import { showSeparator } from '../layout/row_states';
+import { rowColumns } from '../layout/row_columns';
 import { RetainedLabel, type LabelMetrics, type LabelSpec } from '../text/labels';
 import { paint as themePaint, type ColorName } from './colors';
 import { themeRadius, type ResolvedBoardTheme } from './theme';
@@ -107,7 +108,15 @@ class RowView extends LabelGroup {
         this.rowSignature = rowSignature;
         this.begin();
         const g = this.graphics;
-        const right = width - 10;
+        const columns = rowColumns(
+            row,
+            width,
+            lod,
+            metrics,
+            (value, role, bold) => this.rowMetrics.width(value, role, bold),
+            hovered
+        );
+        const right = columns.right;
         const center = height / 2;
         const ink: ColorName =
             row.change === 'removed'
@@ -185,10 +194,7 @@ class RowView extends LabelGroup {
             });
             reserve += chipWidth + 8;
         } else {
-            const occurrence =
-                !metrics.occurrenceColumn && row.occurrenceLabel === '1'
-                    ? undefined
-                    : row.occurrenceLabel;
+            const occurrence = columns.occurrence;
             const observation =
                 lod === 'detailed' && row.observation
                     ? `${row.observation.count}/${row.observation.total}`
@@ -231,43 +237,53 @@ class RowView extends LabelGroup {
                 reserve += 54;
             }
 
-            const type = `${row.typeLabel}${occurrence && !metrics.occurrenceColumn ? ` · ${occurrence}` : ''}`;
+            if (columns.type) {
+                const x = right - reserve;
+                const removed = row.change === 'removed';
 
-            if (type) {
-                const maxWidth = Math.min(
-                    width * 0.48,
-                    Math.max(0, width - reserve - 90)
-                );
-                this.label('type', {
-                    text: type,
-                    x: right - reserve,
-                    y: center,
-                    role: row.typeEmphasis ? 'body' : 'mono',
-                    ink:
-                        row.change === 'removed'
+                if (row.typeCount !== undefined) {
+                    const suffix = ` ${row.typeLabel}`;
+                    const suffixWidth = this.metricsWidth(suffix, 'mono');
+                    this.label('type-count', {
+                        text: String(row.typeCount),
+                        x: x - suffixWidth,
+                        y: center,
+                        role: 'body',
+                        ink: removed ? 'label-removed' : 'label',
+                        bold: true,
+                        right: true,
+                        maxWidth: Math.max(0, columns.typeMaxWidth - suffixWidth),
+                    });
+                    this.label('type', {
+                        text: suffix,
+                        x,
+                        y: center,
+                        role: 'mono',
+                        ink: removed ? 'label-removed' : 'label-secondary',
+                        right: true,
+                        maxWidth: columns.typeMaxWidth,
+                    });
+                } else {
+                    this.label('type', {
+                        text: columns.type,
+                        x,
+                        y: center,
+                        role: row.typeEmphasis ? 'body' : 'mono',
+                        ink: removed
                             ? 'label-removed'
                             : row.typeEmphasis
                               ? 'label'
                               : 'label-secondary',
-                    bold: row.typeEmphasis,
-                    right: true,
-                    maxWidth,
-                });
-                reserve +=
-                    Math.min(
-                        maxWidth,
-                        this.metricsWidth(
-                            type,
-                            row.typeEmphasis ? 'body' : 'mono',
-                            row.typeEmphasis
-                        )
-                    ) + 12;
+                        bold: row.typeEmphasis,
+                        right: true,
+                        maxWidth: columns.typeMaxWidth,
+                    });
+                }
             }
         }
 
-        const nameX =
-            metrics.reserveGlyphColumn || hovered || row.change !== 'unchanged' ? 32 : 10;
-        const nameWidth = Math.max(0, right - reserve - nameX);
+        const nameX = columns.nameX;
+        const nameWidth = columns.nameWidth;
         const invalid = !row.name.trim();
         this.label('name', {
             text: invalid ? 'Name required' : row.name,
@@ -288,7 +304,7 @@ class RowView extends LabelGroup {
                 y: center,
                 role: 'subheadline',
                 ink: 'label-secondary',
-                maxWidth: Math.max(0, right - reserve - x),
+                maxWidth: Math.max(0, nameX + nameWidth - x),
             });
         }
 
@@ -476,7 +492,12 @@ export class CardView {
                     selection.memberId === row.memberId,
                 hover?.blockId === card.blockId && hover.memberId === row.memberId,
                 metrics.separators &&
-                    showSeparator(index + 1, geometry.rows.length + 1, highlighted),
+                    showSeparator(
+                        index + 1,
+                        geometry.rows.length + 1,
+                        highlighted,
+                        card.metrics?.separators === true
+                    ),
                 rowGeometry.bounds.y - geometry.bounds.y,
                 rowGeometry.bounds.height,
                 metrics
@@ -577,11 +598,13 @@ export class CardView {
             });
         }
 
-        if (lod === 'overview' && selected) {
+        const loadingStub = !card.rows.length && card.rowWindow.state === 'loading';
+
+        if (lod === 'overview' && selected && !loadingStub) {
             g.roundRect(0, 0, width, height, themeRadius(this.theme, 'radius-md')).fill(
                 this.paint('accent-fill')
             );
-        } else if (selected || hovered) {
+        } else if ((selected || hovered) && !loadingStub) {
             g.roundRect(
                 4,
                 4,
@@ -660,14 +683,21 @@ export class CardView {
         }
 
         const compactHeader = lod === 'working' && width <= 190;
+        const plainHeader = card.metrics?.headerLayout === 'plain';
         const subtitleRole = card.subtitleEmphasis ? 'subheadline' : 'mono';
 
         if (
-            !compactHeader &&
+            metrics.separators &&
+            (!compactHeader || card.metrics?.separators === true) &&
             !selected &&
             !hovered &&
             !firstHighlighted &&
-            showSeparator(0, geometry.rows.length + 1, new Set()) &&
+            showSeparator(
+                0,
+                geometry.rows.length + 1,
+                new Set(),
+                card.metrics?.separators === true
+            ) &&
             !geometry.regions.some(region => region.target.kind === 'boundary')
         ) {
             g.rect(24, 4 + metrics.header - 1, width - 48, 1).fill(
@@ -675,7 +705,7 @@ export class CardView {
             );
         }
 
-        const titleX = overview ? 10 : compactHeader ? 14 : 36;
+        const titleX = overview ? 10 : compactHeader || plainHeader ? 14 : 36;
         const headerCenter = 4 + metrics.header / 2;
         this.chrome.label('title', {
             text: card.title,
@@ -712,7 +742,7 @@ export class CardView {
             return;
         }
 
-        if (!compactHeader) {
+        if (!compactHeader && !plainHeader) {
             this.chrome.label('glyph', {
                 text: '<>',
                 x: 14,

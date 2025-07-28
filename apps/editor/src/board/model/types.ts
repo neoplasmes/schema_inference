@@ -17,6 +17,7 @@ export type BoardRow = Readonly<{
     name: string;
     typeLabel: string;
     typeEmphasis?: boolean;
+    typeCount?: number;
     occurrenceLabel?: string;
     icon: 'element' | 'attribute' | 'group' | 'reference' | 'scalar';
     change: 'unchanged' | 'added' | 'removed';
@@ -60,6 +61,7 @@ export type BoardCard = Readonly<{
         rowGlyphs?: boolean;
         separators?: boolean;
         reserveGlyphColumn?: boolean;
+        headerLayout?: 'icon' | 'plain';
     }>;
     position?: Point;
     width?: number;

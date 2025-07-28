@@ -1,10 +1,11 @@
 export function showSeparator(
     index: number,
     count: number,
-    highlighted: ReadonlySet<number>
+    highlighted: ReadonlySet<number>,
+    force = false
 ): boolean {
     return (
-        count > 4 &&
+        (force || count > 4) &&
         index < count - 1 &&
         !highlighted.has(index) &&
         !highlighted.has(index + 1)

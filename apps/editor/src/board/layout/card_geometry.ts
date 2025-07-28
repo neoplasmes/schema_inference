@@ -1,4 +1,4 @@
-import type { BoardCard, BoardLod, BoardModel, Point } from '../model/types';
+import type { BoardCard, BoardLod, BoardModel, BoardRow, Point } from '../model/types';
 import type {
     BoardCardGeometry,
     BoardConnectionGeometry,
@@ -6,6 +6,8 @@ import type {
     BoardHitRegion,
     Rectangle,
 } from '../render/types';
+
+import { rowColumns, type RowMeasure } from './row_columns';
 
 export const CARD = {
     padding: 4,
@@ -176,7 +178,8 @@ export function createCardGeometry(
     position: Point,
     lod: BoardLod,
     hiddenMembers: readonly string[] = [],
-    rowOffset = 0
+    rowOffset = 0,
+    measure: RowMeasure = text => text.length * 8
 ): BoardCardGeometry {
     const size = cardSize(card, lod, hiddenMembers.length, rowOffset);
     const window = rowWindowFor(card, lod, rowOffset);
@@ -191,7 +194,24 @@ export function createCardGeometry(
     const regions: BoardHitRegion[] = [
         { bounds: header, target: { kind: 'header', blockId: card.blockId } },
     ];
-    const rows: { memberId: string; bounds: Rectangle }[] = [];
+    const rows: { memberId: string; bounds: Rectangle; nameBounds: Rectangle }[] = [];
+    const nameBounds = (row: BoardRow, rowBounds: Rectangle): Rectangle => {
+        const columns = rowColumns(
+            row,
+            rowBounds.width,
+            card.display === 'summary' ? 'working' : lod,
+            metrics,
+            measure
+        );
+        const inset = Math.max(4, columns.nameX - 8);
+
+        return {
+            x: rowBounds.x + inset,
+            y: rowBounds.y + 4,
+            width: Math.max(0, columns.nameX + columns.nameWidth + 4 - inset),
+            height: Math.max(1, rowBounds.height - 8),
+        };
+    };
     const branches: NonNullable<BoardCardGeometry['branches']>[number][] = [];
     let y = header.y + header.height;
 
@@ -215,7 +235,11 @@ export function createCardGeometry(
                 width: size.width - 8,
                 height: metrics.row,
             };
-            rows.push({ memberId: row.memberId, bounds: rowBounds });
+            rows.push({
+                memberId: row.memberId,
+                bounds: rowBounds,
+                nameBounds: nameBounds(row, rowBounds),
+            });
             regions.push({
                 bounds: rowBounds,
                 target: { kind: 'row', blockId: card.blockId, memberId: row.memberId },
@@ -355,7 +379,11 @@ export function createCardGeometry(
                 width: header.width,
                 height: metrics.row,
             };
-            rows.push({ memberId: row.memberId, bounds: rowBounds });
+            rows.push({
+                memberId: row.memberId,
+                bounds: rowBounds,
+                nameBounds: nameBounds(row, rowBounds),
+            });
             regions.push({
                 bounds: rowBounds,
                 target: { kind: 'row', blockId: card.blockId, memberId: row.memberId },

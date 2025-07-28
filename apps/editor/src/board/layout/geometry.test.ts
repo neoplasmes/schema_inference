@@ -592,5 +592,12 @@ describe('row separators', () => {
             [0, 1, 2, 3, 4, 5].map(index => showSeparator(index, 6, selected))
         ).toEqual([true, false, false, true, true, false]);
         expect(showSeparator(0, 3, new Set())).toBe(false);
+        expect([0, 1, 2].map(index => showSeparator(index, 3, new Set(), true))).toEqual([
+            true,
+            true,
+            false,
+        ]);
+        expect(showSeparator(0, 3, new Set([1]), true)).toBe(false);
+        expect(showSeparator(1, 3, new Set([1]), true)).toBe(false);
     });
 });

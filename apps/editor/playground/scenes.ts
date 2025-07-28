@@ -270,7 +270,13 @@ function variants(): BoardModel {
                 [row('bank-name', 'name'), row('account', 'account')],
                 {
                     subtitle: 'Preview',
-                    metrics: { header: 40, row: 32, rowGlyphs: false, separators: true },
+                    metrics: {
+                        header: 40,
+                        row: 32,
+                        rowGlyphs: false,
+                        separators: true,
+                        headerLayout: 'plain',
+                    },
                 }
             ),
         ],
@@ -308,9 +314,9 @@ function anatomy(): BoardModel {
         row('hover', 'title'),
         row('selected', 'title'),
         row('error', ''),
-        row('unloaded', 'dimensions', '3 fields', {
+        row('unloaded', 'dimensions', 'fields', {
             expandable: true,
-            typeEmphasis: true,
+            typeCount: 3,
         }),
         row('reference', 'billingAddress', '↗ Address', {
             icon: 'reference',
@@ -422,7 +428,7 @@ function anatomy(): BoardModel {
                 [
                     row('reorder-sku', 'sku'),
                     row('reorder-title', 'title'),
-                    row('reorder-price', 'price', 'complex'),
+                    row('reorder-weight', 'weight', 'decimal'),
                 ],
                 { display: 'summary', metrics: { row: 32.6666666667, rowGlyphs: false } }
             ),

@@ -716,8 +716,11 @@ describe('board interaction', () => {
         board.key('F2');
         const input = board.container.children[0];
         board.setViewport({ x: 50, y: 20, zoom: 2 });
-        expect(input.style.left).toBe('58px');
-        expect(input.style.top).toBe('96px');
+        expect(input.style.left).toBe('106px');
+        expect(input.style.top).toBe('104px');
+        expect(input.style.height).toBe('20px');
+        expect(Number.parseFloat(input.style.width)).toBeLessThan(240);
+        expect(input.style.outline).toBe('none');
         expect(input.style.transform).toBe('scale(2)');
         board.setModel({ ...board.model, cards: [] });
         expect(board.container.children).toHaveLength(0);

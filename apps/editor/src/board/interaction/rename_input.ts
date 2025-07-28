@@ -33,7 +33,8 @@ export function createRenameInput(options: RenameInputOptions) {
         borderRadius: `${themeRadius(theme, 'radius-sm')}px`,
         background: theme.color['surface-card'],
         color: theme.color.label,
-        outline: `2px solid ${theme.color.accent}`,
+        outline: 'none',
+        boxShadow: theme.shadow['shadow-thumb'],
         fontFamily: theme.font.sans,
         fontWeight: theme.text.body.fontWeight,
         padding: '0 8px',
@@ -109,12 +110,13 @@ export function createRenameInput(options: RenameInputOptions) {
         }
 
         const viewport = options.viewport();
-        const point = worldToScreen(row.bounds, viewport);
+        const bounds = row.nameBounds ?? row.bounds;
+        const point = worldToScreen(bounds, viewport);
         Object.assign(input.style, {
             left: `${point.x}px`,
             top: `${point.y}px`,
-            width: `${row.bounds.width}px`,
-            height: `${row.bounds.height}px`,
+            width: `${bounds.width}px`,
+            height: `${bounds.height}px`,
             fontSize: theme.text.body.fontSize,
             transform: `scale(${viewport.zoom})`,
         });

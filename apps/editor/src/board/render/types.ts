@@ -27,7 +27,11 @@ export type BoardCardGeometry = Readonly<{
     blockId: string;
     bounds: Rectangle;
     header: Rectangle;
-    rows: readonly Readonly<{ memberId: string; bounds: Rectangle }>[];
+    rows: readonly Readonly<{
+        memberId: string;
+        bounds: Rectangle;
+        nameBounds?: Rectangle;
+    }>[];
     regions: readonly BoardHitRegion[];
     visibilityBounds?: Rectangle;
     rowViewport?: Readonly<{

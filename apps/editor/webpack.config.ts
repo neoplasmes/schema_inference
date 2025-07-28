@@ -77,7 +77,7 @@ export default (
                 },
             },
             dts: { generateTypes: { abortOnError: true }, consumeTypes: false },
-            manifest: true,
+            manifest: { disableAssetsAnalyze: arguments_.mode !== 'production' },
         }),
     ],
     devServer: {
