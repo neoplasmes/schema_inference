@@ -1,3 +1,5 @@
+import { HttpResponseError } from './http_response.error';
+
 export class HttpTransport {
     private readonly base: string;
 
@@ -5,8 +7,8 @@ export class HttpTransport {
         this.base = baseUrl.replace(/\/$/, '');
     }
 
-    request(path: string, options?: RequestInit): Promise<Response> {
-        return fetch(`${this.base}${path}`, {
+    async request(path: string, options?: RequestInit): Promise<Response> {
+        const response = await fetch(`${this.base}${path}`, {
             ...options,
             headers: {
                 Accept: 'application/json',
@@ -14,5 +16,11 @@ export class HttpTransport {
                 ...options?.headers,
             },
         });
+
+        if (!response.ok) {
+            throw new HttpResponseError(response.status);
+        }
+
+        return response;
     }
 }

@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type {
-    MemberPage,
-    SchemaRepository,
-} from '../../application/ports/repos/schema.repo';
-import { CachedSchemaRepository } from './cached.schema.repo';
+import type { MemberPage, SchemaRepository } from '../../../app/ports/repos/schema';
+import { CachedSchemaRepository } from '.';
 
 const snapshot = { resource: 'schema', id: 'schema', revision: 's1' } as const;
 

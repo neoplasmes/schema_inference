@@ -1,21 +1,20 @@
 import type {
     ChangeReceipt,
+    FixtureData,
     EditorResource,
     MemberPage,
     ReadOptions,
     SchemaRepository,
-} from '../../application/ports/repos/schema.repo';
-import type { SchemaDocument, SchemaNode, Snapshot } from '../../core/schema';
-
-export type FixtureSchema = Readonly<{
-    manifest: SchemaDocument;
-    nodes: ReadonlyMap<string, SchemaNode>;
-    pages: ReadonlyMap<string, MemberPage>;
-}>;
+} from '../../../../app/ports/repos/schema';
+import type {
+    SchemaDocument,
+    SchemaNode,
+    Snapshot,
+} from '../../../../core/entities/schema';
 
 /** An explicitly selected, session-local demo repository. */
 export class FixtureSchemaRepository implements SchemaRepository {
-    constructor(private readonly fixture: FixtureSchema) {}
+    constructor(private readonly fixture: FixtureData) {}
 
     async open(
         _resource: Extract<EditorResource, { kind: 'schema' }>,

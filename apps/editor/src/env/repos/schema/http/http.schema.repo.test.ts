@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { EditorDocument } from '../../application/editor/editor_document';
-import { SaveSchemaCommand } from '../../application/commands/index';
-import { HttpSchemaRepository } from './http.schema.repo';
-import { HttpTransport } from '../transport/http.transport';
+import { EditorDocument } from '../../../../app/editor/document';
+import { SaveSchemaCommand } from '../../../../app/commands';
+import { HttpSchemaRepository } from '.';
+import { HttpTransport, HttpResponseError } from '../../../transport/http';
+import { ContractViolationError } from './contract';
 
 const snapshot = { resource: 'schema', id: 'orders', revision: 's1' } as const;
 
@@ -11,6 +12,32 @@ afterEach(() => {
 });
 
 describe('HTTP schema boundaries', () => {
+    it('preserves technical failures and distinguishes invalid server contracts', async () => {
+        const repository = new HttpSchemaRepository(
+            new HttpTransport('https://example.invalid')
+        );
+        vi.stubGlobal(
+            'fetch',
+            vi.fn().mockResolvedValue(new Response('{}', { status: 503 }))
+        );
+
+        await expect(repository.readNode(snapshot, 'root')).rejects.toBeInstanceOf(
+            HttpResponseError
+        );
+        vi.stubGlobal(
+            'fetch',
+            vi
+                .fn()
+                .mockResolvedValue(
+                    new Response('{"id":17,"kind":"scalar"}', { status: 200 })
+                )
+        );
+
+        await expect(repository.readNode(snapshot, 'root')).rejects.toBeInstanceOf(
+            ContractViolationError
+        );
+    });
+
     it('rejects a manifest or node from another resource', async () => {
         const repository = new HttpSchemaRepository(
             new HttpTransport('https://example.invalid')

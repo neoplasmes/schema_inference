@@ -4,8 +4,8 @@ import type {
     MemberPage,
     ReadOptions,
     SchemaRepository,
-} from '../../application/ports/repos/schema.repo';
-import type { DocumentOperation, Snapshot } from '../../core/schema';
+} from '../../../app/ports/repos/schema';
+import type { DocumentOperation, Snapshot } from '../../../core/entities/schema';
 
 type PendingPage = {
     controller: AbortController;
