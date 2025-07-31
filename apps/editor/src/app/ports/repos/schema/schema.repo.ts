@@ -1,10 +1,12 @@
+import type { ReadOptions } from '../../../contracts';
+
 import type {
     DocumentOperation,
     MemberSummary,
     SchemaDocument,
     SchemaNode,
     Snapshot,
-} from '../../../core/schema';
+} from '../../../../core/entities/schema';
 
 export type EditorResource =
     | Readonly<{ kind: 'schema'; schemaId: string; revision?: string }>
@@ -14,8 +16,6 @@ export type EditorResource =
           revision: string;
           rootAlternativeId?: string;
       }>;
-
-export type ReadOptions = Readonly<{ signal?: AbortSignal }>;
 
 export type MemberPage = Readonly<{
     snapshot: Snapshot;
@@ -64,3 +64,9 @@ export interface SchemaRepository {
         options?: ReadOptions
     ): Promise<ChangeReceipt>;
 }
+
+export type FixtureData = Readonly<{
+    manifest: SchemaDocument;
+    nodes: ReadonlyMap<string, SchemaNode>;
+    pages: ReadonlyMap<string, MemberPage>;
+}>;

@@ -1,15 +1,15 @@
-import type { SchemaReference } from '../../../core/schema_reference';
-import type { EditorDocument } from '../../editor/editor_document';
-import type { ChangeReceipt, SchemaRepository } from '../../ports/repos/schema.repo';
-import { SchemaWriteRejectedError } from '../../ports/repos/schema.repo.error';
+import type { Command } from '../../contracts';
+import type { EntityRef } from '../../../core/entities';
+import type { EditorDocument } from '../../editor/document';
+import type { ChangeReceipt, SchemaRepository } from '../../ports/repos/schema';
+import { SchemaWriteRejectedError } from '../../ports/repos/schema';
 
-export class SaveSchemaCommand {
+export type SaveSchemaInput = { document: EditorDocument; mutationId: string };
+
+export class SaveSchemaCommand implements Command<SaveSchemaInput, ChangeReceipt> {
     constructor(private readonly repository: SchemaRepository) {}
 
-    async execute(input: {
-        document: EditorDocument;
-        mutationId: string;
-    }): Promise<ChangeReceipt> {
+    async execute(input: SaveSchemaInput): Promise<ChangeReceipt> {
         const pending = input.document.beginSave(input.mutationId);
         let receipt: ChangeReceipt;
 
@@ -43,9 +43,9 @@ export class SaveSchemaCommand {
     writes(
         input: { document: EditorDocument },
         output: ChangeReceipt
-    ): readonly SchemaReference[] {
+    ): readonly EntityRef[] {
         return output.status === 'applied'
-            ? [{ type: 'schema.document', id: input.document.manifest.snapshot.id }]
+            ? [`schema.document:${input.document.manifest.snapshot.id}`]
             : [];
     }
 }

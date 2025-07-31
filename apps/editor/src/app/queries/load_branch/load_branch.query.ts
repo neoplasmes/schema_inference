@@ -1,10 +1,11 @@
-import { nodeCollections, type SchemaNode, type Snapshot } from '../../../core/schema';
-import type {
-    MemberPage,
-    ReadOptions,
-    SchemaRepository,
-} from '../../ports/repos/schema.repo';
-import type { SchemaReference } from '../../../core/schema_reference';
+import type { Query } from '../../contracts';
+import {
+    nodeCollections,
+    type SchemaNode,
+    type Snapshot,
+} from '../../../core/entities/schema';
+import type { MemberPage, ReadOptions, SchemaRepository } from '../../ports/repos/schema';
+import type { EntityRef } from '../../../core/entities';
 
 export type LoadedBranch = Readonly<{
     rootNodeId: string;
@@ -13,16 +14,15 @@ export type LoadedBranch = Readonly<{
     pages: readonly MemberPage[];
 }>;
 
+export type LoadBranchInput = { snapshot: Snapshot; nodeId: string };
+
 /** Opens a bounded chain of XML/content wrappers, without fetching member subtrees. */
-export class LoadBranchQuery {
+export class LoadBranchQuery implements Query<LoadBranchInput, LoadedBranch> {
     readonly name = 'schema.branch';
 
     constructor(private readonly repository: SchemaRepository) {}
 
-    async execute(
-        input: { snapshot: Snapshot; nodeId: string },
-        options?: ReadOptions
-    ): Promise<LoadedBranch> {
+    async execute(input: LoadBranchInput, options?: ReadOptions): Promise<LoadedBranch> {
         const nodes: SchemaNode[] = [];
         const pages: MemberPage[] = [];
         const seen = new Set<string>();
@@ -68,12 +68,7 @@ export class LoadBranchQuery {
         return { rootNodeId: input.nodeId, title: title || input.nodeId, nodes, pages };
     }
 
-    reads(input: { snapshot: Snapshot; nodeId: string }): readonly SchemaReference[] {
-        return [
-            {
-                type: 'schema.node',
-                id: `${input.snapshot.id}/${input.snapshot.revision}/${input.nodeId}`,
-            },
-        ];
+    reads(input: LoadBranchInput): readonly EntityRef[] {
+        return [`schema.snapshot:${input.snapshot.id}/${input.snapshot.revision}`];
     }
 }
