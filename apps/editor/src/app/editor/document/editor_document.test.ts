@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { MemberPage } from '../ports/repos/schema.repo';
+import type { MemberPage } from '../../ports/repos/schema';
 import { EditorDocument } from './editor_document';
 
 function document() {
@@ -74,6 +74,25 @@ function numberedPage(start: number, end: number, totalItems: number): MemberPag
 }
 
 describe('partially loaded document operations', () => {
+    it('updates loading state without replacing collection contents or pagination metadata', () => {
+        const editor = document();
+        editor.addPage(numberedPage(0, 50, 150));
+        const previous = editor.collections.get('fields')!;
+        const failed = editor.setCollectionLoadState('fields', 'failed', 'Unavailable');
+        expect(failed).not.toBe(previous);
+        expect(failed).toEqual({ ...previous, state: 'failed', error: 'Unavailable' });
+        expect(failed.items).toBe(previous.items);
+        expect(editor.collections.get('fields')).toBe(failed);
+        const loading = editor.setCollectionLoadState('fields', 'loading');
+        expect(loading).toEqual({ ...previous, state: 'loading', error: undefined });
+        expect(editor.operations).toHaveLength(0);
+        expect(() => editor.setCollectionLoadState('unknown', 'loading')).toThrow(
+            'Load the collection'
+        );
+        expect(editor.collections.has('unknown')).toBe(false);
+        expect(editor.collections.get('fields')).toBe(loading);
+    });
+
     it('handles the same definitive rejection twice without losing edits or a fresh retry', () => {
         const editor = document();
         editor.addPage(page('name'));
@@ -139,13 +158,13 @@ describe('partially loaded document operations', () => {
 
     it('does not infer safe ancestry from a complete collection whose older rows were evicted', () => {
         const editor = document();
-        editor.nodes.set('child', {
+        editor.integrateNode({
             id: 'child',
             kind: 'object',
             properties: { id: 'fields', totalItems: 150 },
             additionalProperties: false,
         });
-        editor.nodes.set('target', {
+        editor.integrateNode({
             id: 'target',
             kind: 'object',
             properties: { id: 'target-fields', totalItems: 0 },
@@ -251,7 +270,7 @@ describe('partially loaded document operations', () => {
 
     it('rejects moving a parent field into its own collection', () => {
         const editor = document();
-        editor.nodes.set('child', {
+        editor.integrateNode({
             id: 'child',
             kind: 'object',
             properties: { id: 'child-fields', totalItems: 0 },
@@ -292,13 +311,13 @@ describe('partially loaded document operations', () => {
 
     it('updates collection counts for a transfer and restores them on undo', () => {
         const editor = document();
-        editor.nodes.set('root', {
+        editor.integrateNode({
             id: 'root',
             kind: 'object',
             properties: { id: 'fields', totalItems: 1 },
             additionalProperties: false,
         });
-        editor.nodes.set('target', {
+        editor.integrateNode({
             id: 'target',
             kind: 'object',
             properties: { id: 'target-fields', totalItems: 0 },
