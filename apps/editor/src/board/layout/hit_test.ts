@@ -1,5 +1,5 @@
-import type { Point } from '../model/types';
-import type { BoardCardGeometry, BoardHit } from '../render/types';
+import type { Point } from '../model';
+import type { BoardCardGeometry, BoardHit } from '../render/contracts';
 import { contains } from './spatial_index';
 
 /** Later cards and more specific regions take precedence, matching the scene order. */

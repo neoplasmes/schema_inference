@@ -5,10 +5,10 @@ import type {
     BoardViewport,
     CollectionState,
     Point,
-} from '../model/types';
-import type { BoardTheme } from './theme';
+} from '../../model';
+import type { BoardTheme } from '../../theme';
 
-export type { BoardViewport } from '../model/types';
+export type { BoardViewport } from '../../model';
 
 export type Rectangle = Readonly<{ x: number; y: number; width: number; height: number }>;
 
@@ -71,6 +71,12 @@ export type BoardRenderStats = Readonly<{
     lod: BoardLod;
     edgeGraphics?: number;
     edgeLayerRedraws?: number;
+}>;
+
+export type DragPreview = Readonly<{
+    blockId: string;
+    memberId: string;
+    position: Point;
 }>;
 
 export type BoardRenderer = {

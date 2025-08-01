@@ -1,5 +1,5 @@
-import { tokens } from '../theme/tokens';
-import type { ResolvedBoardTheme } from './theme';
+import { tokens } from './tokens';
+import type { ResolvedBoardTheme } from './board_theme';
 
 export type ColorName = keyof typeof tokens.color;
 

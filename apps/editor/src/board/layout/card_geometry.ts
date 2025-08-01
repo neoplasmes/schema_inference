@@ -1,11 +1,11 @@
-import type { BoardCard, BoardLod, BoardModel, BoardRow, Point } from '../model/types';
+import type { BoardCard, BoardLod, BoardModel, BoardRow, Point } from '../model';
 import type {
     BoardCardGeometry,
     BoardConnectionGeometry,
     BoardGeometry,
     BoardHitRegion,
     Rectangle,
-} from '../render/types';
+} from '../render/contracts';
 
 import { rowColumns, type RowMeasure } from './row_columns';
 

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import type { BoardCard, BoardRow } from '../model/types';
+import type { BoardCard, BoardRow } from '../model';
 import { cardMetrics, createCardGeometry } from './card_geometry';
 import { rowColumns, type RowMeasure } from './row_columns';
 

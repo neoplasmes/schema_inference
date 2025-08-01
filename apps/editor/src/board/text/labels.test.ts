@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 vi.mock('pixi.js', () => ({ Text: class {}, TextStyle: class {} }));
 
 import { LabelMetrics } from './labels';
-import { resolveTheme } from '../render/theme';
+import { resolveTheme } from '../theme';
 
 afterEach(() => vi.unstubAllGlobals());
 

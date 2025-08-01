@@ -1,4 +1,4 @@
-import type { BoardLod, BoardRow } from '../model/types';
+import type { BoardLod, BoardRow } from '../model';
 import type { cardMetrics } from './card_geometry';
 
 export type RowTextRole = 'body' | 'mono' | 'footnote' | 'count';

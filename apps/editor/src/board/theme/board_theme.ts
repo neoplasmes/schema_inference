@@ -1,4 +1,4 @@
-import { tokens } from '../theme/tokens';
+import { tokens } from './tokens';
 
 type TextToken = {
     fontSize: string;

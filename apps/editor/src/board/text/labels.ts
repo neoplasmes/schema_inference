@@ -1,6 +1,6 @@
 import { Text, TextStyle } from 'pixi.js';
-import type { ResolvedBoardTheme } from '../render/theme';
-import { paint, type ColorName } from '../render/colors';
+import type { ResolvedBoardTheme } from '../theme';
+import { paint, type ColorName } from '../theme';
 
 export type LabelRole =
     | 'body'

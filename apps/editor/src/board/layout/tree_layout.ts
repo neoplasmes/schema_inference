@@ -1,4 +1,4 @@
-import type { BoardLod, BoardModel, Point } from '../model/types';
+import type { BoardLod, BoardModel, Point } from '../model';
 import { CARD, cardSize } from './card_geometry';
 import { SpatialIndex } from './spatial_index';
 

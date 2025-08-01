@@ -1,4 +1,4 @@
-import type { Rectangle } from '../render/types';
+import type { Rectangle } from '../render/contracts';
 
 export function intersects(a: Rectangle, b: Rectangle): boolean {
     return (

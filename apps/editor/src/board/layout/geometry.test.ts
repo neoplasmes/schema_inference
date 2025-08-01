@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { BoardCard, BoardConnection, BoardModel } from '../model/types';
+import type { BoardCard, BoardConnection, BoardModel } from '../model';
 import {
     cardSize,
     cardMetrics,
@@ -12,7 +12,7 @@ import { layoutCards } from './tree_layout';
 import { intersects, SpatialIndex } from './spatial_index';
 import { hitTestCards } from './hit_test';
 import { showSeparator } from './row_states';
-import { screenToWorld, worldToScreen } from '../viewport/coordinates';
+import { screenToWorld, worldToScreen } from '../viewport';
 
 function card(blockId: string, names = ['one', 'two']): BoardCard {
     return {

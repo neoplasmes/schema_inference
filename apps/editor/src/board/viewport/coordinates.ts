@@ -1,5 +1,5 @@
-import type { BoardLod, BoardViewport, Point } from '../model/types';
-import type { Rectangle } from '../render/types';
+import type { BoardLod, BoardViewport, Point } from '../model';
+import type { Rectangle } from '../render/contracts';
 
 export const MIN_ZOOM = 0.12;
 export const MAX_ZOOM = 3;

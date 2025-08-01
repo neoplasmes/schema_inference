@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { tokens } from '../theme/tokens';
+import { tokens } from './tokens';
 import { paint } from './colors';
-import { resolveTheme, themeRadius } from './theme';
+import { resolveTheme, themeRadius } from './board_theme';
 
 describe('instance theme', () => {
     it('merges partial categories without mutating generated defaults or another board', () => {
