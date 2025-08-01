@@ -1,7 +1,7 @@
-import type { BoardSelection, BoardViewport } from '../model/types';
-import type { BoardGeometry } from '../render/types';
-import { resolveTheme, themeRadius, type ResolvedBoardTheme } from '../render/theme';
-import { worldToScreen } from '../viewport/coordinates';
+import type { BoardSelection, BoardViewport } from '../../model';
+import type { BoardGeometry } from '../../render/contracts';
+import { resolveTheme, themeRadius, type ResolvedBoardTheme } from '../../theme';
+import { worldToScreen } from '../../viewport';
 
 type RenameInputOptions = {
     container: HTMLElement;

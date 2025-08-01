@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createCardGeometry } from '../layout/card_geometry';
+import { createCardGeometry } from '../../layout';
 import type {
     BoardCard,
     BoardEventMap,
     BoardModel,
     BoardViewport,
     Point,
-} from '../model/types';
-import type { BoardGeometry, BoardRenderer, Rectangle } from '../render/types';
-import { screenToWorld } from '../viewport/coordinates';
+} from '../../model';
+import type { BoardGeometry, BoardRenderer, Rectangle } from '../../render/contracts';
+import { screenToWorld } from '../../viewport';
 import { createBoardInteraction } from './create_board_interaction';
 
 class ElementStub extends EventTarget {
