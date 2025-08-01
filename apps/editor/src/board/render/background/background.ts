@@ -1,6 +1,6 @@
 import { Texture } from 'pixi.js';
-import { themeRadius, type ResolvedBoardTheme } from './theme';
-import { cssAlpha } from './colors';
+import { themeRadius, type ResolvedBoardTheme } from '../../theme';
+import { cssAlpha } from '../../theme';
 import { grainPixels } from './grain';
 
 /** Stable grain keeps screenshots deterministic and remains fixed in screen space. */

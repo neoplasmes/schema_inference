@@ -1,5 +1,5 @@
-import type { BoardModel } from '../model/types';
-import { RetainedLabel, type LabelMetrics } from '../text/labels';
+import type { BoardModel } from '../../model';
+import { RetainedLabel, type LabelMetrics } from '../../text';
 
 const messages = {
     loading: 'Loading schema...',

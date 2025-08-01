@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import type { Graphics } from 'pixi.js';
 import { drawConnection } from './edges';
-import { resolveTheme } from './theme';
+import { resolveTheme } from '../../theme';
 
 it('appends several edges into the same retained layer without clearing earlier paths', () => {
     const graphics = {

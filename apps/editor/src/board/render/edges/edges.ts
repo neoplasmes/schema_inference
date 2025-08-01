@@ -1,7 +1,7 @@
 import type { Graphics } from 'pixi.js';
-import type { BoardConnectionGeometry } from './types';
-import { paint } from './colors';
-import type { ResolvedBoardTheme } from './theme';
+import type { BoardConnectionGeometry } from '../contracts';
+import { paint } from '../../theme';
+import type { ResolvedBoardTheme } from '../../theme';
 
 export function drawConnection(
     graphics: Graphics,

@@ -1,9 +1,9 @@
 import { Container, Graphics, NineSliceSprite, type Texture } from 'pixi.js';
-import type { BoardRow, Point } from '../model/types';
-import type { Rectangle } from './types';
-import { RetainedLabel, type LabelMetrics } from '../text/labels';
-import { paint } from './colors';
-import { themeRadius } from './theme';
+import type { BoardRow, Point } from '../../model';
+import type { Rectangle } from '../contracts';
+import { RetainedLabel, type LabelMetrics } from '../../text';
+import { paint } from '../../theme';
+import { themeRadius } from '../../theme';
 
 export class DragGhostView {
     readonly root = new Container();

@@ -1,9 +1,9 @@
 import { expect, it, vi } from 'vitest';
 import type { Texture } from 'pixi.js';
-import type { BoardRow } from '../model/types';
-import type { LabelMetrics } from '../text/labels';
-import { resolveTheme } from './theme';
-import { paint } from './colors';
+import type { BoardRow } from '../../model';
+import type { LabelMetrics } from '../../text';
+import { resolveTheme } from '../../theme';
+import { paint } from '../../theme';
 
 const state = vi.hoisted(() => ({
     labels: [] as { update: ReturnType<typeof vi.fn> }[],
@@ -46,7 +46,7 @@ vi.mock('pixi.js', () => ({
     },
 }));
 
-vi.mock('../text/labels', () => ({
+vi.mock('../../text', () => ({
     RetainedLabel: class {
         view = { resolution: 1 };
         update = vi.fn();

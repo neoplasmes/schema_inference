@@ -1,5 +1,5 @@
 import { beforeEach, expect, it, vi } from 'vitest';
-import type { LabelMetrics } from '../text/labels';
+import type { LabelMetrics } from '../../text';
 
 const state = vi.hoisted(() => ({
     update: vi.fn(),
@@ -8,7 +8,7 @@ const state = vi.hoisted(() => ({
     constructed: vi.fn(),
 }));
 
-vi.mock('../text/labels', () => ({
+vi.mock('../../text', () => ({
     RetainedLabel: class {
         view = { visible: true, removeFromParent: state.remove, destroy: state.destroy };
         update = state.update;
