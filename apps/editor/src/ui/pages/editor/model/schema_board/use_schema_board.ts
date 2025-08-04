@@ -5,7 +5,7 @@ import {
     type BoardModel,
     type BoardViewport,
     type SchemaBoard,
-} from '../board';
+} from '../../../../../board';
 
 export type BoardHandlers = {
     [K in keyof BoardEventMap]?: (event: BoardEventMap[K]) => void;
