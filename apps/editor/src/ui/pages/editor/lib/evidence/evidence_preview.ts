@@ -1,6 +1,6 @@
-import { getScene } from '../../playground/scenes';
-import type { BoardModel } from '../board';
-import type { EditorView } from './projection';
+import { getScene } from '../../../../../../playground';
+import type { BoardModel } from '../../../../../board';
+import type { EditorView } from '../projection';
 
 export function observedPreview(
     view: EditorView,

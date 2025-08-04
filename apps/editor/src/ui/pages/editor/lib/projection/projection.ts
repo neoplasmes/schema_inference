@@ -1,8 +1,8 @@
 import type {
     CollectionWindow,
     EditorDocument,
-} from '../application/editor/editor_document';
-import type { LoadedBranch } from '../application/queries/load_branch/load_branch.query';
+} from '../../../../../app/editor/document';
+import type { LoadedBranch } from '../../../../../app/queries/load_branch';
 import type {
     BoardCard,
     BoardConnection,
@@ -10,8 +10,12 @@ import type {
     BoardRow,
     BoardSelection,
     Point,
-} from '../board';
-import { memberName, nodeCollections, type MemberSummary } from '../core/schema';
+} from '../../../../../board';
+import {
+    memberName,
+    nodeCollections,
+    type MemberSummary,
+} from '../../../../../core/entities/schema';
 
 export type BranchView = Readonly<{
     blockId: string;

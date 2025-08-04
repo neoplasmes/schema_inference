@@ -1,13 +1,11 @@
-import { EditorDocument } from '../application/editor/editor_document';
-import type { MemberPage } from '../application/ports/repos/schema.repo';
-import type { BoardModel } from '../board';
-import type { MemberSummary, SchemaDocument, SchemaNode, Snapshot } from '../core/schema';
-
-export type FixtureData = Readonly<{
-    manifest: SchemaDocument;
-    nodes: ReadonlyMap<string, SchemaNode>;
-    pages: ReadonlyMap<string, MemberPage>;
-}>;
+import { EditorDocument } from '../../../../../app/editor/document';
+import type { FixtureData, MemberPage } from '../../../../../app/ports/repos/schema';
+import type { BoardModel } from '../../../../../board';
+import type {
+    MemberSummary,
+    SchemaNode,
+    Snapshot,
+} from '../../../../../core/entities/schema';
 
 export function fixtureDocument(
     model: BoardModel,
@@ -41,8 +39,7 @@ export function fixtureDocument(
             const valueNodeId = targetCard?.nodeId ?? `${card.nodeId}/${row.memberId}`;
 
             if (!targetCard) {
-                document.nodes.set(
-                    valueNodeId,
+                document.integrateNode(
                     row.icon === 'attribute'
                         ? {
                               id: valueNodeId,
@@ -58,7 +55,7 @@ export function fixtureDocument(
                               nillable: false,
                           }
                 );
-                document.nodes.set(`${valueNodeId}/value`, {
+                document.integrateNode({
                     id: `${valueNodeId}/value`,
                     kind: 'scalar',
                     scalarType: 'string',
@@ -125,7 +122,7 @@ export function fixtureDocument(
         ];
 
         for (const node of nodes) {
-            document.nodes.set(node.id, node);
+            document.integrateNode(node);
         }
 
         for (const [id, rows, total] of [
@@ -147,11 +144,11 @@ export function fixtureDocument(
             document.addPage(page);
 
             if (id === collectionId) {
-                document.collections.set(id, {
-                    ...document.collections.get(id)!,
-                    state: card.rowWindow.state,
-                    error: card.rowWindow.error,
-                });
+                document.setCollectionLoadState(
+                    id,
+                    card.rowWindow.state,
+                    card.rowWindow.error
+                );
             }
         }
     }

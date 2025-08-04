@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { getScene } from '../../playground/scenes';
-import { createCardGeometry, needsFooter } from '../board/layout/card_geometry';
-import { fixtureDocument } from './fixture';
-import { initialView, projectDocument } from './projection';
+import { getScene } from '../../../../../../playground';
+import { createCardGeometry, needsFooter } from '../../../../../board/layout';
+import { fixtureDocument } from '../fixture';
+import { initialView, projectDocument } from '.';
 
 function setup() {
     const template = getScene('main').board;
@@ -48,9 +48,10 @@ describe('semantic document presentation', () => {
     it('counts attributes and particles together when a card needs a partial footer', () => {
         const { document, project } = setup();
         const particles = document.collections.get('members-order')!;
-        document.collections.set('members-order', {
+        document.addPage({
             ...particles,
-            state: 'partial',
+            snapshot: document.manifest.snapshot,
+            scopeId: null,
             nextCursor: '4',
         });
         const order = project().cards.find(card => card.blockId === 'order')!;
@@ -62,9 +63,10 @@ describe('semantic document presentation', () => {
     it('targets an unfinished attribute collection when particle loading has completed', () => {
         const { document, project } = setup();
         const attributes = document.collections.get('members-order/attributes')!;
-        document.collections.set(attributes.collectionId, {
+        document.addPage({
             ...attributes,
-            state: 'partial',
+            snapshot: document.manifest.snapshot,
+            scopeId: null,
             totalItems: 51,
             nextCursor: 'next-attributes',
         });
@@ -139,7 +141,7 @@ describe('semantic document presentation', () => {
 
 it('switches the observed structural variant without changing the manual document', async () => {
     const { document, project, view, template } = setup();
-    const { projectEvidence } = await import('./evidencePreview');
+    const { projectEvidence } = await import('../evidence');
     const before = project();
     view.variants.set('payment', 'invoice');
     const preview = projectEvidence(project(), view, template);
