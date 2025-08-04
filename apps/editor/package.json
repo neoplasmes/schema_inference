@@ -12,7 +12,7 @@
         "playground": "pnpm dev",
         "visual": "tsx visual/run.ts",
         "perf": "tsx visual/perf.ts",
-        "sync-tokens": "tsx scripts/sync-tokens.ts"
+        "sync-tokens": "moon run editor:sync-tokens"
     },
     "dependencies": {
         "pixi.js": "8.11.0",

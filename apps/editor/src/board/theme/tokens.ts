@@ -1,4 +1,4 @@
-/** Generated from /home/neoplasmes/third_course_reimagined/artifacts/schema-editor-design/tokens/tokens.json. Run pnpm sync-tokens. */
+/** Generated from /home/neoplasmes/third_course_reimagined/artifacts/schema-editor-design/tokens/tokens.json. Run moon run editor:sync-tokens. */
 export const tokens = {
     color: {
         'surface-canvas': '#f3f3f3',

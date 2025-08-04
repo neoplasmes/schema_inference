@@ -1,6 +1,13 @@
 language: system
 type: configuration
 
+fileGroups:
+  formatting:
+    - biome.json
+    - package.json
+    - prettier.config.js
+    - .zed/settings.json
+
 tasks:
   lint:
     deps:
@@ -9,10 +16,34 @@ tasks:
       - documents-generator:lint
 
   fmt:
+    command: pnpm exec biome format --write @files(formatting)
+    platform: node
     deps:
       - client:fmt
+      - editor:fmt
       - server:fmt
       - documents-generator:fmt
+    options:
+      cache: false
+      runInCI: false
+
+  fmt-files:
+    command: pnpm exec biome format --write --files-ignore-unknown=true --no-errors-on-unmatched
+    platform: node
+    options:
+      cache: false
+      runInCI: false
+
+  fmt-markup-files:
+    command: pnpm exec prettier --write --ignore-unknown
+    platform: node
+    options:
+      cache: false
+      runInCI: false
+
+  fmt-check:
+    command: pnpm exec biome format --files-ignore-unknown=true --no-errors-on-unmatched
+    platform: node
     options:
       cache: false
       runInCI: false

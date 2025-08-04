@@ -15,7 +15,9 @@ const packageManifest = JSON.parse(
 
 export default (
     _environment: unknown,
-    arguments_: { mode?: string }
+    arguments_: {
+        mode?: string;
+    }
 ): Configuration & {
     devServer: DevelopmentServerConfiguration;
 } => ({
@@ -29,14 +31,25 @@ export default (
         clean: true,
     },
     devtool: 'source-map',
-    resolve: { extensions: ['.tsx', '.ts', '.js'] },
+    resolve: {
+        extensions: [
+            '.tsx',
+            '.ts',
+            '.js',
+        ],
+    },
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
                 loader: 'ts-loader',
-                options: { transpileOnly: true, compilerOptions: { noEmit: false } },
+                options: {
+                    transpileOnly: true,
+                    compilerOptions: {
+                        noEmit: false,
+                    },
+                },
             },
             {
                 test: /\.css$/,
@@ -58,7 +71,9 @@ export default (
         ],
     },
     plugins: [
-        new HtmlWebpackPlugin({ template: './index.html' }),
+        new HtmlWebpackPlugin({
+            template: './index.html',
+        }),
         new ModuleFederationPlugin({
             name: 'schema_editor',
             filename: 'remoteEntry.js',
@@ -76,8 +91,15 @@ export default (
                     requiredVersion: packageManifest.dependencies['react-dom'],
                 },
             },
-            dts: { generateTypes: { abortOnError: true }, consumeTypes: false },
-            manifest: { disableAssetsAnalyze: arguments_.mode !== 'production' },
+            dts: {
+                generateTypes: {
+                    abortOnError: true,
+                },
+                consumeTypes: false,
+            },
+            manifest: {
+                disableAssetsAnalyze: arguments_.mode !== 'production',
+            },
         }),
     ],
     devServer: {
@@ -85,6 +107,8 @@ export default (
         port: 3010,
         hot: true,
         historyApiFallback: true,
-        headers: { 'Access-Control-Allow-Origin': '*' },
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+        },
     },
 });

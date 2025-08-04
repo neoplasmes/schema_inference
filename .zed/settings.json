@@ -4,13 +4,167 @@
             "settings": {
                 "yaml": {
                     "schemas": {
-                        "./.moon/cache/schemas/workspace.json": [".moon/workspace.yml"],
-                        "./.moon/cache/schemas/toolchain.json": [".moon/toolchain.yml"],
-                        "./.moon/cache/schemas/tasks.json": [".moon/tasks/*.yml"],
-                        "./.moon/cache/schemas/project.json": ["**/moon.yml"],
-                        "./.moon/cache/schemas/template.json": ["**/template.yml"]
+                        "./.moon/cache/schemas/workspace.json": [
+                            ".moon/workspace.yml"
+                        ],
+                        "./.moon/cache/schemas/toolchain.json": [
+                            ".moon/toolchain.yml"
+                        ],
+                        "./.moon/cache/schemas/tasks.json": [
+                            ".moon/tasks/*.yml"
+                        ],
+                        "./.moon/cache/schemas/project.json": [
+                            "**/moon.yml"
+                        ],
+                        "./.moon/cache/schemas/template.json": [
+                            "**/template.yml"
+                        ]
                     }
                 }
+            }
+        },
+        "biome": {
+            "binary": {
+                "path": "./node_modules/.bin/biome",
+                "arguments": [
+                    "lsp-proxy"
+                ]
+            }
+        }
+    },
+    "autosave": "on_focus_change",
+    "languages": {
+        "JavaScript": {
+            "language_servers": [
+                "biome",
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "JSX": {
+            "language_servers": [
+                "biome",
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "TypeScript": {
+            "language_servers": [
+                "biome",
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "TSX": {
+            "language_servers": [
+                "biome",
+                "typescript-ls",
+                "!vtsls",
+                "!typescript-language-server",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "JSON": {
+            "language_servers": [
+                "biome",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "JSONC": {
+            "language_servers": [
+                "biome",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "CSS": {
+            "language_servers": [
+                "biome",
+                "tailwindcss-intellisense-css",
+                "!vscode-css-language-server",
+                "..."
+            ],
+            "format_on_save": "on",
+            "formatter": {
+                "language_server": {
+                    "name": "biome"
+                }
+            },
+            "prettier": {
+                "allowed": false
+            }
+        },
+        "SCSS": {
+            "format_on_save": "on",
+            "formatter": "prettier",
+            "prettier": {
+                "allowed": true
+            }
+        },
+        "HTML": {
+            "format_on_save": "on",
+            "formatter": "prettier",
+            "prettier": {
+                "allowed": true
             }
         }
     }

@@ -56,7 +56,15 @@ tasks:
     local: true
 
   fmt:
-    command: pnpm prettier
+    command: pnpm exec biome format --write .
+    deps:
+      - ~:fmt-markup
+    options:
+      cache: false
+      runInCI: false
+
+  fmt-markup:
+    command: pnpm exec prettier --write --no-error-on-unmatched-pattern index.html 'src/**/*.scss'
     options:
       cache: false
       runInCI: false

@@ -36,6 +36,23 @@ tasks:
     command: pnpm test
   lint:
     command: pnpm lint
+  fmt:
+    command: pnpm exec biome format --write .
+    deps:
+      - ~:fmt-markup
+    options:
+      cache: false
+      runInCI: false
+  fmt-markup:
+    command: pnpm exec prettier --write index.html
+    options:
+      cache: false
+      runInCI: false
+  sync-tokens:
+    command: pnpm exec tsx scripts/sync-tokens.ts
+    options:
+      cache: false
+      runInCI: false
   visual:
     command: pnpm visual
     local: true

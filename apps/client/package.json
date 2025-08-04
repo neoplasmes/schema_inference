@@ -9,8 +9,7 @@
         "typecheck": "tsx scripts/consume-editor-types.ts && tsc --noEmit",
         "test": "vitest run",
         "lint": "eslint src/",
-        "lint:fix": "eslint --fix src/",
-        "prettier": "prettier --write ."
+        "lint:fix": "eslint --fix src/"
     },
     "dependencies": {
         "react": "^19.1.0",

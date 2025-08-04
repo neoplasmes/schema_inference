@@ -3,9 +3,14 @@ assert_lefthook_installed: true
 pre-commit:
   parallel: false
   jobs:
-    - name: prettier
-      glob: '*.{js,jsx,ts,tsx,json,css,scss,html}'
-      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+    - name: biome
+      glob: '*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,css}'
+      run: moon run root:fmt-files -- {staged_files}
+      stage_fixed: true
+
+    - name: markup
+      glob: '*.{scss,html}'
+      run: moon run root:fmt-markup-files -- {staged_files}
       stage_fixed: true
 
     - name: client eslint
