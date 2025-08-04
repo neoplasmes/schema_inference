@@ -63,8 +63,8 @@ export default (
             name: 'schema_editor',
             filename: 'remoteEntry.js',
             exposes: {
-                './Editor': './src/expose/Editor.tsx',
-                './mount': './src/expose/mount.tsx',
+                './Editor': './src/expose/editor',
+                './mount': './src/expose/mount',
             },
             shared: {
                 react: {

@@ -26,11 +26,6 @@
     position: absolute;
     inset: 0;
 }
-.panelBoard {
-    position: absolute;
-    overflow: hidden;
-    border-radius: var(--radius-md);
-}
 .notification {
     position: absolute;
     bottom: 24px;
@@ -52,8 +47,4 @@
     padding: 8px 16px;
     font: inherit;
     cursor: pointer;
-}
-.standalone {
-    position: fixed;
-    inset: 0;
 }

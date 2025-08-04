@@ -26,7 +26,7 @@ for (const [category, values] of Object.entries(document.tokens)) {
 }
 
 await mkdir(path.resolve(editorDirectory, 'src/board/theme'), { recursive: true });
-await mkdir(path.resolve(editorDirectory, 'src/theme'), { recursive: true });
+await mkdir(path.resolve(editorDirectory, 'src/shared/ui/theme'), { recursive: true });
 await writeFile(
     path.resolve(editorDirectory, 'src/board/theme/tokens.ts'),
     await format(
@@ -35,7 +35,7 @@ await writeFile(
     )
 );
 await writeFile(
-    path.resolve(editorDirectory, 'src/theme/tokens.css'),
+    path.resolve(editorDirectory, 'src/shared/ui/theme/tokens.css'),
     await format(
         `/* Generated from ${sourceLabel}. Run pnpm sync-tokens. */\n.schema-editor {\n${declarations.join('\n')}\n}\n`,
         { ...formatting, parser: 'css' }

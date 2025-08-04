@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
-import StandaloneEditor from './standalone/StandaloneEditor';
+import { StandaloneEditor } from './standalone';
+import { Editor } from './main/editor';
 
 const root = document.getElementById('root');
 
@@ -7,4 +8,4 @@ if (!root) {
     throw new Error('The editor root element is missing.');
 }
 
-createRoot(root).render(<StandaloneEditor />);
+createRoot(root).render(<StandaloneEditor Editor={Editor} />);

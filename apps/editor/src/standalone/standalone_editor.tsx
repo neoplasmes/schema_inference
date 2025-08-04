@@ -1,7 +1,12 @@
-import Editor from '../expose/Editor';
-import styles from '../app/EditorApplication.module.css';
+import type { ComponentType } from 'react';
+import type { EditorProps } from '../ui/pages/editor';
+import styles from './standalone.module.css';
 
-export default function StandaloneEditor(): React.JSX.Element {
+export default function StandaloneEditor({
+    Editor,
+}: {
+    Editor: ComponentType<EditorProps>;
+}): React.JSX.Element {
     return (
         <div className={styles.standalone}>
             <Editor

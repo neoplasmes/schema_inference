@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getScene, sceneIds, type SceneId } from '../playground/scenes';
 import type { ReferenceCrop } from '../playground/references';
-import { tokens } from '../src/board/theme/tokens';
+import { tokens } from '../src/board/theme';
 import { ensureEditorServer } from './server';
 import type { BoardGeometry, BoardModel, BoardViewport } from '../src/board';
 

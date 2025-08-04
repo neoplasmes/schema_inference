@@ -4,7 +4,7 @@ import type {
     BoardModel,
     BoardRow,
     BoardViewport,
-} from '../src/board/model/types';
+} from '../src/board';
 import { references, type ReferenceCrop } from './references';
 
 export const sceneIds = [

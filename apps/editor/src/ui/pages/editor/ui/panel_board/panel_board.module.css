@@ -1,0 +1,5 @@
+.panelBoard {
+    position: absolute;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+}

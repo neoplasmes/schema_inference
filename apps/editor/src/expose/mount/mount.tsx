@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
-import Editor from './Editor';
-import type { EditorProps } from './Editor';
+import Editor from '../editor';
+import type { EditorProps } from '../editor';
 
 export function mount(
     element: HTMLElement,
