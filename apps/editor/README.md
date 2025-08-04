@@ -98,7 +98,7 @@ Each mount owns its document and graphics resources. Updating the resource start
 
 ## Board contract
 
-The board is a React-free UI module. Server decoding belongs to `env`, application data projection belongs to `app`, and document semantics belong to the framework-free `core`/`application` layers. A board model contains presentation cards, stable member IDs, connections, selection and load states; it is not a saved schema.
+The board is a React-free UI module. Server decoding belongs to `env`, document-to-board projection belongs to `ui/pages/editor`, and document semantics belong to the framework-free `core`/`app` layers. A board model contains presentation cards, stable member IDs, connections, selection and load states; it is not a saved schema.
 
 ```ts
 import { createSchemaBoard, type BoardModel } from './src/board';
@@ -135,3 +135,11 @@ A card renders a local window of at most ten loaded rows. Wheel input over those
 LOD means level of detail. Zoom is clamped to 0.12..3: overview below 0.35, working from 0.35 through 1.2, detailed above 1.2. Overview hides row text. Standard card header/row heights are 34/28 px; illustrative anatomy/detail fixtures use explicit metrics described in ADR 0002.
 
 Tokens are generated with `pnpm --dir apps/editor sync-tokens`. CSS variables are scoped to `.schema-editor`; component styles use CSS Modules. The source design package is not copied into the repository. See `docs/editor/VISUAL_REVIEW.md`, `PERF.md` and `STATUS.md` for measured evidence and remaining product work.
+
+## Source packages
+
+`core` defines schema values and pure editing rules. `app` owns commands, queries, repository ports and the document replica with undo history. `env` implements transport, contract decoding and page caching. `main` constructs these dependencies; `ui/di` provides ready operations to UI controllers. React pages and widgets live in `ui`, while `board` remains an independent imperative UI package.
+
+Packages expose their public API through `index.ts`. The layer roots `core`, `env`, `shared`, `app` and `main` have no `index.ts`; import the owning package inside a layer. Import another package through its directory, not its implementation files. Files inside one package may import each other directly. `editor:lint` checks these entries, layer directions, framework isolation and runtime import cycles. The source root `index.ts` remains the asynchronous application entry.
+
+Board packages separate geometry, viewport, text, interactions and rendering. Rendering has card, row, labels, chrome, scene layers and lifecycle modules; interactions have pointer, keyboard, selection, rename and gesture modules. The generated DOM tokens live in `src/shared/ui/theme/tokens.css`; board tokens remain in `src/board/theme/tokens.ts`.

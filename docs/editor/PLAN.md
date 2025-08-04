@@ -91,34 +91,30 @@ Dev-адрес берётся из переменной окружения хо�
 
 ## Модули и архитектурные границы
 
-В пользовательской структуре `src/app` назван местом React-оболочки, useSchemaBoard и преобразования данных в BoardModel. Сохраняем этот путь как presentation/composition adapter. Чистый application-слой архитектуры размещается отдельно в `src/application`. Это соответствие по ответственности, а не разрешение React/DOM/Pixi в бизнес-операциях:
+Структура приведена к именам и направлениям зависимостей `ARCHITECTURE.frontend.md`. Доска сохраняет собственную папку `board` как независимый модуль UI:
 
 ```text
 src/
   index.ts
   bootstrap.tsx
-  expose/Editor.tsx
-  expose/mount.tsx
-  main/                    composition root, concrete adapters, React entry
-  core/                    schema vocabulary and pure semantic operations
-  application/
-    editor/                document: base + operations + history
-    queries/               limited reads through ports
-    commands/              save/export application operations
-    ports/repos/           framework-free repository contracts
-  env/
-    transport/             generic HTTP
-    repos/                 DTO validation/mapping, real and fixture adapters
-    cache/                 bounded immutable pages, request ownership
-  app/                     React controller, useSchemaBoard, DTO-to-view projection
-  shell/                   CSS Modules toolbar, navigator, inspector
-  board/                   independent imperative canvas UI module
-    model/ layout/ render/ text/ interaction/ viewport/ theme/
-  theme/tokens.css
+  expose/editor/ expose/mount/
+  main/dependencies/ main/editor/
+  core/entities/schema/ core/processes/document_edit/
+  app/contracts/
+  app/editor/document/
+  app/commands/ app/queries/ app/ports/repos/schema/
+  env/transport/http/
+  env/repos/schema/http/ env/repos/schema/fixture/
+  env/cache/schema_pages/
+  ui/di/
+  ui/pages/editor/{model,lib,ui}/
+  ui/widgets/editor_shell/{model,lib,ui}/
+  board/{model,layout,render,text,interaction,viewport,theme,schema_board}/
+  shared/ui/theme/
   standalone/
 ```
 
-`board`, `shell`, `app`, `expose`, `standalone` являются UI boundary. Они не импортируются в `core` или `application`. Pixi types разрешены только в реализации доски. Browser events и временный input также находятся внутри board UI. Rendering abstraction принадлежит board/render, не `application/ports`. В чистом application-слое допустим только AbortSignal для чтений. React-обёртка и проекция серверных/документных данных в BoardModel принадлежат `src/app`, не renderer и не application-портам. Board при необходимости получает plain types из application/core; обратное направление запрещено.
+Пакеты имеют `index.ts`, внешние потребители импортируют публичный вход пакета. Корни слоёв `core`, `env`, `shared`, `app` и `main` не содержат `index.ts`. Pixi и браузерные события принадлежат board; React-контроллеры и проекция документа в BoardModel находятся в UI. Core и app независимы от React/Pixi/DOM, кроме AbortSignal для чтений. Main создаёт зависимости и передаёт UI готовые операции. Документ-реплика хранит историю и синхронизацию по исключению раздела 6.1 архитектуры; чистые правила редактирования находятся в core. Направления импортов и публичные входы проверяются в lint.
 
 Четыре состояния ADR сохраняются раздельно: evidence - неизменяемые наблюдения; draft - семантический документ; bindings - происхождение; view - камера, экземпляры карточек, окна строк, выделение. Перемещение карточки не создаёт семантическую правку. Перенос поля создаёт одну операцию moveMember после завершения жеста. XML порядок задаётся членами sequence, не координатами карточек.
 
@@ -222,7 +218,7 @@ type BoardEventMap = {
 
 `on<K extends keyof BoardEventMap>(event, handler)` возвращает unsubscribe. Create-функция сразу возвращает объект с `ready: Promise<void>` для async Pixi init, fonts.ready и безопасного destroy до завершения init. Публичные методы: setModel, on, viewport.fitAll/zoomTo/get/set, destroy. Повторный destroy безопасен.
 
-До параллельной работы canvas-подзадач фиксируется `board/render/types.ts`:
+До параллельной работы canvas-подзадач фиксируется `board/render/contracts/renderer.types.ts`:
 
 ```ts
 type Rectangle = Readonly<{ x: number; y: number; width: number; height: number }>;
@@ -278,7 +274,7 @@ variantChange - намерение просмотра наблюдаемого �
 
 Компоненты shell используют CSS Modules; переменные объявлены только на `.schema-editor`. Сбросов `:root`, body, html, input, `*` на уровне документа нет. Правила root/descendants локальны. Host reset/шрифт компенсируются в editor root; скриншоты страницы хоста до/после проверяют обратное влияние стилей.
 
-Генератор `scripts/sync-tokens.ts` через tsx читает внешний tokens.json и создаёт только `board/theme/tokens.ts`, `theme/tokens.css`. Шапки указывают источник. В рукописном коде цветовых литералов нет. Token-тест различает чёрные alpha для label/fill/separator/edge и разрешённые нейтральные непрозрачные фоны `surface-canvas`/`canvas-shade`, белые surfaces, olive tokens и wine danger: сами исходные токены содержат непрозрачные серые фоны, их нельзя отклонить тестом, построенным без этого различия.
+Генератор `scripts/sync-tokens.ts` через tsx читает внешний tokens.json и создаёт только `board/theme/tokens.ts`, `shared/ui/theme/tokens.css`. Шапки указывают источник. В рукописном коде цветовых литералов нет. Token-тест различает чёрные alpha для label/fill/separator/edge и разрешённые нейтральные непрозрачные фоны `surface-canvas`/`canvas-shade`, белые surfaces, olive tokens и wine danger: сами исходные токены содержат непрозрачные серые фоны, их нельзя отклонить тестом, построенным без этого различия.
 
 ## Повторное использование старого клиента
 
@@ -300,7 +296,7 @@ variantChange - намерение просмотра наблюдаемого �
 2. Платформа: workspace registration, editor package/tasks, webpack/federation обоих приложений, dts, tokens script, test/lint setup, standalone entry. Только её агент меняет package/lock/config одновременно.
 3. Canvas-engineer: board model/render/types, layout, viewport, render, text, interaction, imperative lifecycle. Внутренние задачи можно делить после фиксации types.ts с непересекающимся ownership.
 4. Оболочка: shell, app как presentation adapter, projection и navigator sync. Не меняет renderer и не помещает React в application.
-5. Ведущий агент: core/application/env и fixture/real adapter boundaries, semantic operations/history и интеграция без переноса старых mutable моделей.
+5. Ведущий агент: core/app/env и fixture/real adapter boundaries, semantic operations/history и интеграция без переноса старых mutable моделей.
 6. Editor-verifier: playground fixtures, visual runner, browser assertions и evidence, VISUAL_REVIEW. Не исправляет production renderer без передачи ownership.
 7. Профилирование после готовности жестов: stress и ещё две ADR-нагрузки, PERF. На SwiftShader нельзя подтверждать целевые 60 FPS среднего аппаратного GPU.
 
