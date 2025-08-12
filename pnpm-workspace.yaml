@@ -1,6 +1,7 @@
 packages:
   - apps/client
   - apps/editor
+  - packages/entity-cache
 
 onlyBuiltDependencies:
   - esbuild
