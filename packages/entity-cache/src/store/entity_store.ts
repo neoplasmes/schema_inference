@@ -1,19 +1,27 @@
 import { createStore } from 'zustand/vanilla';
 import type {
     Entity,
+    EntityPatch,
     EntityRecord,
     NormalizedValue,
+    OptimisticLayer,
 } from './types';
 import { recordReferences, sameRecord } from './values';
 
+type LayerState = {
+    entries: Map<string, EntityRecord | null>;
+    active: boolean;
+};
 type Memo = {
     version: number;
     value: Record<string, unknown>;
 };
 
-/** Stores normalized entities with stable references and targeted subscriptions. */
+/** Stores confirmed entities separately from ordered optimistic changes and retained reads. */
 export class EntityStore {
     private readonly base = new Map<string, EntityRecord>();
+    private readonly layers: LayerState[] = [];
+    private readonly roots = new Map<symbol, readonly string[]>();
     private readonly versions = new Map<string, number>();
     private readonly memo = new Map<string, Memo>();
     private readonly state = createStore(() => ({
@@ -132,8 +140,105 @@ export class EntityStore {
         return this.state.getState().version;
     };
 
+    begin(): OptimisticLayer {
+        const layer: LayerState = {
+            entries: new Map(),
+            active: true,
+        };
+        this.layers.push(layer);
+
+        return {
+            apply: patches => {
+                if (!layer.active) {
+                    return;
+                }
+
+                this.transaction(() => {
+                    const staged: LayerState = {
+                        entries: new Map(layer.entries),
+                        active: true,
+                    };
+
+                    for (const patch of patches) {
+                        this.applyPatch(staged, patch);
+                    }
+
+                    layer.entries = staged.entries;
+                    this.changed();
+                });
+            },
+            discard: () => {
+                if (!layer.active) {
+                    return;
+                }
+
+                layer.active = false;
+                this.layers.splice(this.layers.indexOf(layer), 1);
+                this.changed();
+            },
+        };
+    }
+
+    retain(refs: readonly string[]): () => void {
+        const owner = Symbol();
+        this.roots.set(owner, [
+            ...refs,
+        ]);
+
+        return () => {
+            this.roots.delete(owner);
+        };
+    }
+
+    sweep(): void {
+        const marked = new Set<string>();
+        const pending = [
+            ...this.roots.values(),
+        ].flat();
+
+        for (const layer of this.layers) {
+            pending.push(...layer.entries.keys());
+        }
+
+        while (pending.length > 0) {
+            const ref = pending.pop()!;
+
+            if (marked.has(ref)) {
+                continue;
+            }
+
+            marked.add(ref);
+            const base = this.base.get(ref);
+
+            if (base) {
+                pending.push(...recordReferences(base));
+            }
+
+            for (const layer of this.layers) {
+                const record = layer.entries.get(ref);
+
+                if (record) {
+                    pending.push(...recordReferences(record));
+                }
+            }
+        }
+
+        for (const ref of this.base.keys()) {
+            if (!marked.has(ref)) {
+                this.base.delete(ref);
+            }
+        }
+
+        this.changed();
+    }
+
     clear(): void {
         this.base.clear();
+        this.roots.clear();
+        this.layers.forEach(layer => {
+            layer.active = false;
+        });
+        this.layers.length = 0;
         this.changed();
     }
 
@@ -153,6 +258,23 @@ export class EntityStore {
 
     get size(): number {
         return this.records.size;
+    }
+
+    private applyPatch(layer: LayerState, patch: EntityPatch): void {
+        if ('remove' in patch) {
+            layer.entries.set(patch.ref, null);
+
+            return;
+        }
+
+        this.encode(
+            {
+                ...patch.patch,
+                ref: patch.ref,
+            },
+            layer.entries,
+            new WeakSet()
+        );
     }
 
     private encode(
@@ -242,6 +364,19 @@ export class EntityStore {
     private publish(): void {
         this.dirty = false;
         const next = new Map(this.base);
+
+        for (const layer of this.layers) {
+            for (const [ref, record] of layer.entries) {
+                if (record === null) {
+                    next.delete(ref);
+                } else {
+                    next.set(ref, {
+                        ...next.get(ref),
+                        ...record,
+                    });
+                }
+            }
+        }
 
         const changed = new Set<string>();
         const dependants = new Map<string, Set<string>>();
