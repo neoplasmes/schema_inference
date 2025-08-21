@@ -85,6 +85,84 @@ describe('cache runtime', () => {
                 ])
             )
         ).not.toContain('Ada');
+        cache.invalidator.evict([
+            'user',
+        ]);
+        expect(cache.entityStore.size).toBe(1);
+        cache.invalidator.evict([
+            'user:1',
+        ]);
+        expect(cache.entityStore.size).toBe(0);
+    });
+
+    it('retains both results when concurrent reads normalize before their cache success events', async () => {
+        const cache = runtime();
+        const first = deferred<{
+            ref: string;
+            child: {
+                ref: string;
+                name: string;
+            };
+        }>();
+        const second = deferred<{
+            ref: string;
+            name: string;
+        }>();
+        const firstRead = cache.queryClient.fetchQuery(
+            cache.queryOptionsFor(
+                {
+                    name: 'first',
+                    reads: () => [
+                        'first',
+                    ],
+                    execute: () => first.promise,
+                },
+                undefined
+            )
+        );
+        const secondRead = cache.queryClient.fetchQuery(
+            cache.queryOptionsFor(
+                {
+                    name: 'second',
+                    reads: () => [
+                        'second',
+                    ],
+                    execute: () => second.promise,
+                },
+                undefined
+            )
+        );
+        first.resolve({
+            ref: 'first:1',
+            child: {
+                ref: 'child:1',
+                name: 'Nested',
+            },
+        });
+        second.resolve({
+            ref: 'second:1',
+            name: 'Other',
+        });
+        const [one, two] = await Promise.all([
+            firstRead,
+            secondRead,
+        ]);
+        expect(cache.selector(one)()).toEqual({
+            ref: 'first:1',
+            child: {
+                ref: 'child:1',
+                name: 'Nested',
+            },
+        });
+        expect(cache.selector(two)()).toEqual({
+            ref: 'second:1',
+            name: 'Other',
+        });
+        expect(cache.entityStore.size).toBe(3);
+        cache.invalidator.evict([
+            'first',
+        ]);
+        expect(cache.entityStore.size).toBe(1);
     });
 
     it('does not normalize a late response after cancellation even when the repository ignores its signal', async () => {
