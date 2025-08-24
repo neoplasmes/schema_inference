@@ -1,8 +1,8 @@
 import { QueryClient, hashKey, queryOptions } from '@tanstack/react-query';
 import type { Query as CachedQuery } from '@tanstack/react-query';
 import { EntityStore, references } from '../store';
-import type { NormalizedValue } from '../store';
-import type { Query } from './contracts';
+import type { NormalizedValue, OptimisticLayer } from '../store';
+import type { Command, CommandOptions, Query } from './contracts';
 
 type CachedRead = Readonly<{
     kind: 'entity-cache-result';
@@ -32,12 +32,13 @@ function isCachedRead(value: unknown): value is CachedRead {
     );
 }
 
-/** Owns normalized reads and their retained entity roots. */
+/** Owns one application cache lifetime and serializes writes to avoid layer settlement races. */
 export class CacheRuntime {
     readonly entityStore = new EntityStore();
     readonly queryClient: QueryClient;
     private epoch = 0;
     private requestSequence = 0;
+    private writeGeneration = 0;
     private readonly pendingReads = new Map<
         string,
         {
@@ -45,6 +46,7 @@ export class CacheRuntime {
             release(): void;
         }
     >();
+    private writes: Promise<unknown> = Promise.resolve();
     private readonly retained = new Map<string, RetainedRead>();
 
     constructor(
@@ -128,6 +130,7 @@ export class CacheRuntime {
             this.pendingReads.forEach(read => read.release());
             this.pendingReads.clear();
             this.entityStore.clear();
+            this.writes = Promise.resolve();
         },
     };
 
@@ -147,30 +150,37 @@ export class CacheRuntime {
             queryFn: async ({ signal }): Promise<CachedRead> => {
                 const epoch = this.epoch;
 
-                const value = await query.execute(input, {
-                    signal,
-                });
+                while (true) {
+                    const generation = this.writeGeneration;
+                    const value = await query.execute(input, {
+                        signal,
+                    });
 
-                if (signal.aborted || epoch !== this.epoch) {
-                    throw cancelled();
+                    if (signal.aborted || epoch !== this.epoch) {
+                        throw cancelled();
+                    }
+
+                    if (generation !== this.writeGeneration) {
+                        continue;
+                    }
+
+                    const normalized = this.entityStore.normalize(value);
+                    const requestId = ++this.requestSequence;
+                    const release = this.entityStore.retain(references(normalized));
+                    const hash = hashKey(key);
+                    this.releasePending(hash);
+                    this.pendingReads.set(hash, {
+                        id: requestId,
+                        release,
+                    });
+
+                    return {
+                        kind: 'entity-cache-result',
+                        value: normalized,
+                        epoch,
+                        requestId,
+                    };
                 }
-
-                const normalized = this.entityStore.normalize(value);
-                const requestId = ++this.requestSequence;
-                const release = this.entityStore.retain(references(normalized));
-                const hash = hashKey(key);
-                this.releasePending(hash);
-                this.pendingReads.set(hash, {
-                    id: requestId,
-                    release,
-                });
-
-                return {
-                    kind: 'entity-cache-result',
-                    value: normalized,
-                    epoch,
-                    requestId,
-                };
             },
         });
     }
@@ -200,6 +210,68 @@ export class CacheRuntime {
 
             return result;
         };
+    }
+
+    execute<I, O>(
+        command: Command<I, O>,
+        input: I,
+        options: CommandOptions<I> = {}
+    ): Promise<O> {
+        const epoch = this.epoch;
+        const run = async (): Promise<O> => {
+            if (epoch !== this.epoch) {
+                throw cancelled();
+            }
+
+            let layer: OptimisticLayer | undefined;
+            let releaseOutput: (() => void) | undefined;
+
+            try {
+                if (options.optimistic) {
+                    const patches = options.optimistic(input, ref =>
+                        this.entityStore.get(ref)
+                    );
+                    layer = this.entityStore.begin();
+                    layer.apply(patches);
+                }
+
+                const output = await command.execute(input);
+
+                if (epoch !== this.epoch) {
+                    throw cancelled();
+                }
+
+                this.writeGeneration += 1;
+                const refs = command.writes(input, output);
+                await this.queryClient.cancelQueries({
+                    predicate: query => this.intersects(query, refs),
+                });
+
+                if (epoch !== this.epoch) {
+                    throw cancelled();
+                }
+
+                this.entityStore.transaction(() => {
+                    const value = this.entityStore.normalize(output);
+                    releaseOutput = this.entityStore.retain(references(value));
+                    layer?.discard();
+                });
+                await this.invalidator.invalidate(refs);
+
+                return output;
+            } catch (error) {
+                layer?.discard();
+
+                throw error;
+            } finally {
+                releaseOutput?.();
+                this.entityStore.sweep();
+            }
+        };
+        const result = this.writes.then(run, run);
+        this.writes = result.catch(() => undefined);
+
+        return result;
     }
 
     private releasePending(key: string): void {

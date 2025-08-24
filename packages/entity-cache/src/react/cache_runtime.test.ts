@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { QueryObserver } from '@tanstack/react-query';
 import { createCacheRuntime } from './cache_runtime';
 
 function deferred<T>() {
@@ -240,5 +241,257 @@ describe('cache runtime', () => {
             ref: 'user:1',
             name: 'Current',
         });
+    });
+
+    it('invalidates only declared reads and refetches their composition', async () => {
+        const cache = runtime();
+        const readUsers = vi.fn(async () => [
+            {
+                ref: 'user:1',
+                name: 'Ada',
+            },
+        ]);
+        const readOrders = vi.fn(async () => [
+            {
+                ref: 'order:1',
+                total: 2,
+            },
+        ]);
+        const users = new QueryObserver(
+            cache.queryClient,
+            cache.queryOptionsFor(
+                {
+                    name: 'users',
+                    reads: () => [
+                        'user',
+                    ],
+                    execute: readUsers,
+                },
+                undefined
+            )
+        );
+        const orders = new QueryObserver(
+            cache.queryClient,
+            cache.queryOptionsFor(
+                {
+                    name: 'orders',
+                    reads: () => [
+                        'order',
+                    ],
+                    execute: readOrders,
+                },
+                undefined
+            )
+        );
+        const unsubscribeUsers = users.subscribe(() => undefined);
+        const unsubscribeOrders = orders.subscribe(() => undefined);
+        await Promise.all([
+            users.refetch(),
+            orders.refetch(),
+        ]);
+        await cache.execute(
+            {
+                execute: async () => ({
+                    ref: 'user:2',
+                    name: 'Grace',
+                }),
+                writes: () => [
+                    'user',
+                ],
+            },
+            undefined
+        );
+        expect(readUsers).toHaveBeenCalledTimes(2);
+        expect(readOrders).toHaveBeenCalledTimes(1);
+        expect(cache.entityStore.get('user:2')).toBeUndefined();
+        unsubscribeUsers();
+        unsubscribeOrders();
+    });
+
+    it('serializes overlapping writes and preserves a concurrent base update on failure', async () => {
+        const cache = runtime();
+        cache.entityStore.upsert('user:1', {
+            name: 'Base',
+            visits: 1,
+        });
+        const release = cache.entityStore.retain([
+            'user:1',
+        ]);
+        const firstResult = deferred<{
+            ref: string;
+            name: string;
+        }>();
+        const firstCall = vi.fn(() => firstResult.promise);
+        const secondCall = vi.fn(async () => ({
+            ref: 'user:1',
+            name: 'Second saved',
+        }));
+        const first = cache.execute(
+            {
+                execute: firstCall,
+                writes: () => [
+                    'user:1',
+                ],
+            },
+            undefined,
+            {
+                optimistic: () => [
+                    {
+                        ref: 'user:1',
+                        patch: {
+                            name: 'First optimistic',
+                        },
+                    },
+                ],
+            }
+        );
+        const rejected = expect(first).rejects.toThrow('Rejected');
+        const second = cache.execute(
+            {
+                execute: secondCall,
+                writes: () => [
+                    'user:1',
+                ],
+            },
+            undefined,
+            {
+                optimistic: () => [
+                    {
+                        ref: 'user:1',
+                        patch: {
+                            name: 'Second optimistic',
+                        },
+                    },
+                ],
+            }
+        );
+        await Promise.resolve();
+        expect(secondCall).not.toHaveBeenCalled();
+        cache.entityStore.upsert('user:1', {
+            name: 'Concurrent base',
+            visits: 2,
+        });
+        firstResult.reject(new Error('Rejected'));
+        await rejected;
+        await second;
+        expect(cache.entityStore.get('user:1')).toEqual({
+            ref: 'user:1',
+            name: 'Second saved',
+            visits: 2,
+        });
+        release();
+    });
+
+    it('rejects old write completion after clear without disturbing a new session', async () => {
+        const cache = runtime();
+        const response = deferred<{
+            ref: string;
+            name: string;
+        }>();
+        const write = cache.execute(
+            {
+                execute: () => response.promise,
+                writes: () => [
+                    'user',
+                ],
+            },
+            undefined,
+            {
+                optimistic: () => [
+                    {
+                        ref: 'user:1',
+                        patch: {
+                            name: 'Old optimistic',
+                        },
+                    },
+                ],
+            }
+        );
+        const rejected = expect(write).rejects.toMatchObject({
+            name: 'AbortError',
+        });
+        await Promise.resolve();
+        cache.invalidator.clearAll();
+        cache.entityStore.upsert('user:1', {
+            name: 'New session',
+        });
+        const release = cache.entityStore.retain([
+            'user:1',
+        ]);
+        response.resolve({
+            ref: 'user:1',
+            name: 'Old saved',
+        });
+        await rejected;
+        expect(cache.entityStore.get('user:1')).toEqual({
+            ref: 'user:1',
+            name: 'New session',
+        });
+        release();
+    });
+});
+
+describe('read and write ordering', () => {
+    it('repeats a pending collection read when an entity write completed after it began', async () => {
+        const cache = runtime();
+        const stale =
+            deferred<
+                {
+                    ref: string;
+                    title: string;
+                }[]
+            >();
+        const execute = vi
+            .fn()
+            .mockImplementationOnce(() => stale.promise)
+            .mockResolvedValue([
+                {
+                    ref: 'schema:1',
+                    title: 'Saved',
+                },
+            ]);
+        const read = cache.queryClient.fetchQuery(
+            cache.queryOptionsFor(
+                {
+                    name: 'schemas',
+                    reads: () => [
+                        'schema',
+                    ],
+                    execute: execute as () => Promise<
+                        {
+                            ref: string;
+                            title: string;
+                        }[]
+                    >,
+                },
+                undefined
+            )
+        );
+        await cache.execute(
+            {
+                execute: async () => ({
+                    ref: 'schema:1',
+                    title: 'Saved',
+                }),
+                writes: () => [
+                    'schema:1',
+                ],
+            },
+            undefined
+        );
+        stale.resolve([
+            {
+                ref: 'schema:1',
+                title: 'Stale',
+            },
+        ]);
+        const result = await read;
+        expect(execute).toHaveBeenCalledTimes(2);
+        expect(cache.selector(result)()).toEqual([
+            {
+                ref: 'schema:1',
+                title: 'Saved',
+            },
+        ]);
     });
 });
