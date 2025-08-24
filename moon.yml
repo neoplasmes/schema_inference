@@ -12,6 +12,7 @@ tasks:
   lint:
     deps:
       - client:lint
+      - entity-cache:lint
       - server:lint
       - documents-generator:lint
 
@@ -51,12 +52,14 @@ tasks:
   typecheck:
     deps:
       - client:typecheck
+      - entity-cache:typecheck
       - server:typecheck
       - documents-generator:typecheck
 
   test:
     deps:
       - client:test
+      - entity-cache:test
       - server:test
 
   build:
