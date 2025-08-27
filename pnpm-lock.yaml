@@ -132,6 +132,9 @@ importers:
 
   apps/editor:
     dependencies:
+      '@app/entity-cache':
+        specifier: workspace:*
+        version: link:../../packages/entity-cache
       pixi.js:
         specifier: 8.11.0
         version: 8.11.0
@@ -145,6 +148,9 @@ importers:
       '@eslint/js':
         specifier: 9.31.0
         version: 9.31.0
+      '@module-federation/dts-plugin':
+        specifier: 0.17.0
+        version: 0.17.0(typescript@5.8.3)
       '@module-federation/enhanced':
         specifier: 0.17.0
         version: 0.17.0(@rspack/core@1.4.8(@swc/helpers@0.5.17))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(webpack@5.100.2)

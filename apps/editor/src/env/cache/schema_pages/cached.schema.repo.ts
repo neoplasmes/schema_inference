@@ -1,3 +1,4 @@
+import { EntityStore, references, type NormalizedValue } from '@app/entity-cache/store';
 import type {
     ChangeReceipt,
     EditorResource,
@@ -5,7 +6,30 @@ import type {
     ReadOptions,
     SchemaRepository,
 } from '../../../app/ports/repos/schema';
-import type { DocumentOperation, Snapshot } from '../../../core/entities/schema';
+import type {
+    DocumentOperation,
+    NodeSummary,
+    SchemaMember,
+    Snapshot,
+} from '../../../core/entities/schema';
+
+type CachedPage = {
+    value: NormalizedValue;
+    release(): void;
+};
+
+type StoredPage = Omit<MemberPage, 'items'> & {
+    items: readonly {
+        member: {
+            ref: string;
+            value: SchemaMember;
+        };
+        valueSummary: {
+            ref: string;
+            value: NodeSummary;
+        };
+    }[];
+};
 
 type PendingPage = {
     controller: AbortController;
@@ -15,23 +39,39 @@ type PendingPage = {
 
 /** Shares immutable pages while each consumer keeps independent cancellation ownership. */
 export class CachedSchemaRepository implements SchemaRepository {
-    private readonly pages = new Map<string, MemberPage>();
+    private readonly pages = new Map<string, CachedPage>();
     private readonly pending = new Map<string, PendingPage>();
 
     constructor(
         private readonly repository: SchemaRepository,
-        private readonly pageLimit = 64
+        private readonly pageLimit = 64,
+        private readonly store = new EntityStore()
     ) {
         if (!Number.isSafeInteger(pageLimit) || pageLimit < 1) {
             throw new Error('The page cache limit must be a positive integer.');
         }
     }
 
-    open(resource: Extract<EditorResource, { kind: 'schema' }>, options?: ReadOptions) {
+    open(
+        resource: Extract<
+            EditorResource,
+            {
+                kind: 'schema';
+            }
+        >,
+        options?: ReadOptions
+    ) {
         return this.repository.open(resource, options);
     }
 
-    createFromAnalysis(resource: Extract<EditorResource, { kind: 'analysis' }>) {
+    createFromAnalysis(
+        resource: Extract<
+            EditorResource,
+            {
+                kind: 'analysis';
+            }
+        >
+    ) {
         return this.repository.createFromAnalysis(resource);
     }
 
@@ -66,7 +106,7 @@ export class CachedSchemaRepository implements SchemaRepository {
             this.pages.delete(key);
             this.pages.set(key, cached);
 
-            return Promise.resolve(cached);
+            return Promise.resolve(this.readPage(cached));
         }
 
         let entry = this.pending.get(key);
@@ -80,15 +120,44 @@ export class CachedSchemaRepository implements SchemaRepository {
                 })
                 .then(page => {
                     if (!controller.signal.aborted) {
-                        this.pages.set(key, page);
+                        const value = this.store.normalize({
+                            ...page,
+                            items: page.items.map(item => ({
+                                member: {
+                                    ref: entityRef(
+                                        page.snapshot,
+                                        'member',
+                                        item.member.id
+                                    ),
+                                    value: item.member,
+                                },
+                                valueSummary: {
+                                    ref: entityRef(
+                                        page.snapshot,
+                                        'summary',
+                                        item.valueSummary.id
+                                    ),
+                                    value: item.valueSummary,
+                                },
+                            })),
+                        });
+                        const release = this.store.retain(references(value));
+                        this.pages.get(key)?.release();
+                        this.pages.set(key, {
+                            value,
+                            release,
+                        });
 
                         while (this.pages.size > this.pageLimit) {
                             const oldest = this.pages.keys().next().value;
 
                             if (oldest !== undefined) {
+                                this.pages.get(oldest)?.release();
                                 this.pages.delete(oldest);
                             }
                         }
+
+                        this.store.sweep();
                     }
 
                     return page;
@@ -98,7 +167,11 @@ export class CachedSchemaRepository implements SchemaRepository {
                         this.pending.delete(key);
                     }
                 });
-            entry = { controller, consumers, promise };
+            entry = {
+                controller,
+                consumers,
+                promise,
+            };
             this.pending.set(key, entry);
         }
 
@@ -122,7 +195,9 @@ export class CachedSchemaRepository implements SchemaRepository {
     }
 
     clear(): void {
+        this.pages.forEach(page => page.release());
         this.pages.clear();
+        this.store.sweep();
 
         for (const entry of this.pending.values()) {
             entry.controller.abort();
@@ -134,6 +209,27 @@ export class CachedSchemaRepository implements SchemaRepository {
     get cachedPageCount(): number {
         return this.pages.size;
     }
+
+    private readPage(cached: CachedPage): MemberPage {
+        const page = this.store.denormalize<StoredPage>(cached.value);
+
+        return {
+            ...page,
+            items: page.items.map(item => ({
+                member: item.member.value,
+                valueSummary: item.valueSummary.value,
+            })),
+        };
+    }
+}
+
+function entityRef(snapshot: Snapshot, kind: 'member' | 'summary', id: string): string {
+    return `schema.${kind}:${JSON.stringify([
+        snapshot.resource,
+        snapshot.id,
+        snapshot.revision,
+        id,
+    ])}`;
 }
 
 function aborted(): DOMException {
@@ -167,8 +263,12 @@ function subscribe(entry: PendingPage, signal?: AbortSignal): Promise<MemberPage
             }
         }
 
-        signal?.addEventListener('abort', cancel, { once: true });
-        entry.controller.signal.addEventListener('abort', cancel, { once: true });
+        signal?.addEventListener('abort', cancel, {
+            once: true,
+        });
+        entry.controller.signal.addEventListener('abort', cancel, {
+            once: true,
+        });
         entry.promise.then(
             page => {
                 if (!settled) {

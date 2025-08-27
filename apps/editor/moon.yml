@@ -24,10 +24,11 @@ tasks:
     options:
       persistent: true
   build:
-    command: pnpm build
+    command: pnpm exec tsx scripts/build.ts
     inputs:
       - '@group(sources)'
       - '@group(configs)'
+      - /packages/entity-cache/src/**/*
     outputs:
       - dist
   typecheck:

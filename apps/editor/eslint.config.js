@@ -8,7 +8,10 @@ export default typescript.config(
     {
         files: ['**/*.{ts,tsx}'],
         extends: [javascript.configs.recommended, ...typescript.configs.recommended],
-        languageOptions: { globals: { ...globals.browser, ...globals.node } },
+        languageOptions: {
+            parserOptions: { tsconfigRootDir: import.meta.dirname },
+            globals: { ...globals.browser, ...globals.node },
+        },
         plugins: { 'react-hooks': reactHooks },
         rules: {
             '@typescript-eslint/no-explicit-any': 'error',

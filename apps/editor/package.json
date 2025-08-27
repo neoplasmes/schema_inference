@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development",
-        "build": "tsx ./node_modules/webpack-cli/bin/cli.js --config webpack.config.ts --mode production",
+        "build": "moon run editor:build",
         "typecheck": "tsc --noEmit",
         "test": "vitest run",
         "lint": "eslint src scripts playground visual webpack.config.ts && tsx scripts/check-architecture.ts",
@@ -17,7 +17,8 @@
     "dependencies": {
         "pixi.js": "8.11.0",
         "react": "19.1.0",
-        "react-dom": "19.1.0"
+        "react-dom": "19.1.0",
+        "@app/entity-cache": "workspace:*"
     },
     "devDependencies": {
         "@eslint/js": "9.31.0",
@@ -40,6 +41,7 @@
         "vitest": "3.2.4",
         "webpack": "5.100.2",
         "webpack-cli": "6.0.1",
-        "webpack-dev-server": "5.2.2"
+        "webpack-dev-server": "5.2.2",
+        "@module-federation/dts-plugin": "0.17.0"
     }
 }

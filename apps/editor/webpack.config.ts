@@ -13,6 +13,34 @@ const packageManifest = JSON.parse(
     dependencies: Record<string, string>;
 };
 
+export const federationOptions: ConstructorParameters<typeof ModuleFederationPlugin>[0] =
+    {
+        name: 'schema_editor',
+        filename: 'remoteEntry.js',
+        exposes: {
+            './Editor': './src/expose/editor',
+            './mount': './src/expose/mount',
+        },
+        shared: {
+            react: {
+                singleton: true,
+                requiredVersion: packageManifest.dependencies.react,
+            },
+            'react-dom': {
+                singleton: true,
+                requiredVersion: packageManifest.dependencies['react-dom'],
+            },
+        },
+        dts: {
+            displayErrorInTerminal: true,
+            generateTypes: {
+                abortOnError: true,
+            },
+            consumeTypes: false,
+        },
+        manifest: true,
+    };
+
 export default (
     _environment: unknown,
     arguments_: {
@@ -75,28 +103,7 @@ export default (
             template: './index.html',
         }),
         new ModuleFederationPlugin({
-            name: 'schema_editor',
-            filename: 'remoteEntry.js',
-            exposes: {
-                './Editor': './src/expose/editor',
-                './mount': './src/expose/mount',
-            },
-            shared: {
-                react: {
-                    singleton: true,
-                    requiredVersion: packageManifest.dependencies.react,
-                },
-                'react-dom': {
-                    singleton: true,
-                    requiredVersion: packageManifest.dependencies['react-dom'],
-                },
-            },
-            dts: {
-                generateTypes: {
-                    abortOnError: true,
-                },
-                consumeTypes: false,
-            },
+            ...federationOptions,
             manifest: {
                 disableAssetsAnalyze: arguments_.mode !== 'production',
             },
