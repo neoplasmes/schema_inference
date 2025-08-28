@@ -33,10 +33,15 @@ import {
 
 /** Maps the versioned HTTP contract into framework-free application values. */
 export class HttpSchemaRepository implements SchemaRepository {
-    constructor(private readonly transport: HttpTransport) {}
+    constructor(private readonly transport: Pick<HttpTransport, 'request'>) {}
 
     async createFromAnalysis(
-        resource: Extract<EditorResource, { kind: 'analysis' }>
+        resource: Extract<
+            EditorResource,
+            {
+                kind: 'analysis';
+            }
+        >
     ): Promise<SchemaDocument> {
         const analysis = object(
             await this.request(
@@ -86,7 +91,12 @@ export class HttpSchemaRepository implements SchemaRepository {
     }
 
     async open(
-        resource: Extract<EditorResource, { kind: 'schema' }>,
+        resource: Extract<
+            EditorResource,
+            {
+                kind: 'schema';
+            }
+        >,
         options?: ReadOptions
     ): Promise<SchemaDocument> {
         const schemaId = encodeURIComponent(resource.schemaId);
@@ -141,7 +151,9 @@ export class HttpSchemaRepository implements SchemaRepository {
         cursor: string | null,
         options?: ReadOptions
     ): Promise<MemberPage> {
-        const query = new URLSearchParams({ limit: '50' });
+        const query = new URLSearchParams({
+            limit: '50',
+        });
 
         if (cursor !== null) {
             query.set('cursor', cursor);

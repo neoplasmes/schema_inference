@@ -10,11 +10,13 @@ import { CachedSchemaRepository } from '../../env/cache/schema_pages';
 import { FixtureSchemaRepository } from '../../env/repos/schema/fixture';
 import { HttpSchemaRepository } from '../../env/repos/schema/http';
 import { HttpTransport } from '../../env/transport/http';
+import { MockHttpTransport, type MockRequest } from '../../env/transport/mock';
 import type { EditorDependencies } from '../../ui/di';
 
 export function createEditorDependencies(
     apiBaseUrl: string,
-    fixture: FixtureData | null
+    fixture: FixtureData | null,
+    request?: MockRequest
 ): EditorDependencies {
     if (apiBaseUrl === 'fixture://standalone' && fixture === null) {
         throw new Error('The explicit demo repository requires fixture data.');
@@ -24,7 +26,11 @@ export function createEditorDependencies(
         apiBaseUrl === 'fixture://standalone' && fixture !== null
             ? new FixtureSchemaRepository(fixture)
             : new CachedSchemaRepository(
-                  new HttpSchemaRepository(new HttpTransport(apiBaseUrl))
+                  new HttpSchemaRepository(
+                      request
+                          ? new MockHttpTransport(request)
+                          : new HttpTransport(apiBaseUrl)
+                  )
               );
 
     return {

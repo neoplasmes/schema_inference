@@ -1,32 +1,88 @@
 import path from 'node:path';
 import ts from 'typescript';
 
-export type SourceModule = Readonly<{ name: string; text: string }>;
+export type SourceModule = Readonly<{
+    name: string;
+    text: string;
+}>;
 export type ArchitectureViolation = Readonly<{
     file: string;
     rule: string;
     detail: string;
 }>;
 
-const layersWithoutPublicEntry = new Set(['core', 'env', 'shared', 'app', 'main']);
+const layersWithoutPublicEntry = new Set([
+    'core',
+    'env',
+    'shared',
+    'app',
+    'main',
+]);
 
 const dependencies: Readonly<Record<string, readonly string[]>> = {
-    core: ['core', 'shared'],
-    app: ['app', 'core', 'shared'],
-    env: ['env', 'app', 'core', 'shared'],
-    ui: ['ui', 'app', 'core', 'shared', 'board'],
-    board: ['board', 'core', 'shared'],
-    shared: ['shared'],
-    main: ['main', 'core', 'app', 'env', 'ui', 'board', 'shared'],
-    expose: ['expose', 'main', 'ui', 'app'],
-    standalone: ['standalone', 'ui', 'board', 'shared'],
+    core: [
+        'core',
+        'shared',
+    ],
+    app: [
+        'app',
+        'core',
+        'shared',
+    ],
+    env: [
+        'env',
+        'app',
+        'core',
+        'shared',
+    ],
+    ui: [
+        'ui',
+        'app',
+        'core',
+        'shared',
+        'board',
+    ],
+    board: [
+        'board',
+        'core',
+        'shared',
+    ],
+    shared: [
+        'shared',
+    ],
+    main: [
+        'main',
+        'core',
+        'app',
+        'env',
+        'ui',
+        'board',
+        'shared',
+    ],
+    expose: [
+        'expose',
+        'main',
+        'ui',
+        'app',
+    ],
+    standalone: [
+        'standalone',
+        'ui',
+        'board',
+        'shared',
+    ],
 };
 
 /** Checks source packages without depending on the filesystem or executing imports. */
 export function inspectModules(
     modules: readonly SourceModule[]
 ): ArchitectureViolation[] {
-    const files = new Map(modules.map(module => [module.name, module]));
+    const files = new Map(
+        modules.map(module => [
+            module.name,
+            module,
+        ])
+    );
     const compilerOptions: ts.CompilerOptions = {
         noLib: true,
         types: [],
@@ -41,13 +97,23 @@ export function inspectModules(
             ? ts.createSourceFile(name, module.text, ts.ScriptTarget.Latest, true)
             : undefined;
     };
-    const program = ts.createProgram([...files.keys()], compilerOptions, compilerHost);
+    const program = ts.createProgram(
+        [
+            ...files.keys(),
+        ],
+        compilerOptions,
+        compilerHost
+    );
     const checker = program.getTypeChecker();
     const violations: ArchitectureViolation[] = [];
     const directories = new Set<string>();
     const graph = new Map<string, string[]>();
     const report = (file: string, rule: string, detail: string) => {
-        violations.push({ file, rule, detail });
+        violations.push({
+            file,
+            rule,
+            detail,
+        });
     };
 
     for (const module of modules) {
@@ -95,6 +161,26 @@ export function inspectModules(
 
         const check = (specifier: string, typeOnly: boolean) => {
             if (!specifier.startsWith('.')) {
+                const cachePackage =
+                    specifier === '@app/entity-cache' ||
+                    specifier.startsWith('@app/entity-cache/');
+                const queryPackage = specifier.startsWith('@tanstack/');
+                const cacheOwner =
+                    layer === 'main' || module.name.startsWith('env/cache/');
+
+                if ((cachePackage || queryPackage) && !cacheOwner) {
+                    report(module.name, 'cache-framework-boundary', specifier);
+                }
+
+                if (
+                    specifier.startsWith('zustand') &&
+                    !cacheOwner &&
+                    !module.name.startsWith('shared/model/') &&
+                    !(layer === 'ui' && module.name.includes('/model/'))
+                ) {
+                    report(module.name, 'store-framework-boundary', specifier);
+                }
+
                 if (specifier === 'pixi.js' || specifier.startsWith('pixi.js/')) {
                     if (layer !== 'board') {
                         report(module.name, 'pixi-boundary', specifier);
@@ -102,7 +188,11 @@ export function inspectModules(
                 }
 
                 if (
-                    ['core', 'app', 'board'].includes(layer) &&
+                    [
+                        'core',
+                        'app',
+                        'board',
+                    ].includes(layer) &&
                     /^react(?:-dom)?(?:\/|$)/.test(specifier)
                 ) {
                     report(module.name, 'framework-boundary', specifier);
@@ -146,6 +236,16 @@ export function inspectModules(
             }
 
             if (
+                target.startsWith('env/repos/') &&
+                layer !== 'main' &&
+                !module.name.startsWith('env/repos/') &&
+                !module.name.startsWith('env/cache/') &&
+                !module.name.startsWith('env/transport/')
+            ) {
+                report(module.name, 'concrete-repository-boundary', target);
+            }
+
+            if (
                 module.name.startsWith('env/transport/') &&
                 targetLayer !== 'shared' &&
                 !target.startsWith('env/transport/')
@@ -162,7 +262,10 @@ export function inspectModules(
             }
 
             if (
-                ['core', 'app'].includes(layer) &&
+                [
+                    'core',
+                    'app',
+                ].includes(layer) &&
                 targetLayer === 'shared' &&
                 !target.startsWith('shared/lib/')
             ) {
@@ -223,7 +326,10 @@ export function inspectModules(
 
             if (
                 runtime &&
-                ['core', 'app'].includes(layer) &&
+                [
+                    'core',
+                    'app',
+                ].includes(layer) &&
                 ts.isIdentifier(node) &&
                 /^(window|document|HTMLElement|HTMLCanvasElement|WebGLRenderingContext|WebGL2RenderingContext|Document|Element|Node|MouseEvent|PointerEvent|KeyboardEvent|Request|Response|fetch|localStorage)$/.test(
                     node.text
@@ -254,7 +360,10 @@ export function inspectModules(
             report(
                 file,
                 'runtime-cycle',
-                [...trail.slice(trail.indexOf(file)), file].join(' -> ')
+                [
+                    ...trail.slice(trail.indexOf(file)),
+                    file,
+                ].join(' -> ')
             );
 
             return;
@@ -267,7 +376,10 @@ export function inspectModules(
         active.add(file);
 
         for (const imported of graph.get(file) ?? []) {
-            visit(imported, [...trail, file]);
+            visit(imported, [
+                ...trail,
+                file,
+            ]);
         }
 
         active.delete(file);
