@@ -9,8 +9,10 @@ export default defineConfig({
         },
     },
     test: {
-        environment: 'jsdom',
-        include: ['src/**/*.test.{ts,tsx}'],
-        passWithNoTests: true,
+        environment: 'node',
+        include: [
+            'src/**/*.test.{ts,tsx}',
+            'scripts/**/*.test.ts',
+        ],
     },
 });
