@@ -179,6 +179,115 @@ function object(value: unknown): Record<string, unknown> {
     return value as Record<string, unknown>;
 }
 
+function text(value: unknown): string {
+    if (typeof value !== 'string' || !value.trim()) {
+        throw new Error('Expected a non-empty string.');
+    }
+
+    return value;
+}
+
+function apply(data: Revision, operations: unknown): void {
+    if (!Array.isArray(operations)) {
+        throw new Error('Expected operations.');
+    }
+
+    for (const value of operations) {
+        const operation = object(value);
+        const rows = Object.values(data.collections).flat();
+
+        if (operation.kind === 'renameXmlName') {
+            const target = object(operation.target);
+            const id = text(target.id);
+            const name = object(operation.name);
+            const localName = text(name.localName);
+
+            if (
+                !/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(localName) ||
+                (name.namespaceUri !== null && typeof name.namespaceUri !== 'string')
+            ) {
+                throw new Error('Invalid XML name.');
+            }
+
+            if (target.kind === 'node') {
+                const node = data.nodes[id];
+
+                if (node?.kind !== 'xmlElement') {
+                    throw new Error('XML element not found.');
+                }
+
+                node.name = {
+                    namespaceUri: name.namespaceUri,
+                    localName,
+                };
+
+                for (const row of rows.filter(row => row.valueSummary.id === id)) {
+                    row.valueSummary.label = localName;
+                }
+            } else if (target.kind === 'member') {
+                const row = rows.find(row => row.member.id === id);
+
+                if (row?.member.kind !== 'xmlAttribute') {
+                    throw new Error('XML attribute not found.');
+                }
+
+                row.member.name = {
+                    namespaceUri: name.namespaceUri,
+                    localName,
+                };
+            } else {
+                throw new Error('Invalid rename target.');
+            }
+        } else if (operation.kind === 'renameProperty') {
+            const row = rows.find(row => row.member.id === operation.memberId);
+
+            if (row?.member.kind !== 'property') {
+                throw new Error('Property not found.');
+            }
+
+            row.member.name = text(operation.name);
+        } else if (operation.kind === 'moveMember') {
+            const source = Object.values(data.collections).find(rows =>
+                rows.some(row => row.member.id === operation.memberId)
+            );
+            const target = data.collections[text(operation.targetCollectionId)];
+
+            if (!source || !target) {
+                throw new Error('Collection or member not found.');
+            }
+
+            const index = source.findIndex(row => row.member.id === operation.memberId);
+            const row = source[index];
+
+            if (operation.beforeMemberId === row.member.id) {
+                continue;
+            }
+
+            if (
+                operation.beforeMemberId !== null &&
+                !target.some(row => row.member.id === operation.beforeMemberId)
+            ) {
+                throw new Error('Target position not found.');
+            }
+
+            if (target !== source) {
+                throw new Error('This mock supports ordering within one collection.');
+            }
+
+            source.splice(index, 1);
+            target.splice(
+                operation.beforeMemberId === null
+                    ? target.length
+                    : target.findIndex(row => row.member.id === operation.beforeMemberId),
+                0,
+                row
+            );
+        } else {
+            throw new Error('Unsupported operation.');
+        }
+    }
+}
+
 /** Stores mock protocol snapshots independently from either microfrontend's cache. */
 export function createMockEditorBackend(
     storage?: Pick<Storage, 'getItem' | 'setItem'>
@@ -238,12 +347,76 @@ export function createMockEditorBackend(
             const method = options?.method ?? 'GET';
 
             try {
+                if (
+                    parts[2] === 'analyses' &&
+                    parts[4] === 'revisions' &&
+                    parts[6] === 'manifest' &&
+                    method === 'GET'
+                ) {
+                    const analysis = Object.hasOwn(state.analyses, parts[3])
+                        ? state.analyses[parts[3]]
+                        : undefined;
+
+                    return analysis?.revision === parts[5]
+                        ? response({
+                              contractVersion: 2,
+                              format: 'schema-analysis',
+                              snapshot: {
+                                  resource: 'analysis',
+                                  id: parts[3],
+                                  revision: parts[5],
+                              },
+                              suggestedDraft: {
+                                  seedId: 'mock-seed',
+                                  suggestedRootAlternativeId: 'mock-root',
+                              },
+                          })
+                        : response(
+                              {
+                                  error: 'Analysis not found.',
+                              },
+                              404
+                          );
+                }
+
                 if (parts[2] !== 'schemas') {
                     return response(
                         {
                             error: 'Mock route not found.',
                         },
                         404
+                    );
+                }
+
+                if (parts.length === 3 && method === 'POST') {
+                    const body = object(JSON.parse(String(options?.body)));
+                    const source = object(body.source);
+                    const analysisId = text(source.analysisId);
+                    const analysis = Object.hasOwn(state.analyses, analysisId)
+                        ? state.analyses[analysisId]
+                        : undefined;
+
+                    if (
+                        !analysis ||
+                        analysis.revision !== source.revision ||
+                        source.seedId !== 'mock-seed' ||
+                        source.rootAlternativeId !== 'mock-root'
+                    ) {
+                        return response(
+                            {
+                                error: 'Analysis not found.',
+                            },
+                            404
+                        );
+                    }
+
+                    const id = `draft-${analysisId}`;
+                    registerSchema(id, analysis.title);
+                    const schema = state.schemas[id];
+
+                    return response(
+                        manifest(id, schema.current, schema.revisions[schema.current]),
+                        201
                     );
                 }
 
@@ -266,6 +439,75 @@ export function createMockEditorBackend(
                         id,
                         revision: schema.current,
                     });
+                }
+
+                if (parts[4] === 'changesets' && method === 'POST') {
+                    const body = object(JSON.parse(String(options?.body)));
+                    const mutation = text(body.clientMutationId);
+                    const payload = JSON.stringify(body);
+                    const existing = Object.hasOwn(schema.receipts, mutation)
+                        ? schema.receipts[mutation]
+                        : undefined;
+
+                    if (existing) {
+                        return existing.payload === payload
+                            ? response(existing.receipt)
+                            : response(
+                                  {
+                                      error: 'Idempotency key reused.',
+                                  },
+                                  409
+                              );
+                    }
+
+                    if (
+                        body.baseRevision !== schema.current ||
+                        new Headers(options?.headers).get('If-Match') !==
+                            JSON.stringify(`${id}:${schema.current}`)
+                    ) {
+                        return response(
+                            {
+                                error: 'Revision conflict.',
+                            },
+                            412
+                        );
+                    }
+
+                    const data = structuredClone(schema.revisions[schema.current]);
+                    apply(data, body.operations);
+                    const revision = `r${Object.keys(schema.revisions).length + 1}`;
+                    const receipt: Receipt = {
+                        id: mutation,
+                        clientMutationId: mutation,
+                        status: 'applied',
+                        result: {
+                            revision,
+                        },
+                    };
+                    schema.current = revision;
+                    schema.revisions[revision] = data;
+                    schema.receipts[mutation] = {
+                        payload,
+                        receipt,
+                    };
+                    persist();
+
+                    return response(receipt, 201);
+                }
+
+                if (parts[4] === 'changesets' && parts[5] && method === 'GET') {
+                    const receipt = Object.hasOwn(schema.receipts, parts[5])
+                        ? schema.receipts[parts[5]]
+                        : undefined;
+
+                    return receipt
+                        ? response(receipt.receipt)
+                        : response(
+                              {
+                                  error: 'Changeset not found.',
+                              },
+                              404
+                          );
                 }
 
                 const revision = parts[5];
