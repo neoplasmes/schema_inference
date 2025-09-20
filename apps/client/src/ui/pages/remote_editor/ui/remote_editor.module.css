@@ -1,0 +1,61 @@
+.editor {
+    position: fixed;
+    inset: 0;
+    isolation: isolate;
+}
+
+.message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    height: 100%;
+}
+
+.message {
+    min-height: 100vh;
+    padding: 24px;
+    text-align: center;
+}
+.message h1 {
+    font-size: 24px;
+    font-weight: 550;
+}
+.message p {
+    color: #777f6d;
+    font-size: 14px;
+}
+.message button {
+    padding: 9px 16px;
+    background: #48573a;
+    color: white;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.message a {
+    color: #687a50;
+    font-size: 13px;
+}
+.saveError {
+    position: absolute;
+    left: 50%;
+    top: 72px;
+    transform: translateX(-50%);
+    z-index: 20;
+    max-width: 90%;
+    border: 1px solid #e6b38d;
+    border-radius: 6px;
+    background: #fff8ed;
+    padding: 12px;
+    color: #8d5126;
+    font-size: 12px;
+}
+.saveError button {
+    border: 0;
+    background: none;
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
