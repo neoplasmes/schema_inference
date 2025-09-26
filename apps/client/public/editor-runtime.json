@@ -1,4 +1,4 @@
 {
-    "editorManifestUrl": "",
-    "apiBaseUrl": ""
+    "editorManifestUrl": "http://localhost:3010/mf-manifest.json",
+    "apiBaseUrl": "mock://workspace"
 }

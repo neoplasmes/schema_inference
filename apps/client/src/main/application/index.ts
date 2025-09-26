@@ -1,0 +1,1 @@
+export { renderApplication } from './application';

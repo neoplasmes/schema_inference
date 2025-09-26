@@ -1,6 +1,9 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import { renderApplication } from './main/application';
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(<App />);
+const root = document.getElementById('root');
+
+if (!root) {
+    throw new Error('The application root is missing.');
+}
+
+renderApplication(root);
