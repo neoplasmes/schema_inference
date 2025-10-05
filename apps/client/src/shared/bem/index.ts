@@ -1,1 +1,0 @@
-export { bem } from './bem';

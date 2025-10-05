@@ -1,1 +1,0 @@
-export { assignObjectSkippingProperties } from './assignWithOmit';
