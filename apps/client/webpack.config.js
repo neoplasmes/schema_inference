@@ -34,7 +34,11 @@ export default (_env, argv) => {
         },
         devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',
         resolve: {
-            extensions: ['.tsx', '.ts', '.js'],
+            extensions: [
+                '.tsx',
+                '.ts',
+                '.js',
+            ],
             alias: {
                 '@': path.resolve(import.meta.dirname, 'src'),
             },
@@ -47,20 +51,24 @@ export default (_env, argv) => {
                     loader: 'ts-loader',
                     options: {
                         transpileOnly: true,
-                        compilerOptions: { noEmit: false },
+                        compilerOptions: {
+                            noEmit: false,
+                        },
                     },
                 },
                 {
-                    test: /\.s?css$/,
+                    test: /\.css$/,
                     use: [
                         isProduction ? MiniCssExtractPlugin.loader : 'style-loader',
                         {
                             loader: 'css-loader',
                             options: {
-                                modules: { auto: /\.module\.css$/, namedExport: false },
+                                modules: {
+                                    auto: /\.module\.css$/,
+                                    namedExport: false,
+                                },
                             },
                         },
-                        'sass-loader',
                     ],
                 },
             ],
@@ -78,14 +86,19 @@ export default (_env, argv) => {
                         requiredVersion: packageManifest.dependencies['react-dom'],
                     },
                 },
-                dts: { generateTypes: false, consumeTypes: false },
+                dts: {
+                    generateTypes: false,
+                    consumeTypes: false,
+                },
             }),
             new webpack.DefinePlugin({
                 'process.env.NODE_ENV': JSON.stringify(
                     isProduction ? 'production' : 'development'
                 ),
             }),
-            new HtmlWebpackPlugin({ template: './index.html' }),
+            new HtmlWebpackPlugin({
+                template: './index.html',
+            }),
             {
                 apply(compiler) {
                     compiler.hooks.thisCompilation.tap(
@@ -122,7 +135,13 @@ export default (_env, argv) => {
         devServer: {
             port: 3000,
             hot: true,
-            client: { overlay: { errors: true, warnings: false, runtimeErrors: false } },
+            client: {
+                overlay: {
+                    errors: true,
+                    warnings: false,
+                    runtimeErrors: false,
+                },
+            },
             historyApiFallback: true,
             setupMiddlewares(middlewares, server) {
                 server.app.get('/editor-runtime.json', (_request, response) => {

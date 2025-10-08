@@ -9,7 +9,9 @@ const target = path.join(directory, '@mf-types/schema_editor');
 const cache = path.join(directory, '.cache');
 const lockPath = path.join(cache, 'editor-types.lock');
 const digestPath = path.join(cache, 'editor-types.sha256');
-await mkdir(cache, { recursive: true });
+await mkdir(cache, {
+    recursive: true,
+});
 const deadline = Date.now() + 30000;
 let locked = false;
 
@@ -62,13 +64,33 @@ try {
     );
 
     if (previous !== digest || !present) {
-        await rm(digestPath, { force: true });
-        await rm(target, { recursive: true, force: true });
-        await mkdir(target, { recursive: true });
-        execFileSync('unzip', ['-o', archive, '-d', target], { stdio: 'pipe' });
+        await rm(digestPath, {
+            force: true,
+        });
+        await rm(target, {
+            recursive: true,
+            force: true,
+        });
+        await mkdir(target, {
+            recursive: true,
+        });
+        execFileSync(
+            'unzip',
+            [
+                '-o',
+                archive,
+                '-d',
+                target,
+            ],
+            {
+                stdio: 'pipe',
+            }
+        );
         await access(path.join(target, 'Editor.d.ts'));
         await writeFile(digestPath, digest);
     }
 } finally {
-    await rm(lockPath, { force: true });
+    await rm(lockPath, {
+        force: true,
+    });
 }

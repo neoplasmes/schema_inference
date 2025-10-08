@@ -5,54 +5,79 @@ fileGroups:
   configs:
     - package.json
     - tsconfig.json
-    - '*.config.js'
+    - '*.config.{js,ts}'
   sources:
     - index.html
     - src/**/*
     - scripts/**/*
     - public/**/*
+    - tests/**/*
 
 tasks:
   dev:
-    command: pnpm dev
+    command: pnpm exec webpack serve --mode development
     deps:
       - editor:dev
     local: true
     options:
       persistent: true
 
-  build:
-    command: pnpm build
+  editor-types:
+    command: pnpm exec tsx scripts/consume-editor-types.ts
     deps:
       - editor:build
     inputs:
+      - scripts/consume-editor-types.ts
+      - /apps/editor/dist/@mf-types.zip
+    outputs:
+      - '@mf-types'
+    options:
+      cache: false
+
+  build:
+    command: pnpm exec webpack --mode production
+    deps:
+      - ~:editor-types
+    inputs:
       - '@group(sources)'
       - '@group(configs)'
+      - /packages/entity-cache/src/**/*
     outputs:
       - dist
 
   typecheck:
-    command: pnpm typecheck
+    command: pnpm exec tsc --noEmit
     deps:
-      - editor:build
+      - ~:editor-types
     inputs:
       - '@group(sources)'
       - '@group(configs)'
+      - /packages/entity-cache/src/**/*
 
   test:
-    command: pnpm test
+    command: pnpm exec vitest run
     inputs:
       - '@group(sources)'
       - '@group(configs)'
+      - /packages/entity-cache/src/**/*
 
   lint:
-    command: pnpm lint
+    command: pnpm exec eslint src scripts
+    deps:
+      - ~:architecture
     inputs:
       - '@group(sources)'
       - '@group(configs)'
 
+  architecture:
+    command: pnpm exec tsx scripts/check-architecture.ts
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+      - /apps/editor/scripts/architecture/**/*
+
   lint-fix:
-    command: pnpm lint:fix
+    command: pnpm exec eslint --fix src scripts
     local: true
 
   fmt:
@@ -64,7 +89,8 @@ tasks:
       runInCI: false
 
   fmt-markup:
-    command: pnpm exec prettier --write --no-error-on-unmatched-pattern index.html 'src/**/*.scss'
+    command: pnpm exec prettier --write index.html
     options:
       cache: false
       runInCI: false
+

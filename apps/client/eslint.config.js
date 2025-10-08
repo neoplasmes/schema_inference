@@ -6,20 +6,41 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
     {
-        ignores: ['**/node_modules/**', '**/dist/**', '**/build/**'],
+        ignores: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/build/**',
+        ],
     },
     {
-        files: ['src/**/*.{js,jsx,ts,tsx}'],
-        extends: [js.configs.recommended, ...tseslint.configs.recommended],
+        files: [
+            'src/**/*.{js,jsx,ts,tsx}',
+            'scripts/**/*.ts',
+            'tests/**/*.ts',
+            '*.config.ts',
+        ],
+        extends: [
+            js.configs.recommended,
+            ...tseslint.configs.recommended,
+        ],
         languageOptions: {
-            globals: globals.browser,
+            parserOptions: {
+                tsconfigRootDir: import.meta.dirname,
+            },
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+            },
         },
         plugins: {
             '@stylistic': stylistic,
             'react-hooks': reactHooks,
         },
         rules: {
-            curly: ['error', 'all'],
+            curly: [
+                'error',
+                'all',
+            ],
             'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': 'warn',
             '@typescript-eslint/no-explicit-any': 'error',
@@ -36,7 +57,12 @@ export default tseslint.config(
                 {
                     blankLine: 'always',
                     prev: '*',
-                    next: ['return', 'throw', 'break', 'continue'],
+                    next: [
+                        'return',
+                        'throw',
+                        'break',
+                        'continue',
+                    ],
                 },
             ],
             'react-hooks/rules-of-hooks': 'error',

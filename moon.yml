@@ -76,3 +76,10 @@ tasks:
       - ~:typecheck
       - ~:test
       - ~:build
+
+  install-frontend:
+    command: pnpm install --ignore-scripts
+    platform: node
+    options:
+      cache: false
+      runInCI: false
