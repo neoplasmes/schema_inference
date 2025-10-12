@@ -62,7 +62,7 @@ tasks:
       - /packages/entity-cache/src/**/*
 
   lint:
-    command: pnpm exec eslint src scripts
+    command: pnpm exec eslint src scripts tests playwright.config.ts
     deps:
       - ~:architecture
     inputs:
@@ -77,7 +77,7 @@ tasks:
       - /apps/editor/scripts/architecture/**/*
 
   lint-fix:
-    command: pnpm exec eslint --fix src scripts
+    command: pnpm exec eslint --fix src scripts tests playwright.config.ts
     local: true
 
   fmt:
@@ -94,3 +94,26 @@ tasks:
       cache: false
       runInCI: false
 
+  install-browser:
+    command: pnpm exec playwright install chromium
+    options:
+      cache: false
+      runInCI: false
+
+  e2e:
+    command: pnpm exec playwright test
+    deps:
+      - ~:build
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+      - /apps/editor/src/**/*
+      - /packages/entity-cache/src/**/*
+    options:
+      cache: false
+
+  serve-e2e:
+    command: pnpm exec tsx scripts/serve-e2e.ts
+    local: true
+    options:
+      persistent: true

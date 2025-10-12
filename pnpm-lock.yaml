@@ -63,6 +63,9 @@ importers:
       '@module-federation/enhanced':
         specifier: 0.17.0
         version: 0.17.0(@rspack/core@1.4.8(@swc/helpers@0.5.17))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)(webpack@5.100.2)
+      '@playwright/test':
+        specifier: 1.54.1
+        version: 1.54.1
       '@rspack/core':
         specifier: 1.4.8
         version: 1.4.8(@swc/helpers@0.5.17)

@@ -76,6 +76,7 @@ tasks:
       - ~:typecheck
       - ~:test
       - ~:build
+      - client:e2e
 
   install-frontend:
     command: pnpm install --ignore-scripts
