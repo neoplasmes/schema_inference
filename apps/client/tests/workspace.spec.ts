@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { Page, TestInfo } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import { platform, release } from 'node:os';
 
 type Rectangle = {
     x: number;
@@ -210,6 +211,63 @@ async function recordJson(
     });
 }
 
+async function recordEnvironment(
+    page: Page,
+    testInfo: TestInfo,
+    browserVersion: string
+): Promise<void> {
+    const environment = await page.evaluate(() => {
+        const canvas = document.querySelector<HTMLCanvasElement>('.schema-editor canvas');
+        const gl = canvas?.getContext('webgl2') ?? canvas?.getContext('webgl');
+        const debug = gl?.getExtension('WEBGL_debug_renderer_info');
+        const fonts: {
+            family: string;
+            status: string;
+            weight: string;
+        }[] = [];
+        document.fonts.forEach(font =>
+            fonts.push({
+                family: font.family,
+                status: font.status,
+                weight: font.weight,
+            })
+        );
+
+        return {
+            userAgent: navigator.userAgent,
+            viewport: {
+                width: innerWidth,
+                height: innerHeight,
+            },
+            devicePixelRatio,
+            fonts,
+            bodyFont: getComputedStyle(document.body).fontFamily,
+            webgl: gl
+                ? {
+                      version: gl.getParameter(gl.VERSION),
+                      vendor: gl.getParameter(gl.VENDOR),
+                      renderer: gl.getParameter(gl.RENDERER),
+                      unmaskedVendor: debug
+                          ? gl.getParameter(debug.UNMASKED_VENDOR_WEBGL)
+                          : null,
+                      unmaskedRenderer: debug
+                          ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)
+                          : null,
+                  }
+                : null,
+        };
+    });
+    expect(environment.webgl, 'The editor must have a real WebGL context').not.toBeNull();
+    await recordJson(testInfo, 'environment', {
+        browserVersion,
+        os: {
+            platform: platform(),
+            release: release(),
+        },
+        ...environment,
+    });
+}
+
 test.beforeEach(async ({ page }) => {
     const audit: Audit = {
         requests: [],
@@ -262,6 +320,190 @@ test.afterEach(async ({ page }, testInfo) => {
             error => !audit.expectedErrors.some(expected => expected.test(error))
         )
     ).toEqual([]);
+});
+
+test('creates an analysis, edits the federated editor and reopens a saved revision', async ({
+    page,
+    browser,
+}, testInfo) => {
+    await page.goto('/');
+    await expect(
+        page.getByRole('heading', {
+            name: 'Your schemas',
+        })
+    ).toBeVisible();
+    await expect(
+        page.getByRole('link', {
+            name: /Product catalog/,
+        })
+    ).toContainText('3 source documents · r1');
+    await expect(
+        page.getByRole('link', {
+            name: /Customer orders/,
+        })
+    ).toContainText('2 source documents · r1');
+    await screenshot(page, testInfo, 'workspace-initial');
+
+    await page.getByLabel('Schema title').fill('Imported invoice');
+    await page.locator('input[type="file"]').setInputFiles({
+        name: 'invoice.xml',
+        mimeType: 'application/xml',
+        buffer: Buffer.from('<invoice><number>42</number></invoice>'),
+    });
+    await expect(
+        page.getByText('invoice.xml', {
+            exact: true,
+        })
+    ).toBeVisible();
+    await expect(
+        page.getByRole('button', {
+            name: 'Create demo schema',
+        })
+    ).toBeEnabled();
+    await page
+        .getByRole('button', {
+            name: 'Create demo schema',
+        })
+        .click();
+    await expect(page).toHaveURL(
+        /\/edit\?analysisId=analysis-[^&]+&revision=analysis-1$/
+    );
+    await settled(page);
+    await expect
+        .poll(() => rowNames(page))
+        .toEqual([
+            'name',
+            'amount',
+            'status',
+        ]);
+    const initial = await diagnostic(page);
+    expect(initial.model.cards).toHaveLength(1);
+    expect(initial.model.cards[0]).toMatchObject({
+        title: 'document',
+        rowWindow: {
+            state: 'complete',
+            totalItems: 3,
+            hasMore: false,
+        },
+    });
+    expect(initial.document).toMatchObject({
+        revision: 'r1',
+        operations: [],
+        canUndo: false,
+        canRedo: false,
+    });
+    expect(auditFor(page).responses).toEqual(
+        expect.arrayContaining([
+            {
+                url: 'http://127.0.0.1:4173/editor-runtime.json',
+                status: 200,
+            },
+            {
+                url: 'http://127.0.0.1:3010/mf-manifest.json',
+                status: 200,
+            },
+        ])
+    );
+    expect(
+        auditFor(page).responses.some(
+            response =>
+                response.url.startsWith('http://127.0.0.1:3010/') &&
+                /\.js$/.test(response.url) &&
+                response.status === 200
+        )
+    ).toBe(true);
+    await recordEnvironment(page, testInfo, browser.version());
+    await screenshot(page, testInfo, 'editor-initial');
+
+    await rename(page, 'customerName');
+    expect((await diagnostic(page)).document.operations).toEqual([
+        {
+            kind: 'renameXmlName',
+            target: {
+                kind: 'node',
+                id: 'field-name',
+            },
+            name: {
+                namespaceUri: null,
+                localName: 'customerName',
+            },
+        },
+    ]);
+    await page
+        .getByRole('button', {
+            name: 'Undo',
+            exact: true,
+        })
+        .click();
+    await expect
+        .poll(() => rowNames(page))
+        .toEqual([
+            'name',
+            'amount',
+            'status',
+        ]);
+    await expect(
+        page.getByRole('button', {
+            name: 'Redo',
+            exact: true,
+        })
+    ).toBeEnabled();
+    await page
+        .getByRole('button', {
+            name: 'Redo',
+            exact: true,
+        })
+        .click();
+    await expect
+        .poll(() => rowNames(page))
+        .toEqual([
+            'customerName',
+            'amount',
+            'status',
+        ]);
+    await settled(page);
+    await screenshot(page, testInfo, 'editor-renamed');
+
+    await page
+        .getByRole('button', {
+            name: 'Save schema',
+            exact: true,
+        })
+        .click();
+    await expect.poll(async () => (await diagnostic(page)).document.revision).toBe('r2');
+    await expect
+        .poll(async () => (await diagnostic(page)).document.operations)
+        .toEqual([]);
+    await page
+        .getByRole('button', {
+            name: 'Exit editor',
+            exact: true,
+        })
+        .click();
+    const savedCard = page.getByRole('link', {
+        name: /Imported invoice/,
+    });
+    await expect(savedCard).toContainText('1 source document · r2');
+    await expect(savedCard).toHaveAttribute('href', /schemaId=draft-analysis-[^&]+/);
+    await screenshot(page, testInfo, 'workspace-saved');
+    await page.reload();
+    await expect(savedCard).toContainText('1 source document · r2');
+    await savedCard.click();
+    await settled(page);
+    await expect
+        .poll(() => rowNames(page))
+        .toEqual([
+            'customerName',
+            'amount',
+            'status',
+        ]);
+    expect((await diagnostic(page)).document).toMatchObject({
+        revision: 'r2',
+        operations: [],
+        canUndo: false,
+        canRedo: false,
+    });
+    await screenshot(page, testInfo, 'editor-reopened');
 });
 
 test('recovers after runtime configuration fails once', async ({ page }, testInfo) => {
