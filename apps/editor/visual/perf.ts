@@ -330,8 +330,8 @@ const browser = await chromium.launch({ headless: true, args: launchArgs });
 const results: unknown[] = [];
 
 try {
-    if (browser.version() !== '139.0.7258.5') {
-        throw new Error(`Expected Chromium 139.0.7258.5; received ${browser.version()}`);
+    if (browser.version() !== '141.0.7390.37') {
+        throw new Error(`Expected Chromium 141.0.7390.37; received ${browser.version()}`);
     }
 
     for (const scene of scenes) {

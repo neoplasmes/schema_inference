@@ -222,9 +222,9 @@ const browser = await chromium.launch({ headless: true, args: launchArgs });
 const results: unknown[] = [];
 
 try {
-    if (browser.version() !== '139.0.7258.5') {
+    if (browser.version() !== '141.0.7390.37') {
         throw new Error(
-            `Expected Playwright 1.54.1 Chromium 139.0.7258.5; received ${browser.version()}`
+            `Expected Playwright 1.56.1 Chromium 141.0.7390.37; received ${browser.version()}`
         );
     }
 

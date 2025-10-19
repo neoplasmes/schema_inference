@@ -1,13 +1,13 @@
 # Schema editor
 
-The editor is a separately built Webpack Module Federation remote. React owns its shell; PixiJS 8.11 owns the entire board. The host imports only `schema_editor/Editor` or `schema_editor/mount`.
+The editor is a separately built Webpack Module Federation remote. React owns its shell; PixiJS 8.14 owns the entire board. The host imports only `schema_editor/Editor` or `schema_editor/mount`.
 
 ## Run
 
-Use the repository's pinned Node 22.15.0, pnpm 10.13.1 and moon 1.35.4.
+Use the repository's pinned Node 22.20.0, pnpm 10.18.3 and moon 1.41.5.
 
 ```sh
-pnpm install --frozen-lockfile
+moon run root:install-frontend
 moon run client:dev
 ```
 
@@ -27,7 +27,7 @@ Playground scenes use `http://localhost:3010/?scene=card-anatomy`. Other referen
 If global modern proto configuration prevents the pinned proto from parsing its settings, use the repository-local home without changing the global configuration:
 
 ```sh
-PROTO_HOME="$PWD/.proto" /home/neoplasmes/.proto/tools/proto/0.48.1/proto run moon -- run client:dev
+PROTO_HOME="$PWD/.proto" /home/neoplasmes/.proto/tools/proto/0.53.4/proto run moon -- run client:dev
 ```
 
 ## Remote contract
@@ -49,7 +49,7 @@ export type EditorProps = {
 
 The existing backend has no durable API v2 yet. Its upload session ID cannot serve as a schema ID. Production resources display an explicit error if API v2 is unavailable; they never fall back to fixture data. The old upload workflow remains at `/edit/legacy` in the host.
 
-Both builds use `@module-federation/enhanced` 0.17.0. Only `react` and `react-dom` are shared singletons with versions read from package manifests. The remote does not use the router and owns PixiJS. The asynchronous `index`/`bootstrap` boundary permits shared dependency negotiation before React starts.
+Both builds use `@module-federation/enhanced` 0.20.0. Only `react` and `react-dom` are shared singletons with versions read from package manifests. The remote does not use the router and owns PixiJS. The asynchronous `index`/`bootstrap` boundary permits shared dependency negotiation before React starts.
 
 The host fetches `/editor-runtime.json` on each load attempt, then registers the remote using its `mf-manifest.json`. Development middleware reads `EDITOR_REMOTE_MANIFEST_URL` and `EDITOR_API_BASE_URL`. In production deploy this runtime file alongside the host, independently of its JavaScript bundle:
 

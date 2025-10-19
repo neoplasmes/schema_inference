@@ -4,7 +4,7 @@ node:
 
 python:
   packageManager: uv
-  plugin: https://github.com/moonrepo/plugins/releases/download/python_tool-v0.14.1/python_tool.wasm
+  plugin: https://github.com/moonrepo/plugins/releases/download/python_tool-v0.14.2/python_tool.wasm
   rootVenvOnly: true
   venvName: .venv
   uv:

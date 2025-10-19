@@ -26,7 +26,7 @@
 
 ## Как запустить
 
-Используются закреплённые Node 22.15.0, pnpm 10.13.1 и moon 1.35.4. После `pnpm install --frozen-lockfile`:
+Используются закреплённые Node 22.20.0, pnpm 10.18.3 и moon 1.41.5. После `pnpm install --frozen-lockfile`:
 
 ```sh
 moon run client:dev
@@ -48,7 +48,7 @@ moon run client:build
 В текущем WSL глобальная конфигурация нового proto несовместима со старым закреплённым бинарником. Изоляция конфигурации без изменения пользовательских настроек:
 
 ```sh
-PROTO_HOME="$PWD/.proto" /home/neoplasmes/.proto/tools/proto/0.48.1/proto run moon -- run client:dev
+PROTO_HOME="$PWD/.proto" /home/neoplasmes/.proto/tools/proto/0.53.4/proto run moon -- run client:dev
 ```
 
 Dev-конфигурация хоста читает `EDITOR_REMOTE_MANIFEST_URL` и `EDITOR_API_BASE_URL`. Production требует настроенного `editor-runtime.json` с URL удалённого `mf-manifest.json`. `apiBaseUrl` не включает `/api/v2`: этот суффикс добавляет адаптер. Хост собирается с generated dts из editor build; альтернативный источник задаётся `EDITOR_TYPES_URL`.

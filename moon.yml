@@ -79,8 +79,35 @@ tasks:
       - client:e2e
 
   install-frontend:
-    command: pnpm install --ignore-scripts
-    platform: node
+    command: pnpm install --frozen-lockfile --ignore-scripts
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+
+  setup-tools:
+    command: proto install
+    options:
+      cache: false
+      runInCI: false
+
+  lock-backend:
+    command: uv lock --upgrade
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+
+  install-backend:
+    command: uv sync --all-packages --locked --no-python-downloads
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+
+  lock-frontend:
+    command: pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+    platform: system
     options:
       cache: false
       runInCI: false

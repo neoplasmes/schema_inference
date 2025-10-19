@@ -14,12 +14,12 @@ fileGroups:
 
 tasks:
   dev:
-    command: pnpm dev
+    command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development
     local: true
     options:
       persistent: true
   playground:
-    command: pnpm playground
+    command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development
     local: true
     options:
       persistent: true
@@ -32,11 +32,13 @@ tasks:
     outputs:
       - dist
   typecheck:
-    command: pnpm typecheck
+    command: pnpm exec tsc --noEmit
   test:
-    command: pnpm test
+    command: pnpm exec vitest run
   lint:
-    command: pnpm lint
+    command: pnpm exec eslint src scripts playground visual webpack.config.ts
+    deps:
+      - ~:architecture
   fmt:
     command: pnpm exec biome format --write .
     deps:
@@ -55,8 +57,14 @@ tasks:
       cache: false
       runInCI: false
   visual:
-    command: pnpm visual
+    command: pnpm exec tsx visual/run.ts
     local: true
   perf:
-    command: pnpm perf
+    command: pnpm exec tsx visual/perf.ts
     local: true
+
+  architecture:
+    command: pnpm exec tsx scripts/check-architecture.ts
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"

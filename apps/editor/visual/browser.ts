@@ -572,9 +572,9 @@ await scenario('host-federation-live-canvas', async page => {
             }
         ).__FEDERATION__.__INSTANCES__;
         const host = instances.find(instance => instance.name === 'schema_host')!
-            .shareScopeMap.default.react['19.1.0'];
+            .shareScopeMap.default.react['19.2.0'];
         const remote = instances.find(instance => instance.name === 'schema_editor')!
-            .shareScopeMap.default.react['19.1.0'];
+            .shareScopeMap.default.react['19.2.0'];
 
         return {
             canvas: [...document.querySelectorAll('canvas')].map(canvas => ({

@@ -6,7 +6,7 @@ projects:
   server: apps/server
   documents-generator: packages/documents_generator
 
-versionConstraint: '1.35.4'
+versionConstraint: '1.41.5'
 
 vcs:
   manager: git

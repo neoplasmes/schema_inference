@@ -1,20 +1,20 @@
-proto = "0.48.1"
-moon = "1.35.4"
-python = "3.12.10"
-uv = "0.7.2"
-node = "22.15.0"
-pnpm = "10.13.1"
+proto = "0.53.4"
+moon = "1.41.5"
+python = "3.12.12"
+uv = "0.9.4"
+node = "22.20.0"
+pnpm = "10.18.3"
 
 [env]
-UV_PYTHON = "3.12.10"
+UV_PYTHON = "3.12.12"
 
 [settings]
 auto-install = false
 
-[plugins]
-moon = "https://github.com/moonrepo/plugins/releases/download/moon_tool-v0.3.1/moon_tool.wasm"
-node = "https://github.com/moonrepo/plugins/releases/download/node_tool-v0.16.1/node_tool.wasm"
-pnpm = "https://github.com/moonrepo/plugins/releases/download/node_depman_tool-v0.15.1/node_depman_tool.wasm"
-uv = "https://github.com/moonrepo/plugins/releases/download/python_uv_tool-v0.2.1/python_uv_tool.wasm"
+[plugins.tools]
+moon = "https://github.com/moonrepo/plugins/releases/download/moon_tool-v0.3.2/moon_tool.wasm"
+node = "https://github.com/moonrepo/plugins/releases/download/node_tool-v0.17.3/node_tool.wasm"
+pnpm = "https://github.com/moonrepo/plugins/releases/download/node_depman_tool-v0.17.0/node_depman_tool.wasm"
+uv = "https://github.com/moonrepo/plugins/releases/download/python_uv_tool-v0.2.2/python_uv_tool.wasm"
 python = "source:./.moon/plugins/python.toml"
-internal-schema = "https://github.com/moonrepo/plugins/releases/download/schema_tool-v0.17.2/schema_tool.wasm"
+internal-schema = "https://github.com/moonrepo/plugins/releases/download/schema_tool-v0.17.7/schema_tool.wasm"

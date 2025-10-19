@@ -2,3 +2,4 @@ implicitInputs:
   - /package.json
   - /pnpm-lock.yaml
   - /pnpm-workspace.yaml
+  - /.pnpmfile.cjs

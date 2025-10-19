@@ -3,22 +3,16 @@ name = "documents-generator"
 version = "0.1.0"
 description = "Repeated XML and YAML collections with known variant distributions"
 requires-python = ">=3.12,<3.13"
-dependencies = ["PyYAML==6.0.2"]
+dependencies = ["PyYAML==6.0.3"]
 
 [project.scripts]
 documents-generator = "documents_generator.cli:main"
-
-[tool.poe.tasks]
-lint = "ruff check src"
-fmt = "ruff format src"
-typecheck = "pyright"
-generate = "documents-generator --output generated --scenario all --documents 100 --seed 42"
 
 [tool.poetry]
 packages = [{ include = "documents_generator", from = "src" }]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core==2.2.1"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
