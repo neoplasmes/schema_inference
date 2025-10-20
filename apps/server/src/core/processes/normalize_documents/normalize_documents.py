@@ -88,7 +88,7 @@ def normalize_documents(
         active.remove(id(node))
         source_format = getattr(node, "format", "xml")
 
-        if source_format == "yaml":
+        if source_format in ("json", "yaml"):
             kind = node.value_type or "parent"
             value = node.value
 

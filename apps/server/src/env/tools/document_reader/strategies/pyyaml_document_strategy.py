@@ -11,6 +11,9 @@ from core.entities import YamlDocumentNode
 class PyyamlDocumentStrategy:
     """Read ordinary YAML mappings, lists and scalars without custom tags or aliases."""
 
+    def __init__(self, *, preserve_root: bool = False) -> None:
+        self._preserve_root = preserve_root
+
     def read(self, source: BinaryIO) -> YamlDocumentNode:
         """Use a single named field as the root, otherwise keep a document container."""
         loader = None
@@ -26,7 +29,8 @@ class PyyamlDocumentStrategy:
             role = "document"
 
             if (
-                isinstance(source_root, MappingNode)
+                not self._preserve_root
+                and isinstance(source_root, MappingNode)
                 and source_root.tag == "tag:yaml.org,2002:map"
                 and len(source_root.value) == 1
             ):
