@@ -1,0 +1,9 @@
+from typing import Protocol
+
+
+class AnalysisJobs(Protocol):
+    """Run durable queued analyses outside an HTTP request."""
+
+    def submit(self, identifier: str) -> None: ...
+    def start(self) -> None: ...
+    def shutdown(self) -> None: ...
