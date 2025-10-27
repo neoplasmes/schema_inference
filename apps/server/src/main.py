@@ -1,27 +1,36 @@
 from fastapi import FastAPI
 
 from api.http import create_http_server
+from api.http.workspace import create_workspace_router
 from api.jobs import SessionCleanupJob
 from app.ports.repos import SessionRepository
 from app.ports.tools.document_reader import DocumentReaderTool
 from app.ports.tools.document_storage import DocumentStorageTool
 from app.ports.tools.xml_document import XmlDocumentTool
+from app.use_cases.apply_changeset import ApplyChangeset
 from app.use_cases.cleanup_session import CleanupSession
+from app.use_cases.create_draft import CreateDraft
 from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.infer_schema import InferSchema
 from app.use_cases.process_documents import ProcessDocuments
+from app.use_cases.read_workspace import ReadWorkspace
+from app.use_cases.run_analysis import RunAnalysis
+from app.use_cases.start_analysis import StartAnalysis
 from app.use_cases.upload_documents import UploadDocuments
 from env.config import Settings, load_settings
 from env.repos.session import InMemorySessionRepository
+from env.tools.analysis_jobs import ThreadedAnalysisJobs
 from env.tools.document_reader import StrategyDocumentReaderTool
 from env.tools.document_reader.strategies import (
     ElementTreeXmlDocumentTool,
+    JsonDocumentStrategy,
     PyyamlDocumentStrategy,
 )
 from env.tools.document_storage import FilesystemDocumentStorageTool
 from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
 from env.tools.schema_expression import EditorSchemaExpressionWriter
+from env.uow.workspace import SqliteWorkspaceUow
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:
@@ -82,7 +91,19 @@ def create_app(
     cleanup = CleanupSession(sessions, documents)
     cleanup_job = SessionCleanupJob(cleanup, configuration.cleanup_delay)
 
-    return create_http_server(
+    store = SqliteWorkspaceUow(
+        configuration.database_path or configuration.upload_root / "workspace.sqlite3"
+    )
+    workspace_reader = StrategyDocumentReaderTool(
+        {
+            ".xml": xml_reader or ElementTreeXmlDocumentTool(),
+            ".yaml": PyyamlDocumentStrategy(preserve_root=True),
+            ".json": JsonDocumentStrategy(),
+        }
+    )
+    jobs = ThreadedAnalysisJobs(RunAnalysis(store, workspace_reader, inference))
+    server = create_http_server(
+        analysis_jobs=jobs,
         upload_documents=UploadDocuments(sessions, documents),
         process_documents=ProcessDocuments(
             sessions, documents, reader, inference, cleanup
@@ -92,6 +113,16 @@ def create_app(
         cleanup_job=cleanup_job,
         allowed_origins=configuration.allowed_origins,
     )
+    server.include_router(
+        create_workspace_router(
+            StartAnalysis(store, jobs),
+            CreateDraft(store),
+            ApplyChangeset(store),
+            ReadWorkspace(store),
+        )
+    )
+
+    return server
 
 
 def start() -> None:
