@@ -4,6 +4,7 @@ import styles from '../EditorShell.module.css';
 type ToolbarProps = Pick<
     EditorShellProps,
     | 'title'
+    | 'profile'
     | 'onExit'
     | 'canUndo'
     | 'canRedo'
@@ -38,7 +39,7 @@ export function EditorToolbar(props: ToolbarProps): React.JSX.Element {
                     </button>
                 )}
                 <strong>{props.title}</strong>
-                <span className={styles.secondary}>XSD 1.0</span>
+                <span className={styles.secondary}>{props.profile?.syntax === 'xml' ? 'XSD 1.0' : props.profile ? 'JSON Schema 2020-12' : 'Loading schema…'}</span>
             </div>
             <div className={styles.segment} role="group" aria-label="Editor mode">
                 <button
@@ -111,10 +112,10 @@ export function EditorToolbar(props: ToolbarProps): React.JSX.Element {
                     className={styles.primary}
                     onClick={() =>
                         setNotice(
-                            'XSD export requires the schema API export endpoint. This editor has not exported a file.'
+                            'Schema export is not available yet. This editor has not exported a file.'
                         )
                     }
-                    title="XSD export is unavailable"
+                    title="Schema export is unavailable"
                 >
                     Export
                 </button>

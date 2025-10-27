@@ -75,14 +75,24 @@ export function parseNode(value: unknown): SchemaNode {
                 contentNodeId: string(data.contentNodeId),
                 nillable: boolean(data.nillable),
             };
-        case 'xmlComplex':
+        case 'xmlComplex': {
+            const simpleContentNodeId = data.simpleContentNodeId === undefined ? null : nullableString(data.simpleContentNodeId);
+            const particleNodeId = nullableString(data.particleNodeId);
+            const mixed = boolean(data.mixed);
+
+            if (simpleContentNodeId && (particleNodeId || mixed)) {
+                throw new ContractViolationError('XML simple content cannot also contain child particles or mixed text.');
+            }
+
             return {
                 id,
                 kind,
                 attributes: parseCollection(data.attributes),
-                particleNodeId: nullableString(data.particleNodeId),
-                mixed: boolean(data.mixed),
+                particleNodeId,
+                simpleContentNodeId,
+                mixed,
             };
+        }
         case 'xmlGroup': {
             if (
                 data.compositor !== 'sequence' &&

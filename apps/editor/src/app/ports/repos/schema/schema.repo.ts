@@ -17,6 +17,9 @@ export type EditorResource =
           rootAlternativeId?: string;
       }>;
 
+export type CreateDraftInput = Extract<EditorResource, { kind: 'analysis' }> &
+    Readonly<{ idempotencyKey: string }>;
+
 export type MemberPage = Readonly<{
     snapshot: Snapshot;
     collectionId: string;
@@ -40,7 +43,7 @@ export interface SchemaRepository {
         options?: ReadOptions
     ): Promise<SchemaDocument>;
     createFromAnalysis(
-        resource: Extract<EditorResource, { kind: 'analysis' }>
+        resource: CreateDraftInput
     ): Promise<SchemaDocument>;
     readNode(
         snapshot: Snapshot,

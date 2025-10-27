@@ -1,5 +1,6 @@
 export type {
     ChangeReceipt,
+    CreateDraftInput,
     EditorResource,
     FixtureData,
     MemberPage,

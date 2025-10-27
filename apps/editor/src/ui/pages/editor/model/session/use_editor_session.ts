@@ -31,6 +31,8 @@ export function useEditorSession(
     const [session, setSession] = useState<Session | null>(null);
     const sessionRef = useRef<Session | null>(null);
     const epoch = useRef(0);
+    const announcedDrafts = useRef(new Set<string>());
+    const draftKeys = useRef(new Map<string, string>());
     const drafts = useRef(new Map<string, Promise<SchemaDocument>>());
     const reads = useRef(new Map<string, AbortController>());
     const [version, setVersion] = useState(0);
@@ -99,7 +101,9 @@ export function useEditorSession(
                     let pending = drafts.current.get(resourceKey);
 
                     if (!pending) {
-                        pending = dependencies.createDraft.execute(props.resource);
+                        const idempotencyKey = draftKeys.current.get(resourceKey) ?? crypto.randomUUID();
+                        draftKeys.current.set(resourceKey, idempotencyKey);
+                        pending = dependencies.createDraft.execute({ ...props.resource, idempotencyKey });
                         drafts.current.set(resourceKey, pending);
                         void pending.catch(() => drafts.current.delete(resourceKey));
                     }
@@ -109,6 +113,11 @@ export function useEditorSession(
 
                 if (epoch.current !== generation || controller.signal.aborted) {
                     return;
+                }
+
+                if (props.resource.kind === 'analysis' && !announcedDrafts.current.has(resourceKey)) {
+                    announcedDrafts.current.add(resourceKey);
+                    callbacks.current.onCreated?.({ schemaId: manifest.snapshot.id, revision: manifest.snapshot.revision });
                 }
 
                 const document = new EditorDocument(manifest);

@@ -30,7 +30,7 @@ export class LoadBranchQuery implements Query<LoadBranchInput, LoadedBranch> {
         let title = '';
 
         while (next !== null) {
-            if (seen.has(next) || seen.size >= 8) {
+            if (seen.has(next) || seen.size >= 128) {
                 throw new Error(
                     'The schema contains an invalid or excessively deep content wrapper chain.'
                 );
@@ -59,13 +59,13 @@ export class LoadBranchQuery implements Query<LoadBranchInput, LoadedBranch> {
                 node.kind === 'xmlElement'
                     ? node.contentNodeId
                     : node.kind === 'xmlComplex'
-                      ? node.particleNodeId
+                      ? (node.particleNodeId ?? node.simpleContentNodeId ?? null)
                       : node.kind === 'array'
                         ? node.itemsNodeId
                         : null;
         }
 
-        return { rootNodeId: input.nodeId, title: title || input.nodeId, nodes, pages };
+        return { rootNodeId: input.nodeId, title: title || 'document', nodes, pages };
     }
 
     reads(input: LoadBranchInput): readonly EntityRef[] {

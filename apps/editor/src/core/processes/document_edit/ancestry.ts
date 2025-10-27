@@ -41,6 +41,10 @@ export function checkMoveAncestry(
             pending.push(node.particleNodeId);
         }
 
+        if (node.kind === 'xmlComplex' && node.simpleContentNodeId) {
+            pending.push(node.simpleContentNodeId);
+        }
+
         if (node.kind === 'array') {
             pending.push(node.itemsNodeId);
         }

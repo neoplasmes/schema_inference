@@ -84,9 +84,44 @@ describe('HTTP schema boundaries', () => {
                 kind: 'analysis',
                 analysisId: 'expected',
                 revision: 'a1',
+                idempotencyKey: 'expected-attempt',
             })
         ).rejects.toThrow('another analysis snapshot');
         expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends one draft identity on retry and accepts XML text with attributes', async () => {
+        const requests: RequestInit[] = [];
+        const fetch = vi.fn(async (_url: string, options: RequestInit = {}) => {
+            if (options.method === 'POST') {
+                requests.push(options);
+
+                return Response.json({ contractVersion: 2, format: 'schema-draft', snapshot, title: 'Price', rootNodeId: 'root', profile: { syntax: 'xml', dialect: 'xsd-1.0' } });
+            }
+
+            return Response.json({ contractVersion: 2, format: 'schema-analysis', snapshot: { resource: 'analysis', id: 'source', revision: 'a1' }, suggestedDraft: { seedId: 'seed', suggestedRootAlternativeId: 'root' } });
+        });
+        vi.stubGlobal('fetch', fetch);
+        const repository = new HttpSchemaRepository(new HttpTransport(''));
+        const input = { kind: 'analysis', analysisId: 'source', revision: 'a1', idempotencyKey: 'draft-attempt' } as const;
+        await repository.createFromAnalysis(input);
+        await repository.createFromAnalysis(input);
+
+        expect(requests.map(request => new Headers(request.headers).get('Idempotency-Key'))).toEqual(['draft-attempt', 'draft-attempt']);
+        vi.stubGlobal('fetch', vi.fn(async () => Response.json({ id: 'root', kind: 'xmlComplex', attributes: { id: 'attributes', totalItems: 1 }, particleNodeId: null, simpleContentNodeId: 'amount', mixed: false })));
+        expect(await repository.readNode(snapshot, 'root')).toHaveProperty('simpleContentNodeId', 'amount');
+    });
+
+    it('rejects contradictory XML simple content before loading a document', async () => {
+        vi.stubGlobal('fetch', vi.fn(async () => Response.json({ id: 'root', kind: 'xmlComplex', attributes: { id: 'attributes', totalItems: 0 }, particleNodeId: 'children', simpleContentNodeId: 'amount', mixed: false })));
+
+        await expect(new HttpSchemaRepository(new HttpTransport('')).readNode(snapshot, 'root')).rejects.toBeInstanceOf(ContractViolationError);
+    });
+
+    it.each([{ status: 409, reason: 'invalid' }, { status: 412, reason: 'conflict' }])('distinguishes a reused mutation from a stale revision: $status', async ({ status, reason }) => {
+        vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status })));
+
+        await expect(new HttpSchemaRepository(new HttpTransport('')).save(snapshot, 'mutation', [])).rejects.toHaveProperty('reason', reason);
     });
 
     it('allows correcting a definitively rejected payload with a new mutation identity', async () => {

@@ -49,6 +49,7 @@ export type SchemaNode = Readonly<{ id: string }> &
               kind: 'xmlComplex';
               attributes: Collection;
               particleNodeId: string | null;
+              simpleContentNodeId?: string | null;
               mixed: boolean;
           }>
         | Readonly<{

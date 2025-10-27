@@ -1,5 +1,6 @@
 import type {
     ChangeReceipt,
+    CreateDraftInput,
     EditorResource,
     MemberPage,
     ReadOptions,
@@ -36,12 +37,7 @@ export class HttpSchemaRepository implements SchemaRepository {
     constructor(private readonly transport: Pick<HttpTransport, 'request'>) {}
 
     async createFromAnalysis(
-        resource: Extract<
-            EditorResource,
-            {
-                kind: 'analysis';
-            }
-        >
+        resource: CreateDraftInput
     ): Promise<SchemaDocument> {
         const analysis = object(
             await this.request(
@@ -76,8 +72,9 @@ export class HttpSchemaRepository implements SchemaRepository {
         return parseManifest(
             await this.request('/api/v2/schemas', {
                 method: 'POST',
+                headers: { 'Idempotency-Key': resource.idempotencyKey },
                 body: JSON.stringify({
-                    title: 'Untitled schema',
+                    title: typeof analysis.title === 'string' ? analysis.title : 'Untitled schema',
                     source: {
                         kind: 'analysis',
                         analysisId: resource.analysisId,
@@ -253,7 +250,7 @@ export class HttpSchemaRepository implements SchemaRepository {
                     );
                 }
 
-                if (error.status === 409 || error.status === 412) {
+                if (error.status === 412) {
                     throw new SchemaWriteRejectedError(
                         'conflict',
                         'Schema revision conflict.'
@@ -262,7 +259,7 @@ export class HttpSchemaRepository implements SchemaRepository {
 
                 if (
                     options?.method === 'POST' &&
-                    (error.status === 400 || error.status === 422)
+                    (error.status === 400 || error.status === 409 || error.status === 422 || error.status === 428)
                 ) {
                     throw new SchemaWriteRejectedError(
                         'invalid',

@@ -1,9 +1,9 @@
 import type { Command } from '../../contracts';
 import type { SchemaDocument } from '../../../core/entities/schema';
 import type { EntityRef } from '../../../core/entities';
-import type { EditorResource, SchemaRepository } from '../../ports/repos/schema';
+import type { CreateDraftInput, SchemaRepository } from '../../ports/repos/schema';
 
-export type CreateDraftInput = Extract<EditorResource, { kind: 'analysis' }>;
+export type { CreateDraftInput } from '../../ports/repos/schema';
 
 export class CreateDraftCommand implements Command<CreateDraftInput, SchemaDocument> {
     constructor(private readonly repository: SchemaRepository) {}

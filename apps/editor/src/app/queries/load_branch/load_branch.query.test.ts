@@ -79,6 +79,34 @@ describe('load branch query', () => {
         expect(query.reads(input)).toEqual(['schema.snapshot:orders/s1']);
     });
 
+    it('loads simple XML content alongside its attributes', async () => {
+        const nodes = [
+            { id: 'price', kind: 'xmlComplex', attributes: { id: 'attributes', totalItems: 0 }, particleNodeId: null, simpleContentNodeId: 'amount', mixed: false },
+            { id: 'amount', kind: 'scalar', scalarType: 'decimal', constraints: {} },
+        ] as const;
+        const branch = await new LoadBranchQuery(repository(nodes)).execute({ snapshot, nodeId: 'price' });
+
+        expect(branch.nodes.map(node => node.id)).toEqual(['price', 'amount']);
+        expect(branch.pages.map(page => page.collectionId)).toEqual(['attributes']);
+    });
+
+    it('loads deep array wrappers accepted by the schema API', async () => {
+        const nodes: SchemaNode[] = Array.from({ length: 12 }, (_, index) => ({ id: `array-${index}`, kind: 'array', itemsNodeId: index === 11 ? 'object' : `array-${index + 1}`, minItems: 0, maxItems: null }));
+        nodes.push({ id: 'object', kind: 'object', properties: { id: 'fields', totalItems: 0 }, additionalProperties: false });
+        const branch = await new LoadBranchQuery(repository(nodes)).execute({ snapshot, nodeId: 'array-0' });
+
+        expect(branch.nodes).toHaveLength(13);
+        expect(branch.pages.map(page => page.collectionId)).toEqual(['fields']);
+    });
+
+    it('rejects wrapper chains beyond the API depth limit', async () => {
+        const nodes: SchemaNode[] = Array.from({ length: 129 }, (_, index) => ({ id: `array-${index}`, kind: 'array', itemsNodeId: `array-${index + 1}`, minItems: 0, maxItems: null }));
+        const repo = repository(nodes);
+
+        await expect(new LoadBranchQuery(repo).execute({ snapshot, nodeId: 'array-0' })).rejects.toThrow('excessively deep');
+        expect(repo.readNode).toHaveBeenCalledTimes(128);
+    });
+
     it('stops a cyclic wrapper chain before issuing repeated reads', async () => {
         const repo = repository([
             {

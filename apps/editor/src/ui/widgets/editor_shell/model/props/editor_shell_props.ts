@@ -1,8 +1,10 @@
+import type { SchemaProfile } from '../../../../../core/entities/schema';
 import type { BoardModel, BoardSelection } from '../../../../../board';
 
 export type EditorShellProps = {
     model: BoardModel;
     title: string;
+    profile?: SchemaProfile;
     mode: 'evidence' | 'builder';
     presentation?: 'main' | 'comparison';
     demo: boolean;

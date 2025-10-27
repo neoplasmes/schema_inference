@@ -73,6 +73,7 @@ export default function EditorApplication(props: EditorProps): React.JSX.Element
                 <EditorShell
                     model={model}
                     title={controller.title}
+                    profile={controller.session?.document.manifest.profile}
                     mode={scene.shell === 'builder' ? 'builder' : 'evidence'}
                     presentation={
                         controller.demo && scene.id === 'variants' ? 'comparison' : 'main'

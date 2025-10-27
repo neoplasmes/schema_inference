@@ -9,7 +9,7 @@ export function collectionForMember(
     let node = document.nodes.get(nodeId);
     const seen = new Set<string>();
 
-    while (node && !seen.has(node.id) && seen.size < 8) {
+    while (node && !seen.has(node.id) && seen.size < 128) {
         seen.add(node.id);
 
         if (kind === 'xmlAttribute' && node.kind === 'xmlComplex') {
@@ -32,7 +32,7 @@ export function collectionForMember(
             node.kind === 'xmlElement'
                 ? node.contentNodeId
                 : node.kind === 'xmlComplex'
-                  ? node.particleNodeId
+                  ? (node.particleNodeId ?? node.simpleContentNodeId ?? null)
                   : node.kind === 'array'
                     ? node.itemsNodeId
                     : null;

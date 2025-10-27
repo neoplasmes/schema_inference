@@ -1,6 +1,7 @@
 import { EntityStore, references, type NormalizedValue } from '@app/entity-cache/store';
 import type {
     ChangeReceipt,
+    CreateDraftInput,
     EditorResource,
     MemberPage,
     ReadOptions,
@@ -65,12 +66,7 @@ export class CachedSchemaRepository implements SchemaRepository {
     }
 
     createFromAnalysis(
-        resource: Extract<
-            EditorResource,
-            {
-                kind: 'analysis';
-            }
-        >
+        resource: CreateDraftInput
     ) {
         return this.repository.createFromAnalysis(resource);
     }
