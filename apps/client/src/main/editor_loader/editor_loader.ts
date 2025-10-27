@@ -2,9 +2,7 @@ import { loadRemote, registerRemotes } from '@module-federation/enhanced/runtime
 import type { ComponentType } from 'react';
 import type { EditorProps } from 'schema_editor/Editor';
 
-export async function loadEditor(): Promise<{
-    default: ComponentType<EditorProps>;
-}> {
+async function configuredManifest(): Promise<string> {
     const response = await fetch('/editor-runtime.json', {
         cache: 'no-store',
     });
@@ -25,11 +23,19 @@ export async function loadEditor(): Promise<{
         throw new Error('The editor manifest URL is missing.');
     }
 
+    return configuration.editorManifestUrl;
+}
+
+export async function loadEditor(editorManifestUrl?: string): Promise<{
+    default: ComponentType<EditorProps>;
+}> {
+    const manifestUrl = editorManifestUrl ?? (await configuredManifest());
+
     registerRemotes(
         [
             {
                 name: 'schema_editor',
-                entry: configuration.editorManifestUrl,
+                entry: manifestUrl,
             },
         ],
         {

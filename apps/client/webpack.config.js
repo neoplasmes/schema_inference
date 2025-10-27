@@ -110,18 +110,24 @@ export default (_env, argv) => {
                                     stage: webpack.Compilation
                                         .PROCESS_ASSETS_STAGE_ADDITIONAL,
                                 },
-                                () =>
-                                    compilation.emitAsset(
+                                () => {
+                                    for (const name of [
                                         'editor-runtime.json',
-                                        new webpack.sources.RawSource(
-                                            readFileSync(
-                                                new URL(
-                                                    './public/editor-runtime.json',
-                                                    import.meta.url
+                                        'workspace-runtime.json',
+                                    ]) {
+                                        compilation.emitAsset(
+                                            name,
+                                            new webpack.sources.RawSource(
+                                                readFileSync(
+                                                    new URL(
+                                                        `./public/${name}`,
+                                                        import.meta.url
+                                                    )
                                                 )
                                             )
-                                        )
-                                    )
+                                        );
+                                    }
+                                }
                             );
                         }
                     );
@@ -144,6 +150,17 @@ export default (_env, argv) => {
             },
             historyApiFallback: true,
             setupMiddlewares(middlewares, server) {
+                server.app.get('/workspace-runtime.json', (_request, response) => {
+                    const mode = process.env.WORKSPACE_MODE === 'api' ? 'api' : 'mock';
+                    response.json({
+                        mode,
+                        apiBaseUrl:
+                            process.env.WORKSPACE_API_BASE_URL ||
+                            (mode === 'api'
+                                ? 'http://localhost:8000'
+                                : 'mock://workspace'),
+                    });
+                });
                 server.app.get('/editor-runtime.json', (_request, response) => {
                     response.json({
                         editorManifestUrl:
