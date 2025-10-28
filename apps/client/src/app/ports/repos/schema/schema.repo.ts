@@ -4,7 +4,7 @@ import type { ReadOptions } from '..';
 export interface RecordSchemaSavedInput {
     schemaId: string;
     revision: string;
-    savedAt: string;
+    savedAt?: string;
     title?: string;
     documentCount?: number;
 }

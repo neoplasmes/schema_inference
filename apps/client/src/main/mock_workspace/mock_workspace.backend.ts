@@ -1,10 +1,5 @@
 import type { HttpRequestHandler } from '../../env/transport';
-
-interface MockEditorBackend {
-    request(path: string, options?: RequestInit): Promise<Response | null>;
-    registerAnalysis(id: string, revision: string, title: string): void;
-    registerSchema(id: string, title: string): void;
-}
+import type { MockEditorBackend } from '../mock_editor';
 
 interface SchemaRecord {
     id: string;
@@ -100,54 +95,33 @@ export class MockWorkspaceBackend {
         this.snapshot = this.restore();
 
         for (const schema of this.snapshot.schemas) {
-            this.editor.registerSchema(schema.id, schema.title);
+            this.editor.registerSchema(schema.id, schema.title, {
+                documentCount: schema.document_count,
+                updatedAt: schema.updated_at,
+            });
         }
 
         for (const analysis of this.snapshot.analyses) {
-            this.editor.registerAnalysis(analysis.id, analysis.revision, analysis.title);
+            this.editor.registerAnalysis(
+                analysis.id,
+                analysis.revision,
+                analysis.title,
+                analysis.documents.length
+            );
         }
     }
 
     readonly request: HttpRequestHandler = async (path, options = {}) => {
         await wait(options.signal);
         const method = options.method ?? 'GET';
-        const route = path.split('?')[0];
+        const route = new URL(path, 'http://mock.local').pathname;
 
-        if (route === '/api/workspace/schemas' && method === 'GET') {
-            return json(
-                [
-                    ...this.snapshot.schemas,
-                ].sort((left, right) => right.updated_at.localeCompare(left.updated_at))
-            );
-        }
-
-        if (route.startsWith('/api/workspace/schemas/')) {
-            const id = decodeURIComponent(route.slice('/api/workspace/schemas/'.length));
-
-            if (method === 'GET') {
-                const schema = this.snapshot.schemas.find(item => item.id === id);
-
-                return schema
-                    ? json(schema)
-                    : json(
-                          {
-                              error: 'schema_not_found',
-                          },
-                          404
-                      );
-            }
-
-            if (method === 'PUT') {
-                return this.recordSaved(id, options);
-            }
-        }
-
-        if (route === '/api/workspace/analyses' && method === 'POST') {
+        if (route === '/api/v2/analyses' && method === 'POST') {
             return this.createAnalysis(options);
         }
 
-        if (route.startsWith('/api/workspace/analyses/') && method === 'GET') {
-            const id = decodeURIComponent(route.slice('/api/workspace/analyses/'.length));
+        if (/^\/api\/v2\/analyses\/[^/]+$/.test(route) && method === 'GET') {
+            const id = decodeURIComponent(route.slice('/api/v2/analyses/'.length));
             const analysis = this.snapshot.analyses.find(item => item.id === id);
 
             if (!analysis) {
@@ -183,13 +157,6 @@ export class MockWorkspaceBackend {
                 },
                 400
             );
-        }
-
-        const previousId = this.snapshot.attempts[key];
-        const previous = this.snapshot.analyses.find(item => item.id === previousId);
-
-        if (previous) {
-            return json(this.currentAnalysis(previous));
         }
 
         const body: unknown = JSON.parse(String(options.body ?? '{}'));
@@ -232,6 +199,35 @@ export class MockWorkspaceBackend {
             );
         }
 
+        const previousId = this.snapshot.attempts[key];
+        const previous = this.snapshot.analyses.find(item => item.id === previousId);
+
+        if (previous) {
+            const documents = body.documents;
+            const matches =
+                previous.title === body.title &&
+                previous.documents.length === documents.length &&
+                previous.documents.every((document, index) => {
+                    const candidate = documents[index];
+
+                    return (
+                        document.name === candidate.name &&
+                        document.format === candidate.format &&
+                        document.size === candidate.size &&
+                        document.content === candidate.content
+                    );
+                });
+
+            return matches
+                ? json(this.currentAnalysis(previous))
+                : json(
+                      {
+                          error: 'idempotency_key_reused',
+                      },
+                      409
+                  );
+        }
+
         const id = `analysis-${crypto.randomUUID()}`;
         const analysis: AnalysisRecord = {
             id,
@@ -246,12 +242,17 @@ export class MockWorkspaceBackend {
             })),
             error: null,
         };
-        this.editor.registerAnalysis(id, analysis.revision, analysis.title);
+        this.editor.registerAnalysis(
+            id,
+            analysis.revision,
+            analysis.title,
+            analysis.documents.length
+        );
         this.snapshot.analyses.push(analysis);
         this.snapshot.attempts[key] = id;
         this.persist();
 
-        return json(analysis, 201);
+        return json(analysis, 202);
     }
 
     private currentAnalysis(analysis: AnalysisRecord): AnalysisRecord {
@@ -264,41 +265,6 @@ export class MockWorkspaceBackend {
             status:
                 progress === 100 ? 'completed' : progress > 15 ? 'processing' : 'queued',
         };
-    }
-
-    private recordSaved(id: string, options: RequestInit): Response {
-        const body = JSON.parse(String(options.body ?? '{}')) as Record<string, unknown>;
-
-        if (typeof body.revision !== 'string' || typeof body.saved_at !== 'string') {
-            return json(
-                {
-                    error: 'invalid_schema',
-                },
-                422
-            );
-        }
-
-        const existing = this.snapshot.schemas.find(schema => schema.id === id);
-        const schema: SchemaRecord = {
-            id,
-            revision: body.revision,
-            updated_at: body.saved_at,
-            title:
-                typeof body.title === 'string' && body.title
-                    ? body.title
-                    : (existing?.title ?? 'Untitled schema'),
-            document_count:
-                typeof body.document_count === 'number'
-                    ? body.document_count
-                    : (existing?.document_count ?? 1),
-        };
-        this.snapshot.schemas = [
-            schema,
-            ...this.snapshot.schemas.filter(item => item.id !== id),
-        ];
-        this.persist();
-
-        return json(schema);
     }
 
     private restore(): WorkspaceSnapshot {

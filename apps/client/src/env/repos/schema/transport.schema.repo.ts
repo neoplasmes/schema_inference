@@ -11,7 +11,7 @@ export class TransportSchemaRepo implements SchemaRepo {
     constructor(private readonly http: HttpTransport) {}
 
     async list(options?: ReadOptions): Promise<SchemaSummary[]> {
-        const data = await this.http.request('/api/workspace/schemas', {
+        const data = await this.http.request('/api/v2/schemas', {
             signal: options?.signal,
         });
 
@@ -21,7 +21,7 @@ export class TransportSchemaRepo implements SchemaRepo {
     async getById(id: string, options?: ReadOptions): Promise<SchemaSummary> {
         try {
             const data = await this.http.request(
-                `/api/workspace/schemas/${encodeURIComponent(id)}`,
+                `/api/v2/schemas/${encodeURIComponent(id)}`,
                 {
                     signal: options?.signal,
                 }
@@ -42,28 +42,7 @@ export class TransportSchemaRepo implements SchemaRepo {
         }
     }
 
-    async recordSaved(input: RecordSchemaSavedInput): Promise<SchemaSummary> {
-        const data = await this.http.request(
-            `/api/workspace/schemas/${encodeURIComponent(input.schemaId)}`,
-            {
-                method: 'PUT',
-                body: JSON.stringify({
-                    revision: input.revision,
-                    saved_at: input.savedAt,
-                    title: input.title,
-                    document_count: input.documentCount,
-                }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-        const schema = mapSchema(data);
-
-        if (schema.id !== input.schemaId || schema.revision !== input.revision) {
-            throw new ContractViolationError('saved schema identity');
-        }
-
-        return schema;
+    recordSaved(input: RecordSchemaSavedInput): Promise<SchemaSummary> {
+        return this.getById(input.schemaId);
     }
 }

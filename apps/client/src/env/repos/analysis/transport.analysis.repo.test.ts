@@ -36,7 +36,7 @@ describe('analysis repository boundary', () => {
         expect(analysis.documents[0].ref).toBe('document:d1');
         expect(analysis.createdAt).toBe(dto.created_at);
         expect(analysis).not.toHaveProperty('created_at');
-        expect(handler).toHaveBeenCalledWith('/api/workspace/analyses/a1', {
+        expect(handler).toHaveBeenCalledWith('/api/v2/analyses/a1', {
             signal,
         });
     });

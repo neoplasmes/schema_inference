@@ -14,7 +14,7 @@ export class TransportAnalysisRepo implements AnalysisRepo {
     constructor(private readonly http: HttpTransport) {}
 
     async create(input: CreateAnalysisInput): Promise<Analysis> {
-        const data = await this.http.request('/api/workspace/analyses', {
+        const data = await this.http.request('/api/v2/analyses', {
             method: 'POST',
             body: JSON.stringify({
                 title: input.title,
@@ -32,7 +32,7 @@ export class TransportAnalysisRepo implements AnalysisRepo {
     async getById(id: string, options?: ReadOptions): Promise<Analysis> {
         try {
             const data = await this.http.request(
-                `/api/workspace/analyses/${encodeURIComponent(id)}`,
+                `/api/v2/analyses/${encodeURIComponent(id)}`,
                 {
                     signal: options?.signal,
                 }
