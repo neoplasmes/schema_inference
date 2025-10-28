@@ -98,6 +98,65 @@ describe('mock editor protocol', () => {
         });
     });
 
+    it('creates independent drafts for separate attempts and replays a lost draft response after reload', async () => {
+        const values = new Map<string, string>();
+        const storage = {
+            getItem: (key: string) => values.get(key) ?? null,
+            setItem: (key: string, value: string) => {
+                values.set(key, value);
+            },
+        };
+        const backend = createMockEditorBackend(storage);
+        backend.registerAnalysis('analysis', 'a1', 'Prices', 3);
+        const create = (key: string, title = 'Prices'): RequestInit => ({
+            method: 'POST',
+            headers: {
+                'Idempotency-Key': key,
+            },
+            body: JSON.stringify({
+                title,
+                source: {
+                    kind: 'analysis',
+                    analysisId: 'analysis',
+                    revision: 'a1',
+                    seedId: 'mock-seed',
+                    rootAlternativeId: 'mock-root',
+                },
+            }),
+        });
+        const first = await (
+            await backend.request('/api/v2/schemas', create('attempt-1'))
+        )?.json();
+        const second = await (
+            await backend.request('/api/v2/schemas', create('attempt-2'))
+        )?.json();
+        const restored = createMockEditorBackend(storage);
+        const replay = await (
+            await restored.request('/api/v2/schemas', create('attempt-1'))
+        )?.json();
+
+        expect(second.snapshot.id).not.toBe(first.snapshot.id);
+        expect(replay).toEqual(first);
+        expect(
+            (await restored.request('/api/v2/schemas', create('attempt-1', 'Other')))
+                ?.status
+        ).toBe(409);
+        expect(await (await restored.request('/api/v2/schemas'))?.json()).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    id: first.snapshot.id,
+                    title: 'Prices',
+                    document_count: 3,
+                }),
+                expect.objectContaining({
+                    id: second.snapshot.id,
+                    title: 'Prices',
+                    document_count: 3,
+                }),
+            ])
+        );
+    });
+
     it('rejects a bad batch atomically and rejects reused mutation ids with different payloads', async () => {
         const backend = createMockEditorBackend();
         backend.registerSchema('orders', 'Orders');
@@ -114,7 +173,9 @@ describe('mock editor protocol', () => {
                 })
             )?.status
         ).toBe(422);
-        expect(await (await backend.request('/api/v2/schemas/orders'))?.json()).toEqual({
+        expect(
+            await (await backend.request('/api/v2/schemas/orders'))?.json()
+        ).toMatchObject({
             id: 'orders',
             revision: 'r1',
         });
@@ -132,6 +193,7 @@ describe('mock editor protocol', () => {
     it('creates an idempotent draft only from a known analysis and honours read cancellation', async () => {
         const backend = createMockEditorBackend();
         const body = JSON.stringify({
+            title: 'Uploaded documents',
             source: {
                 analysisId: 'a1',
                 revision: 'a1-r1',
@@ -143,6 +205,9 @@ describe('mock editor protocol', () => {
             (
                 await backend.request('/api/v2/schemas', {
                     method: 'POST',
+                    headers: {
+                        'Idempotency-Key': 'known-source',
+                    },
                     body,
                 })
             )?.status
@@ -151,17 +216,23 @@ describe('mock editor protocol', () => {
         const first = await (
             await backend.request('/api/v2/schemas', {
                 method: 'POST',
+                headers: {
+                    'Idempotency-Key': 'known-source',
+                },
                 body,
             })
         )?.json();
         const second = await (
             await backend.request('/api/v2/schemas', {
                 method: 'POST',
+                headers: {
+                    'Idempotency-Key': 'known-source',
+                },
                 body,
             })
         )?.json();
         expect(first).toEqual(second);
-        expect(first.snapshot.id).toBe('draft-a1');
+        expect(first.snapshot.id).toMatch(/^draft-/);
         const controller = new AbortController();
         controller.abort();
         await expect(

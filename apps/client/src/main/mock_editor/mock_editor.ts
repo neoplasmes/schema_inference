@@ -32,6 +32,8 @@ type Receipt = {
     };
 };
 type Schema = {
+    updatedAt: string;
+    documentCount: number;
     current: string;
     revisions: Record<string, Revision>;
     receipts: Record<
@@ -44,19 +46,39 @@ type Schema = {
 };
 type State = {
     schemas: Record<string, Schema>;
+    drafts: Record<
+        string,
+        {
+            payload: string;
+            schemaId: string;
+        }
+    >;
     analyses: Record<
         string,
         {
             revision: string;
             title: string;
+            documentCount: number;
         }
     >;
 };
 
 export type MockEditorBackend = {
     request(path: string, options?: RequestInit): Promise<Response | null>;
-    registerSchema(id: string, title: string): void;
-    registerAnalysis(id: string, revision: string, title: string): void;
+    registerSchema(
+        id: string,
+        title: string,
+        metadata?: {
+            documentCount: number;
+            updatedAt: string;
+        }
+    ): void;
+    registerAnalysis(
+        id: string,
+        revision: string,
+        title: string,
+        documentCount?: number
+    ): void;
 };
 
 const storageKey = 'schema-workspace.editor.v1';
@@ -288,6 +310,16 @@ function apply(data: Revision, operations: unknown): void {
     }
 }
 
+function summary(id: string, schema: Schema) {
+    return {
+        id,
+        title: schema.revisions[schema.current].title,
+        revision: schema.current,
+        updated_at: schema.updatedAt ?? '2025-10-19T09:24:48Z',
+        document_count: schema.documentCount ?? 1,
+    };
+}
+
 /** Stores mock protocol snapshots independently from either microfrontend's cache. */
 export function createMockEditorBackend(
     storage?: Pick<Storage, 'getItem' | 'setItem'>
@@ -295,6 +327,7 @@ export function createMockEditorBackend(
     let state: State = {
         schemas: {},
         analyses: {},
+        drafts: {},
     };
     const saved = storage?.getItem(storageKey);
 
@@ -303,35 +336,44 @@ export function createMockEditorBackend(
             const parsed = object(JSON.parse(saved));
             object(parsed.schemas);
             object(parsed.analyses);
-            state = parsed as State;
+            state = {
+                ...parsed,
+                drafts: parsed.drafts ?? {},
+            } as State;
         } catch {
             state = {
                 schemas: {},
                 analyses: {},
+                drafts: {},
             };
         }
     }
 
     const persist = () => storage?.setItem(storageKey, JSON.stringify(state));
-    const registerSchema = (id: string, title: string) => {
+    const addSchema: MockEditorBackend['registerSchema'] = (id, title, metadata) => {
         if (!Object.hasOwn(state.schemas, id)) {
             state.schemas[id] = {
+                updatedAt: metadata?.updatedAt ?? new Date().toISOString(),
+                documentCount: metadata?.documentCount ?? 1,
                 current: 'r1',
                 revisions: {
                     r1: seed(title),
                 },
                 receipts: {},
             };
-            persist();
         }
     };
 
     return {
-        registerSchema,
-        registerAnalysis(id, revision, title) {
+        registerSchema(id, title, metadata) {
+            addSchema(id, title, metadata);
+            persist();
+        },
+        registerAnalysis(id, revision, title, documentCount = 1) {
             state.analyses[id] = {
                 revision,
                 title,
+                documentCount,
             };
             persist();
         },
@@ -361,6 +403,7 @@ export function createMockEditorBackend(
                         ? response({
                               contractVersion: 2,
                               format: 'schema-analysis',
+                              title: analysis.title,
                               snapshot: {
                                   resource: 'analysis',
                                   id: parts[3],
@@ -388,8 +431,50 @@ export function createMockEditorBackend(
                     );
                 }
 
+                if (parts.length === 3 && method === 'GET') {
+                    return response(
+                        Object.entries(state.schemas)
+                            .map(([id, schema]) => summary(id, schema))
+                            .sort((left, right) =>
+                                right.updated_at.localeCompare(left.updated_at)
+                            )
+                    );
+                }
+
                 if (parts.length === 3 && method === 'POST') {
+                    const key = new Headers(options?.headers).get('Idempotency-Key');
+
+                    if (!key) {
+                        return response(
+                            {
+                                error: 'idempotency_key_required',
+                            },
+                            400
+                        );
+                    }
+
                     const body = object(JSON.parse(String(options?.body)));
+                    const payload = JSON.stringify(body);
+                    const previous = Object.hasOwn(state.drafts, key)
+                        ? state.drafts[key]
+                        : undefined;
+
+                    if (previous) {
+                        return previous.payload === payload
+                            ? response(
+                                  manifest(
+                                      previous.schemaId,
+                                      'r1',
+                                      state.schemas[previous.schemaId].revisions.r1
+                                  )
+                              )
+                            : response(
+                                  {
+                                      error: 'idempotency_key_reused',
+                                  },
+                                  409
+                              );
+                    }
                     const source = object(body.source);
                     const analysisId = text(source.analysisId);
                     const analysis = Object.hasOwn(state.analyses, analysisId)
@@ -410,8 +495,16 @@ export function createMockEditorBackend(
                         );
                     }
 
-                    const id = `draft-${analysisId}`;
-                    registerSchema(id, analysis.title);
+                    const id = `draft-${crypto.randomUUID()}`;
+                    addSchema(id, text(body.title), {
+                        documentCount: analysis.documentCount ?? 1,
+                        updatedAt: new Date().toISOString(),
+                    });
+                    state.drafts[key] = {
+                        payload,
+                        schemaId: id,
+                    };
+                    persist();
                     const schema = state.schemas[id];
 
                     return response(
@@ -435,10 +528,7 @@ export function createMockEditorBackend(
                 }
 
                 if (parts.length === 4 && method === 'GET') {
-                    return response({
-                        id,
-                        revision: schema.current,
-                    });
+                    return response(summary(id, schema));
                 }
 
                 if (parts[4] === 'changesets' && method === 'POST') {
@@ -458,6 +548,15 @@ export function createMockEditorBackend(
                                   },
                                   409
                               );
+                    }
+
+                    if (!new Headers(options?.headers).has('If-Match')) {
+                        return response(
+                            {
+                                error: 'precondition_required',
+                            },
+                            428
+                        );
                     }
 
                     if (
@@ -485,6 +584,7 @@ export function createMockEditorBackend(
                         },
                     };
                     schema.current = revision;
+                    schema.updatedAt = new Date().toISOString();
                     schema.revisions[revision] = data;
                     schema.receipts[mutation] = {
                         payload,
