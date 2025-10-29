@@ -63,7 +63,9 @@ export function RemoteEditorPage(): React.JSX.Element {
                 <h1>Choose a schema to edit</h1>
                 <p>Open a saved schema or create an analysis from the workspace.</p>
                 <Link to="/">Back to workspace</Link>
-                <Link to="/edit?demo=1">Open sample editor</Link>
+                {controller.mode === 'mock' && (
+                    <Link to="/edit?demo=1">Open sample editor</Link>
+                )}
             </div>
         );
     }
@@ -72,7 +74,7 @@ export function RemoteEditorPage(): React.JSX.Element {
         return (
             <div role="alert" className={styles.message}>
                 <h1>This resource is unavailable</h1>
-                <p>The link may refer to data from a different browser.</p>
+                <p>The link may be outdated, or the server may be unavailable.</p>
                 <button type="button" onClick={controller.retryResource}>
                     Try again
                 </button>
@@ -113,9 +115,10 @@ export function RemoteEditorPage(): React.JSX.Element {
                 >
                     <Editor
                         resource={controller.resource}
-                        apiBaseUrl="mock://workspace"
+                        apiBaseUrl={controller.apiBaseUrl}
                         request={controller.editorRequest}
                         onExit={controller.onExit}
+                        onCreated={controller.onCreated}
                         onSaved={controller.onSaved}
                     />
                 </Suspense>

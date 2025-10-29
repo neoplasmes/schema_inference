@@ -7,6 +7,7 @@ import type { CreateAnalysisInput, RecordSchemaSavedInput } from '../../app/port
 import type { Analysis, SchemaSummary } from '../../core/entities';
 
 export interface Dependencies {
+    mode: 'mock' | 'api';
     listSchemas: Query<Record<string, never>, SchemaSummary[]>;
     getSchema: Query<
         {
@@ -25,7 +26,8 @@ export interface Dependencies {
     loadEditor(): Promise<{
         default: ComponentType<EditorProps>;
     }>;
-    editorRequest: NonNullable<EditorProps['request']>;
+    editorRequest?: EditorProps['request'];
+    apiBaseUrl: string;
     createId(): string;
 }
 

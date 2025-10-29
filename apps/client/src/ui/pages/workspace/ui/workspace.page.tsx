@@ -11,7 +11,9 @@ export function WorkspacePage(): React.JSX.Element {
                 <Link className={styles.brand} to="/" aria-label="Schema workspace home">
                     <span className={styles.mark}>S</span> Schema Studio
                 </Link>
-                <span className={styles.badge}>Local demo</span>
+                <span className={styles.badge}>
+                    {controller.mode === 'mock' ? 'Local demo' : 'Your workspace'}
+                </span>
             </header>
             <section className={styles.introduction}>
                 <p className={styles.eyebrow}>Your schema workspace</p>
@@ -95,8 +97,8 @@ export function WorkspacePage(): React.JSX.Element {
                                 {controller.analysis.error ? (
                                     <>
                                         <p role="alert">
-                                            Analysis could not load. Your documents are
-                                            still saved in this browser.
+                                            Analysis could not load. Try again to check
+                                            its current status.
                                         </p>
                                         <button
                                             type="button"
@@ -123,7 +125,7 @@ export function WorkspacePage(): React.JSX.Element {
                                 ) : (
                                     <>
                                         <p>
-                                            Preparing demo schema…{' '}
+                                            Preparing schema…{' '}
                                             {controller.analysis.data?.progress ?? 0}%
                                         </p>
                                         <progress
@@ -153,17 +155,21 @@ export function WorkspacePage(): React.JSX.Element {
                             >
                                 {controller.isCreating
                                     ? 'Creating analysis…'
-                                    : 'Create demo schema'}
+                                    : controller.mode === 'mock'
+                                      ? 'Create demo schema'
+                                      : 'Create schema'}
                                 <span aria-hidden="true">↗</span>
                             </button>
                         )}
                     </form>
-                    <aside className={styles.notice}>
-                        <strong>This workspace uses local mock data.</strong> Files stay
-                        in this browser. The analysis opens a sample model; it does not
-                        infer a schema from your file contents. Saved edits are kept
-                        locally.
-                    </aside>
+                    {controller.mode === 'mock' && (
+                        <aside className={styles.notice}>
+                            <strong>This workspace uses local mock data.</strong> Files
+                            stay in this browser. The analysis opens a sample model; it
+                            does not infer a schema from your file contents. Saved edits
+                            are kept locally.
+                        </aside>
+                    )}
                 </section>
                 <section className={styles.library} aria-labelledby="schemas-heading">
                     <div className={styles.sectionHeading}>
@@ -243,9 +249,11 @@ export function WorkspacePage(): React.JSX.Element {
                             </Link>
                         ))}
                     </div>
-                    <Link className={styles.demoLink} to="/edit?demo=1">
-                        Open the sample editor <span aria-hidden="true">→</span>
-                    </Link>
+                    {controller.mode === 'mock' && (
+                        <Link className={styles.demoLink} to="/edit?demo=1">
+                            Open the sample editor <span aria-hidden="true">→</span>
+                        </Link>
+                    )}
                 </section>
             </div>
             <footer className={styles.footer}>

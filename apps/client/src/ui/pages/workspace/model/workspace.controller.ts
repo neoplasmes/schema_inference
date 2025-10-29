@@ -1,22 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import type { DocumentFormat, DocumentInput } from '../../../../core/entities';
+import type { DocumentInput } from '../../../../core/entities';
 import { useCommand, useRead } from '../../../../env/cache';
 import { useDependencies } from '../../../di';
-
-function formatFor(name: string): DocumentFormat {
-    const extension = name.split('.').pop()?.toLowerCase();
-
-    if (extension === 'xml' || extension === 'json') {
-        return extension;
-    }
-
-    if (extension === 'yaml' || extension === 'yml') {
-        return 'yaml';
-    }
-
-    throw new Error(`${name}: choose an XML, YAML or JSON file.`);
-}
+import { readDocument } from '../lib';
 
 function messageFor(error: unknown): string {
     return error instanceof Error
@@ -78,30 +65,7 @@ export function useWorkspaceController() {
         setDocuments([]);
 
         try {
-            const selected = await Promise.all(
-                files.map(async file => {
-                    const format = formatFor(file.name);
-
-                    if (file.size > 5 * 1024 * 1024) {
-                        throw new Error(
-                            `${file.name}: the demo accepts files up to 5 MB.`
-                        );
-                    }
-
-                    const content = await file.text();
-
-                    if (!content.trim()) {
-                        throw new Error(`${file.name} is empty.`);
-                    }
-
-                    return {
-                        name: file.name,
-                        size: file.size,
-                        format,
-                        content,
-                    };
-                })
-            );
+            const selected = await Promise.all(files.map(readDocument));
 
             if (version === selectionVersion.current) {
                 setDocuments(selected);
@@ -156,6 +120,7 @@ export function useWorkspaceController() {
     ]);
 
     return {
+        mode: dependencies.mode,
         schemas,
         analysis,
         analysisId,

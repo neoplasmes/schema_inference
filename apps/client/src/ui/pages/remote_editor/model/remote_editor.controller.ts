@@ -9,7 +9,7 @@ export function useRemoteEditorController() {
     const dependencies = useDependencies();
     const navigate = useNavigate();
     const [parameters] = useSearchParams();
-    const demo = parameters.get('demo') === '1';
+    const demo = dependencies.mode === 'mock' && parameters.get('demo') === '1';
     const schemaId = parameters.get('schemaId') ?? (demo ? 'catalog' : '');
     const analysisId = parameters.get('analysisId') ?? '';
     const revision = parameters.get('revision') ?? undefined;
@@ -48,20 +48,28 @@ export function useRemoteEditorController() {
           : null;
 
     const onSaved = useCallback(
-        (result: Parameters<NonNullable<EditorProps['onSaved']>>[0]) => {
-            const input = {
-                ...result,
-                title: schema.data?.title ?? analysis.data?.title,
-                documentCount:
-                    schema.data?.documentCount ?? analysis.data?.documents.length,
-            };
-            lastSave.current = input;
-            void recordSaved.execute(input).catch(() => undefined);
+        (result: { schemaId: string; revision: string }) => {
+            lastSave.current = result;
+            void recordSaved.execute(result).catch(() => undefined);
         },
         [
-            schema.data,
-            analysis.data,
             recordSaved.execute,
+        ]
+    );
+
+    const onCreated = useCallback(
+        (result: { schemaId: string; revision: string }) => {
+            const search = new URLSearchParams({
+                schemaId: result.schemaId,
+            });
+            navigate(`/edit?${search}`, {
+                replace: true,
+            });
+            onSaved(result);
+        },
+        [
+            navigate,
+            onSaved,
         ]
     );
 
@@ -89,13 +97,16 @@ export function useRemoteEditorController() {
 
     return {
         resource,
+        mode: dependencies.mode,
         loadEditor: dependencies.loadEditor,
         editorRequest: dependencies.editorRequest,
+        apiBaseUrl: dependencies.apiBaseUrl,
         isLoadingResource:
             Boolean(resource) && (schemaId ? schema.isPending : analysis.isPending),
         resourceError: schemaId ? schema.error : analysis.error,
         saveError: recordSaved.error,
         onExit,
+        onCreated,
         onSaved,
         retrySaved,
         retryResource,
