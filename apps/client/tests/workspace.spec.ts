@@ -365,10 +365,9 @@ test('creates an analysis, edits the federated editor and reopens a saved revisi
             name: 'Create demo schema',
         })
         .click();
-    await expect(page).toHaveURL(
-        /\/edit\?analysisId=analysis-[^&]+&revision=analysis-1$/
-    );
     await settled(page);
+    await expect(page).toHaveURL(/\/edit\?schemaId=[^&]+$/);
+    const schemaId = new URL(page.url()).searchParams.get('schemaId')!;
     await expect
         .poll(() => rowNames(page))
         .toEqual([
@@ -484,7 +483,7 @@ test('creates an analysis, edits the federated editor and reopens a saved revisi
         name: /Imported invoice/,
     });
     await expect(savedCard).toContainText('1 source document · r2');
-    await expect(savedCard).toHaveAttribute('href', /schemaId=draft-analysis-[^&]+/);
+    await expect(savedCard).toHaveAttribute('href', `/edit?schemaId=${encodeURIComponent(schemaId)}`);
     await screenshot(page, testInfo, 'workspace-saved');
     await page.reload();
     await expect(savedCard).toContainText('1 source document · r2');

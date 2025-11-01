@@ -22,6 +22,17 @@ tasks:
     options:
       persistent: true
 
+  dev-api:
+    command: pnpm exec webpack serve --mode development
+    deps:
+      - editor:dev
+      - server:start
+    env:
+      WORKSPACE_MODE: api
+    local: true
+    options:
+      persistent: true
+
   editor-types:
     command: pnpm exec tsx scripts/consume-editor-types.ts
     deps:
@@ -117,3 +128,19 @@ tasks:
     local: true
     options:
       persistent: true
+
+  e2e-api:
+    command: pnpm exec playwright test
+    deps:
+      - ~:build
+      - ~:e2e
+    env:
+      WORKSPACE_MODE: api
+    inputs:
+      - '@group(sources)'
+      - '@group(configs)'
+      - /apps/editor/src/**/*
+      - /apps/server/src/**/*
+      - /uv.lock
+    options:
+      cache: false

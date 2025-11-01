@@ -46,6 +46,21 @@ export async function startServers(): Promise<() => Promise<void>> {
                     new URL(request.url ?? '/', 'http://localhost').pathname
                 );
 
+                if (port === 4173 && pathname === '/workspace-runtime.json') {
+                    response.setHeader('Content-Type', 'application/json');
+                    response.end(
+                        JSON.stringify({
+                            mode: process.env.WORKSPACE_MODE === 'api' ? 'api' : 'mock',
+                            apiBaseUrl:
+                                process.env.WORKSPACE_MODE === 'api'
+                                    ? 'http://127.0.0.1:8010'
+                                    : 'mock://workspace',
+                        })
+                    );
+
+                    return;
+                }
+
                 if (port === 4173 && pathname === '/editor-runtime.json') {
                     response.setHeader('Content-Type', 'application/json');
                     response.end(

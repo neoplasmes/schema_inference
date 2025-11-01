@@ -1,11 +1,15 @@
 import { defineConfig } from '@playwright/test';
 
+const api = process.env.WORKSPACE_MODE === 'api';
+const artifacts = api ? '../../artifacts/client-api-e2e' : '../../artifacts/client-e2e';
+
 export default defineConfig({
     testDir: './tests',
+    testMatch: api ? '**/*.api.spec.ts' : '**/workspace.spec.ts',
     workers: 1,
     retries: 0,
     timeout: 45000,
-    outputDir: '../../artifacts/client-e2e/test-results',
+    outputDir: `${artifacts}/test-results`,
     reporter: [
         [
             'list',
@@ -13,7 +17,7 @@ export default defineConfig({
         [
             'html',
             {
-                outputFolder: '../../artifacts/client-e2e/report',
+                outputFolder: `${artifacts}/report`,
                 open: 'never',
             },
         ],
