@@ -177,4 +177,3 @@ export async function rename(page: Page): Promise<void> {
     await expect.poll(() => names(page)).toContain('customerName');
     expect(await names(page)).not.toContain('name');
 }
-
