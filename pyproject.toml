@@ -17,4 +17,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["apps/server/tests"]
 addopts = "--import-mode=importlib --strict-config --strict-markers -ra"
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    "ignore:The @wait_container_is_ready decorator is deprecated.*:DeprecationWarning:testcontainers.core.waiting_utils",
+]
