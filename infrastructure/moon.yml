@@ -1,0 +1,48 @@
+language: system
+type: configuration
+
+fileGroups:
+  database:
+    - /docker-compose.database.yaml
+    - pgbouncer/*
+
+tasks:
+  version:
+    command: python $workspaceRoot/infrastructure/docker/compose.py version
+    options:
+      cache: false
+      runInCI: false
+
+  up:
+    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml up -d --wait --wait-timeout 120
+    inputs:
+      - '@group(database)'
+    options:
+      cache: false
+      runInCI: false
+
+  down:
+    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml down
+    options:
+      cache: false
+      runInCI: false
+
+  logs:
+    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml logs --tail=100
+    options:
+      cache: false
+      runInCI: false
+
+  up-api:
+    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml up -d --wait --wait-timeout 120
+    deps:
+      - server:docker-build
+    options:
+      cache: false
+      runInCI: false
+
+  down-api:
+    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml down
+    options:
+      cache: false
+      runInCI: false

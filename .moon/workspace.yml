@@ -5,6 +5,7 @@ projects:
   entity-cache: packages/entity-cache
   server: apps/server
   documents-generator: packages/documents_generator
+  infrastructure: infrastructure
 
 versionConstraint: '1.41.5'
 
