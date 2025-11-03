@@ -16,11 +16,37 @@ tasks:
 
   test:
     command: uv run --no-sync pytest
+    env:
+      PYTHONPATH: $workspaceRoot
+    options:
+      cache: false
 
   build:
     command: uv build --out-dir dist
     outputs:
       - dist
+
+  install-runtime:
+    command: uv sync --locked --no-dev --no-editable --package backend
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+
+  docker-build:
+    command: docker build -f apps/server/Dockerfile -t schema-workspace-api:development .
+    platform: system
+    inputs:
+      - src/**/*
+      - Dockerfile
+      - pyproject.toml
+      - /pyproject.toml
+      - /uv.lock
+      - /.dockerignore
+      - /infrastructure/docker/**/*
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
 
   ci:
     deps:
