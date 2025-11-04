@@ -1,3 +1,3 @@
-from .postgres_workspace_uow import SqliteWorkspaceUow
+from .postgres_workspace_uow import PostgresWorkspaceUow
 
-__all__ = ["SqliteWorkspaceUow"]
+__all__ = ["PostgresWorkspaceUow"]

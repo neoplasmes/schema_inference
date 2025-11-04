@@ -1,3 +1,3 @@
-from .postgres_workspace_repo import SqliteWorkspaceRepository
+from .postgres_workspace_repo import PostgresWorkspaceRepository
 
-__all__ = ["SqliteWorkspaceRepository"]
+__all__ = ["PostgresWorkspaceRepository"]
