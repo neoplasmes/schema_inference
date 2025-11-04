@@ -30,7 +30,7 @@ from env.tools.document_storage import FilesystemDocumentStorageTool
 from env.tools.lexical import CorpusLexicalResourceTool
 from env.tools.schema import ElementTreeSchemaWriterTool
 from env.tools.schema_expression import EditorSchemaExpressionWriter
-from env.uow.workspace import SqliteWorkspaceUow
+from env.uow.workspace import PostgresWorkspaceUow
 
 
 def build_infer_schema(settings: Settings) -> InferSchema:
@@ -91,9 +91,8 @@ def create_app(
     cleanup = CleanupSession(sessions, documents)
     cleanup_job = SessionCleanupJob(cleanup, configuration.cleanup_delay)
 
-    store = SqliteWorkspaceUow(
-        configuration.database_path or configuration.upload_root / "workspace.sqlite3"
-    )
+    store = PostgresWorkspaceUow(configuration.database_url)
+    store.initialize()
     workspace_reader = StrategyDocumentReaderTool(
         {
             ".xml": xml_reader or ElementTreeXmlDocumentTool(),

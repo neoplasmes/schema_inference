@@ -1,63 +1,55 @@
-import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
+from psycopg import Connection, IsolationLevel, connect
+
 from app.ports.repos.workspace import WorkspaceRepository
-from env.repos.workspace import SqliteWorkspaceRepository
+from env.repos.workspace import PostgresWorkspaceRepository
 
 
-class SqliteWorkspaceUow:
-    """Keep every write atomic while giving concurrent requests independent connections."""
+class PostgresWorkspaceUow:
+    """Open one connection per transaction and release it back to PgBouncer."""
 
-    def __init__(self, path: Path) -> None:
-        self._path = path
-        path.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, database_url: str) -> None:
+        self._database_url = database_url
 
-        with self._connection() as connection:
-            connection.execute("PRAGMA journal_mode=WAL")
-            connection.executescript("""
-                CREATE TABLE IF NOT EXISTS resources (
-                    kind TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL,
-                    PRIMARY KEY (kind, id)
-                );
-                CREATE TABLE IF NOT EXISTS idempotency (
-                    scope TEXT NOT NULL, key TEXT NOT NULL, digest TEXT NOT NULL,
-                    resource_id TEXT NOT NULL, PRIMARY KEY (scope, key)
-                );
-                CREATE TABLE IF NOT EXISTS analysis_results (
-                    id TEXT PRIMARY KEY, data TEXT NOT NULL
-                );
-                CREATE TABLE IF NOT EXISTS revisions (
-                    schema_id TEXT NOT NULL, revision TEXT NOT NULL, data TEXT NOT NULL,
-                    PRIMARY KEY (schema_id, revision)
-                );
-                CREATE TABLE IF NOT EXISTS nodes (
-                    schema_id TEXT NOT NULL, revision TEXT NOT NULL, id TEXT NOT NULL,
-                    data TEXT NOT NULL, PRIMARY KEY (schema_id, revision, id),
-                    FOREIGN KEY (schema_id, revision) REFERENCES revisions
-                );
-                CREATE TABLE IF NOT EXISTS collections (
-                    schema_id TEXT NOT NULL, revision TEXT NOT NULL, id TEXT NOT NULL,
-                    PRIMARY KEY (schema_id, revision, id),
-                    FOREIGN KEY (schema_id, revision) REFERENCES revisions
-                );
-                CREATE TABLE IF NOT EXISTS members (
-                    schema_id TEXT NOT NULL, revision TEXT NOT NULL, collection_id TEXT NOT NULL,
-                    position INTEGER NOT NULL, data TEXT NOT NULL,
-                    PRIMARY KEY (schema_id, revision, collection_id, position),
-                    FOREIGN KEY (schema_id, revision, collection_id) REFERENCES collections
-                );
-                CREATE TABLE IF NOT EXISTS changesets (
-                    schema_id TEXT NOT NULL, id TEXT NOT NULL, data TEXT NOT NULL,
-                    PRIMARY KEY (schema_id, id)
-                );
-            """)
+    def initialize(self) -> None:
+        """Apply the owned database schema once, serializing concurrent startups."""
+        with self._connection() as connection, connection.transaction():
+            connection.execute(
+                "SELECT pg_advisory_xact_lock(hashtext('workspace migrations'), 0)"
+            )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS workspace_migrations "
+                "(version INTEGER PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())"
+            )
+            versions = [
+                row[0]
+                for row in connection.execute(
+                    "SELECT version FROM workspace_migrations ORDER BY version"
+                )
+            ]
+
+            if versions not in ([], [1]):
+                raise RuntimeError(
+                    f"Unsupported workspace database migrations: {versions}"
+                )
+
+            if not versions:
+                migration = Path(__file__).with_name("001_workspace.sql")
+                connection.execute(migration.read_bytes())
+                connection.execute(
+                    "INSERT INTO workspace_migrations (version) VALUES (1)"
+                )
 
     @contextmanager
-    def _connection(self) -> Iterator[sqlite3.Connection]:
-        connection = sqlite3.connect(self._path, timeout=30, isolation_level=None)
-        connection.execute("PRAGMA foreign_keys=ON")
+    def _connection(self) -> Iterator[Connection]:
+        connection = connect(
+            self._database_url,
+            connect_timeout=5,
+            prepare_threshold=None,
+        )
 
         try:
             yield connection
@@ -66,22 +58,19 @@ class SqliteWorkspaceUow:
 
     @contextmanager
     def read(self) -> Iterator[WorkspaceRepository]:
+        """Read related payloads from one stable snapshot without taking write locks."""
         with self._connection() as connection:
-            connection.execute("BEGIN")
+            connection.isolation_level = IsolationLevel.REPEATABLE_READ
+            connection.read_only = True
 
-            try:
-                yield SqliteWorkspaceRepository(connection)
-            finally:
-                connection.rollback()
+            with connection.transaction():
+                yield PostgresWorkspaceRepository(connection)
 
     @contextmanager
     def transaction(self) -> Iterator[WorkspaceRepository]:
+        """Commit an atomic batch after locking its mutable resources and retry keys."""
         with self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            connection.isolation_level = IsolationLevel.READ_COMMITTED
 
-            try:
-                yield SqliteWorkspaceRepository(connection)
-                connection.commit()
-            except BaseException:
-                connection.rollback()
-                raise
+            with connection.transaction():
+                yield PostgresWorkspaceRepository(connection, writable=True)

@@ -17,7 +17,7 @@ class Settings:
     wordnet_root: Path
     cleanup_delay: float
     allowed_origins: tuple[str, ...]
-    database_path: Path | None = None
+    database_url: str = "postgresql://workspace:workspace@127.0.0.1:6432/workspace"
 
     @property
     def is_development(self) -> bool:
@@ -45,9 +45,9 @@ def load_settings(env_file: Path = Path(".env")) -> Settings:
         port=int(os.environ.get("PORT", "8000")),
         upload_root=Path(os.environ.get("UPLOAD_ROOT", "uploaded_files")).resolve(),
         wordnet_root=Path(os.environ.get("WORDNET_ROOT", "nltk_data")).resolve(),
-        database_path=Path(os.environ["DATABASE_PATH"]).resolve()
-        if "DATABASE_PATH" in os.environ
-        else None,
+        database_url=os.environ.get(
+            "DATABASE_URL", "postgresql://workspace:workspace@127.0.0.1:6432/workspace"
+        ),
         cleanup_delay=float(os.environ.get("CLEANUP_DELAY", "300")),
         allowed_origins=tuple(
             origin.strip() for origin in origins.split(",") if origin.strip()
