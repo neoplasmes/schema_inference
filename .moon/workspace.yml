@@ -6,6 +6,7 @@ projects:
   server: apps/server
   documents-generator: packages/documents_generator
   infrastructure: infrastructure
+  backend-e2e: e2e/backend
 
 versionConstraint: '1.41.5'
 
