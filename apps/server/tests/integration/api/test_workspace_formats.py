@@ -1,10 +1,9 @@
 import time
-from dataclasses import replace
 
 import pytest
 from fastapi.testclient import TestClient
 
-from env.uow.workspace import SqliteWorkspaceUow
+from env.uow.workspace import PostgresWorkspaceUow
 from main import create_app
 
 from .test_workspace import analyze, draft, root_rows, settings
@@ -13,8 +12,8 @@ from .test_workspace import analyze, draft, root_rows, settings
 @pytest.mark.parametrize(
     "content,format", [("[]", "json"), ("{}", "json"), ("[]", "yaml"), ("{}", "yaml")]
 )
-def test_empty_container_is_not_a_null_scalar(tmp_path, content, format):
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+def test_empty_container_is_not_a_null_scalar(tmp_path, database_url, content, format):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, content, format)
         schema, _ = draft(client, resource, analysis)
         snapshot = schema["snapshot"]
@@ -31,8 +30,8 @@ def test_empty_container_is_not_a_null_scalar(tmp_path, content, format):
             assert page["nextCursor"] is None
 
 
-def test_yaml_single_mapping_keeps_the_document_root(tmp_path):
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+def test_yaml_single_mapping_keeps_the_document_root(tmp_path, database_url):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, "product:\n  price: 12\n", "yaml")
         schema, _ = draft(client, resource, analysis)
         _, root, page = root_rows(client, schema)
@@ -41,8 +40,10 @@ def test_yaml_single_mapping_keeps_the_document_root(tmp_path):
         assert page["items"][0]["valueSummary"]["kind"] == "object"
 
 
-def test_xml_namespaces_attributes_and_typed_simple_content_survive_rename(tmp_path):
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+def test_xml_namespaces_attributes_and_typed_simple_content_survive_rename(
+    tmp_path, database_url
+):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(
             client, '<p:price xmlns:p="urn:shop" currency="USD">12.5</p:price>', "xml"
         )
@@ -95,8 +96,10 @@ def test_xml_namespaces_attributes_and_typed_simple_content_survive_rename(tmp_p
         ("x: &self [*self]", "yaml"),
     ],
 )
-def test_malformed_documents_have_durable_failed_status(tmp_path, content, format):
-    configuration = settings(tmp_path)
+def test_malformed_documents_have_durable_failed_status(
+    tmp_path, database_url, content, format
+):
+    configuration = settings(tmp_path, database_url)
 
     with TestClient(create_app(settings=configuration)) as client:
         response = client.post(
@@ -136,10 +139,10 @@ def test_malformed_documents_have_durable_failed_status(tmp_path, content, forma
 
 
 @pytest.mark.parametrize("status", ["queued", "processing"])
-def test_restart_resumes_unfinished_analysis(tmp_path, status):
-    database = tmp_path / "state.sqlite3"
-    configuration = replace(settings(tmp_path), database_path=database)
-    store = SqliteWorkspaceUow(database)
+def test_restart_resumes_unfinished_analysis(tmp_path, database_url, status):
+    configuration = settings(tmp_path, database_url)
+    store = PostgresWorkspaceUow(database_url)
+    store.initialize()
     content = '{"price":12}'
 
     with store.transaction() as repository:
@@ -185,38 +188,39 @@ def test_restart_resumes_unfinished_analysis(tmp_path, status):
         )
 
 
-def test_nested_xml_and_array_summaries_expose_members_behind_wrappers(tmp_path):
-    for index, (content, format) in enumerate(
-        [
-            ('<root><item code="x"><name>book</name></item></root>', "xml"),
-            ('{"items":[{"name":"book"}]}', "json"),
-        ]
-    ):
-        with TestClient(create_app(settings=settings(tmp_path / str(index)))) as client:
-            resource, analysis, _ = analyze(client, content, format)
-            schema, _ = draft(client, resource, analysis)
-            schema_id = schema["snapshot"]["id"]
-            path = f"/api/v2/schemas/{schema_id}/revisions/s1"
-            node = client.get(f"{path}/nodes/{schema['rootNodeId']}").json()
+@pytest.mark.parametrize(
+    "content,format,count",
+    [
+        ('<root><item code="x"><name>book</name></item></root>', "xml", 2),
+        ('{"items":[{"name":"book"}]}', "json", 1),
+    ],
+)
+def test_nested_xml_and_array_summaries_expose_members_behind_wrappers(
+    tmp_path, database_url, content, format, count
+):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+        resource, analysis, _ = analyze(client, content, format)
+        schema, _ = draft(client, resource, analysis)
+        schema_id = schema["snapshot"]["id"]
+        path = f"/api/v2/schemas/{schema_id}/revisions/s1"
+        node = client.get(f"{path}/nodes/{schema['rootNodeId']}").json()
 
-            while node["kind"] in ("xmlElement", "xmlComplex"):
-                next_id = node.get("contentNodeId") or node.get("particleNodeId")
-                node = client.get(f"{path}/nodes/{next_id}").json()
+        while node["kind"] in ("xmlElement", "xmlComplex"):
+            next_id = node.get("contentNodeId") or node.get("particleNodeId")
+            node = client.get(f"{path}/nodes/{next_id}").json()
 
-            collection_id = (node.get("particles") or node["properties"])["id"]
-            page = client.get(f"{path}/collections/{collection_id}/items").json()
-            assert page["items"][0]["valueSummary"]["directMemberCount"] == (
-                2 if format == "xml" else 1
-            )
+        collection_id = (node.get("particles") or node["properties"])["id"]
+        page = client.get(f"{path}/collections/{collection_id}/items").json()
+        assert page["items"][0]["valueSummary"]["directMemberCount"] == count
 
 
-def test_deep_array_summary_reaches_the_observed_object(tmp_path):
+def test_deep_array_summary_reaches_the_observed_object(tmp_path, database_url):
     content = '{"name":"book"}'
 
     for _ in range(12):
         content = f"[{content}]"
 
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, '{"items":' + content + "}")
         schema, _ = draft(client, resource, analysis)
         _, _, page = root_rows(client, schema)
