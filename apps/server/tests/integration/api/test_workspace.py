@@ -1,6 +1,8 @@
 import base64
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Barrier
 
 from fastapi.testclient import TestClient
 
@@ -8,7 +10,7 @@ from env.config import Settings
 from main import create_app
 
 
-def settings(directory: Path) -> Settings:
+def settings(directory: Path, database_url: str) -> Settings:
     return Settings(
         environment="production",
         host="127.0.0.1",
@@ -17,6 +19,7 @@ def settings(directory: Path) -> Settings:
         wordnet_root=Path("nltk_data"),
         cleanup_delay=300,
         allowed_origins=("http://localhost:3000",),
+        database_url=database_url,
     )
 
 
@@ -94,8 +97,8 @@ def root_rows(client, manifest, limit=50):
     return path, node, response.json()
 
 
-def test_analysis_draft_save_and_restart(tmp_path):
-    configuration = settings(tmp_path)
+def test_analysis_draft_save_and_restart(tmp_path, database_url):
+    configuration = settings(tmp_path, database_url)
 
     with TestClient(create_app(settings=configuration)) as client:
         resource, manifest, _ = analyze(client)
@@ -137,8 +140,8 @@ def test_analysis_draft_save_and_restart(tmp_path):
         assert restarted.get("/api/v2/schemas").json()[0]["document_count"] == 1
 
 
-def test_idempotent_creation_and_independent_drafts(tmp_path):
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+def test_idempotent_creation_and_independent_drafts(tmp_path, database_url):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, manifest, body = analyze(client)
         replay = client.post(
             "/api/v2/analyses", json=body, headers={"Idempotency-Key": "analysis-1"}
@@ -165,8 +168,8 @@ def test_idempotent_creation_and_independent_drafts(tmp_path):
         assert len(client.get("/api/v2/schemas").json()) == 2
 
 
-def test_atomic_changeset_replay_preconditions_and_pagination(tmp_path):
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+def test_atomic_changeset_replay_preconditions_and_pagination(tmp_path, database_url):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, manifest, _ = analyze(client)
         schema, _ = draft(client, resource, manifest)
         path, node, page = root_rows(client, schema, 1)
@@ -235,8 +238,8 @@ def test_atomic_changeset_replay_preconditions_and_pagination(tmp_path):
         assert client.get(new_collection).json()["items"][0]["member"]["name"] == "cost"
 
 
-def test_move_updates_both_owners_and_rejects_cycles(tmp_path):
-    with TestClient(create_app(settings=settings(tmp_path))) as client:
+def test_move_updates_both_owners_and_rejects_cycles(tmp_path, database_url):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, manifest, _ = analyze(client, '{"left":{"a":1},"right":{}}')
         schema, _ = draft(client, resource, manifest)
         path, node, page = root_rows(client, schema)
@@ -296,3 +299,94 @@ def test_move_updates_both_owners_and_rejects_cycles(tmp_path):
             ][0]["member"]["id"]
             == nested["id"]
         )
+
+
+def test_concurrent_changesets_preserve_one_winner_and_immutable_base(
+    tmp_path, database_url
+):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+        resource, analysis, _ = analyze(client)
+        schema, _ = draft(client, resource, analysis)
+        path, _, page = root_rows(client, schema)
+        schema_id = schema["snapshot"]["id"]
+        endpoint = f"/api/v2/schemas/{schema_id}/changesets"
+        headers = {"If-Match": f'"{schema_id}:s1"'}
+        ready = Barrier(4)
+
+        def rename(index):
+            ready.wait(timeout=10)
+
+            return client.post(
+                endpoint,
+                headers=headers,
+                json={
+                    "clientMutationId": f"rename-{index}",
+                    "baseRevision": "s1",
+                    "operations": [
+                        {
+                            "kind": "renameProperty",
+                            "memberId": page["items"][0]["member"]["id"],
+                            "name": f"cost_{index}",
+                        }
+                    ],
+                },
+            )
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            responses = list(executor.map(rename, range(4)))
+
+        assert sorted(response.status_code for response in responses) == [
+            201,
+            412,
+            412,
+            412,
+        ]
+        winner = next(
+            index for index, reply in enumerate(responses) if reply.status_code == 201
+        )
+        collection = f"{path}/collections/{page['collectionId']}/items"
+        assert client.get(collection).json()["items"][0]["member"]["name"] == "price"
+        assert (
+            client.get(collection.replace("/s1/", "/s2/")).json()["items"][0]["member"][
+                "name"
+            ]
+            == f"cost_{winner}"
+        )
+        assert client.get(f"/api/v2/schemas/{schema_id}").json()["revision"] == "s2"
+
+
+def test_concurrent_changeset_retries_share_one_durable_receipt(tmp_path, database_url):
+    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+        resource, analysis, _ = analyze(client)
+        schema, _ = draft(client, resource, analysis)
+        _, _, page = root_rows(client, schema)
+        schema_id = schema["snapshot"]["id"]
+        endpoint = f"/api/v2/schemas/{schema_id}/changesets"
+        ready = Barrier(4)
+        body = {
+            "clientMutationId": "same-request",
+            "baseRevision": "s1",
+            "operations": [
+                {
+                    "kind": "renameProperty",
+                    "memberId": page["items"][0]["member"]["id"],
+                    "name": "cost",
+                }
+            ],
+        }
+
+        def save():
+            ready.wait(timeout=10)
+
+            return client.post(
+                endpoint, json=body, headers={"If-Match": f'"{schema_id}:s1"'}
+            )
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(save) for _ in range(4)]
+            responses = [future.result(timeout=15) for future in futures]
+
+        assert [response.status_code for response in responses] == [201] * 4
+        assert all(response.json() == responses[0].json() for response in responses)
+        assert client.get(f"/api/v2/schemas/{schema_id}").json()["revision"] == "s2"
+        assert client.get(f"{endpoint}/same-request").json() == responses[0].json()
