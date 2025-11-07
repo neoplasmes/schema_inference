@@ -30,6 +30,7 @@
         "src",
         "scripts",
         "tests",
-        "playwright.config.ts"
+        "playwright.config.ts",
+        "webpack.config.ts"
     ]
 }
