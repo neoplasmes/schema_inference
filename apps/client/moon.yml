@@ -15,20 +15,21 @@ fileGroups:
 
 tasks:
   dev:
-    command: pnpm exec webpack serve --mode development
-    deps:
-      - editor:dev
+    command: pnpm exec tsx scripts/dev.ts
     local: true
     options:
       persistent: true
 
   dev-api:
-    command: pnpm exec webpack serve --mode development
-    deps:
-      - editor:dev
-      - server:start
+    command: pnpm exec tsx scripts/dev.ts
     env:
       WORKSPACE_MODE: api
+    local: true
+    options:
+      persistent: true
+
+  dev-web:
+    command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development
     local: true
     options:
       persistent: true
@@ -46,7 +47,7 @@ tasks:
       cache: false
 
   build:
-    command: pnpm exec webpack --mode production
+    command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js --config webpack.config.ts --mode production
     deps:
       - ~:editor-types
     inputs:
@@ -73,7 +74,7 @@ tasks:
       - /packages/entity-cache/src/**/*
 
   lint:
-    command: pnpm exec eslint src scripts tests playwright.config.ts
+    command: pnpm exec eslint src scripts tests playwright.config.ts webpack.config.ts
     deps:
       - ~:architecture
     inputs:
@@ -88,7 +89,7 @@ tasks:
       - /apps/editor/scripts/architecture/**/*
 
   lint-fix:
-    command: pnpm exec eslint --fix src scripts tests playwright.config.ts
+    command: pnpm exec eslint --fix src scripts tests playwright.config.ts webpack.config.ts
     local: true
 
   fmt:

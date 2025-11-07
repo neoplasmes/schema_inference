@@ -1,30 +1,39 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import { ModuleFederationPlugin } from '@module-federation/enhanced/webpack';
 import { readFileSync } from 'node:fs';
 import webpack from 'webpack';
+import type { Configuration } from 'webpack';
+import type { Configuration as DevelopmentServerConfiguration } from 'webpack-dev-server';
 
+const directory = path.dirname(fileURLToPath(import.meta.url));
 const packageManifest = JSON.parse(
     readFileSync(new URL('./package.json', import.meta.url), 'utf8')
-);
+) as {
+    dependencies: Record<string, string>;
+};
 
 /**
  * Builds webpack configuration for the mode passed through the CLI.
- *
- * @param {Record<string, unknown>} _env
- * @param {{ mode?: 'development' | 'production' }} argv
- * @returns {import('webpack').Configuration}
  */
-export default (_env, argv) => {
+export default (
+    _environment: unknown,
+    argv: {
+        mode?: string;
+    }
+): Configuration & {
+    devServer: DevelopmentServerConfiguration;
+} => {
     const isProduction = argv.mode === 'production';
 
     return {
         mode: isProduction ? 'production' : 'development',
         entry: './src/index.tsx',
         output: {
-            path: path.resolve(import.meta.dirname, 'dist'),
+            path: path.resolve(directory, 'dist'),
             filename: isProduction
                 ? 'assets/[name].[contenthash:8].js'
                 : 'assets/[name].js',
@@ -40,7 +49,7 @@ export default (_env, argv) => {
                 '.js',
             ],
             alias: {
-                '@': path.resolve(import.meta.dirname, 'src'),
+                '@': path.resolve(directory, 'src'),
             },
         },
         module: {
@@ -133,11 +142,14 @@ export default (_env, argv) => {
                     );
                 },
             },
-            isProduction &&
-                new MiniCssExtractPlugin({
-                    filename: 'assets/[name].[contenthash:8].css',
-                }),
-        ].filter(Boolean),
+            ...(isProduction
+                ? [
+                      new MiniCssExtractPlugin({
+                          filename: 'assets/[name].[contenthash:8].css',
+                      }),
+                  ]
+                : []),
+        ],
         devServer: {
             port: 3000,
             hot: true,
@@ -150,14 +162,18 @@ export default (_env, argv) => {
             },
             historyApiFallback: true,
             setupMiddlewares(middlewares, server) {
+                if (!server.app) {
+                    throw new Error('The development server is not initialized.');
+                }
+
                 server.app.get('/workspace-runtime.json', (_request, response) => {
-                    const mode = process.env.WORKSPACE_MODE === 'api' ? 'api' : 'mock';
+                    const mode = process.env.WORKSPACE_MODE === 'mock' ? 'mock' : 'api';
                     response.json({
                         mode,
                         apiBaseUrl:
                             process.env.WORKSPACE_API_BASE_URL ||
                             (mode === 'api'
-                                ? 'http://localhost:8000'
+                                ? `http://localhost:${process.env.PORT || '8000'}`
                                 : 'mock://workspace'),
                     });
                 });
