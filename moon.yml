@@ -16,6 +16,7 @@ tasks:
       - entity-cache:lint
       - server:lint
       - documents-generator:lint
+      - backend-e2e:lint
 
   fmt:
     command: pnpm exec biome format --write @files(formatting)
@@ -57,6 +58,7 @@ tasks:
       - entity-cache:typecheck
       - server:typecheck
       - documents-generator:typecheck
+      - backend-e2e:typecheck
 
   test:
     deps:
@@ -78,6 +80,7 @@ tasks:
       - ~:build
       - client:e2e
       - client:e2e-api
+      - backend-e2e:test
 
   install-frontend:
     command: pnpm install --frozen-lockfile --ignore-scripts

@@ -1,0 +1,26 @@
+language: python
+type: automation
+
+tasks:
+  test:
+    command: uv run --no-sync pytest -c $workspaceRoot/apps/server/pyproject.toml $projectRoot
+    deps:
+      - server:docker-build
+    env:
+      PYTHONPATH: $workspaceRoot
+    options:
+      cache: false
+
+  lint:
+    command: uv run --no-sync ruff check --config $workspaceRoot/apps/server/pyproject.toml . $workspaceRoot/infrastructure/docker
+
+  fmt:
+    command: uv run --no-sync ruff format --config $workspaceRoot/apps/server/pyproject.toml . $workspaceRoot/infrastructure/docker
+    options:
+      cache: false
+      runInCI: false
+
+  typecheck:
+    command: uv run --no-sync pyright --project $workspaceRoot/apps/server/pyproject.toml .
+    env:
+      PYTHONPATH: $workspaceRoot
