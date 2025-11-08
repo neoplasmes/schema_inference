@@ -14,9 +14,12 @@ export async function startBackend(): Promise<() => Promise<void>> {
     await new Promise<void>((resolve, reject) => {
         probe.once('error', error => {
             reject(
-                new Error('Port 8010 is unavailable; API tests require an isolated server.', {
-                    cause: error,
-                })
+                new Error(
+                    'Port 8010 is unavailable; API tests require an isolated server.',
+                    {
+                        cause: error,
+                    }
+                )
             );
         });
         probe.listen(8010, '127.0.0.1', () =>
@@ -29,11 +32,12 @@ export async function startBackend(): Promise<() => Promise<void>> {
 
 async function launchBackend(): Promise<() => Promise<void>> {
     const directory = await mkdtemp(path.join(tmpdir(), 'workspace-api-e2e-'));
+    const stopFile = path.join(directory, 'stop');
     const child = spawn(
         'moon',
         [
             'run',
-            'server:start',
+            'backend-e2e:serve',
             '--no-actions',
         ],
         {
@@ -46,13 +50,8 @@ async function launchBackend(): Promise<() => Promise<void>> {
             ],
             env: {
                 ...process.env,
-                APP_ENV: 'production',
-                HOST: '127.0.0.1',
                 PORT: '8010',
-                DATABASE_PATH: path.join(directory, 'workspace.sqlite3'),
-                UPLOAD_ROOT: path.join(directory, 'uploads'),
-                WORDNET_ROOT: path.join(root, 'apps/server/nltk_data'),
-                ALLOWED_ORIGINS: 'http://127.0.0.1:4173',
+                BACKEND_E2E_STOP_FILE: stopFile,
             },
         }
     );
@@ -86,12 +85,28 @@ async function launchBackend(): Promise<() => Promise<void>> {
                 }
             }
         };
-        signal('SIGTERM');
+        await writeFile(stopFile, 'stop');
         await Promise.race([
             exited,
-            delay(5000),
+            delay(30000, undefined, {
+                ref: false,
+            }),
         ]);
-        signal('SIGKILL');
+
+        if (!closed) {
+            signal('SIGTERM');
+            await Promise.race([
+                exited,
+                delay(5000, undefined, {
+                    ref: false,
+                }),
+            ]);
+        }
+
+        if (!closed) {
+            signal('SIGKILL');
+        }
+
         await exited;
         const artifacts = path.join(root, 'artifacts/client-api-e2e');
         await mkdir(artifacts, {
@@ -105,7 +120,7 @@ async function launchBackend(): Promise<() => Promise<void>> {
     };
 
     try {
-        const deadline = Date.now() + 30000;
+        const deadline = Date.now() + 180000;
 
         while (Date.now() < deadline) {
             if (failure || closed) {
