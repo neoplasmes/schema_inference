@@ -24,3 +24,11 @@ tasks:
     command: uv run --no-sync pyright --project $workspaceRoot/apps/server/pyproject.toml .
     env:
       PYTHONPATH: $workspaceRoot
+
+  serve:
+    command: uv run --no-sync python -m e2e.backend.serve
+    env:
+      PYTHONPATH: $workspaceRoot
+    local: true
+    options:
+      persistent: true

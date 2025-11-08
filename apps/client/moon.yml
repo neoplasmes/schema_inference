@@ -135,6 +135,7 @@ tasks:
     deps:
       - ~:build
       - ~:e2e
+      - server:docker-build
     env:
       WORKSPACE_MODE: api
     inputs:
