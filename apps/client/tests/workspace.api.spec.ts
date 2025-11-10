@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
-import { environment, finishAudit, observe, type Audit } from './api-audit';
+import { environment, finishAudit, observe, settleAudit, type Audit } from './api-audit';
 import { capture, expand, names, ready, recordJson, rename, state } from './api-editor';
 
 const audits = new WeakMap<TestInfo, Audit>();
@@ -103,6 +103,7 @@ for (const fixture of [
         const creations = audit.requests.filter(request =>
             request.method === 'POST' && request.path === '/api/v2/schemas'
         ).length;
+        await settleAudit(audit);
         await page.reload();
         await ready(page);
         expect(new URL(page.url()).searchParams.get('schemaId')).toBe(schemaId);
@@ -115,6 +116,7 @@ for (const fixture of [
             request.method === 'POST' && request.path === '/api/v2/schemas'
         )).toHaveLength(creations);
         await capture(page, testInfo, 'direct-reload-schema');
+        await settleAudit(audit);
         await page
             .getByRole('button', {
                 name: 'Exit editor',
@@ -125,6 +127,7 @@ for (const fixture of [
             name: new RegExp(title),
         });
         await expect(saved).toContainText('1 source document · s2');
+        await settleAudit(audit);
         await page.reload();
         await expect(saved).toContainText('1 source document · s2');
         await saved.click();
@@ -160,12 +163,12 @@ for (const fixture of [
                 operations: [],
             });
             await capture(freshPage, testInfo, 'fresh-context-schema');
-            await Promise.all(audit.pending);
+            await settleAudit(audit);
         } finally {
             await freshContext.close();
         }
 
-        await Promise.all(audit.pending);
+        await settleAudit(audit);
         const upload = audit.requests.find(
             request => request.method === 'POST' && request.path === '/api/v2/analyses'
         )!;
