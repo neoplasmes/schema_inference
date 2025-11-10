@@ -43,6 +43,10 @@ export function observe(page: Page, audit: Audit): void {
     page.on('request', request => {
         const url = new URL(request.url());
 
+        if (process.env.WORKSPACE_CONTAINER === '1' && url.port === '3010') {
+            audit.errors.push(`Container requested a development remote: ${url}`);
+        }
+
         if (url.pathname.startsWith('/api/v2/')) {
             active.add(request);
             const entry: ApiRequest = {
@@ -181,6 +185,8 @@ export async function finishAudit(page: Page, testInfo: TestInfo, audit: Audit):
         ),
         'Every cancelled read must have a completed response for the same resource'
     ).toEqual([]);
-    expect(audit.requests.every(request => request.origin === 'http://127.0.0.1:8010'))
+    const origin = process.env.WORKSPACE_CONTAINER === '1'
+        ? 'http://127.0.0.1:4173' : 'http://127.0.0.1:8010';
+    expect(audit.requests.every(request => request.origin === origin))
         .toBe(true);
 }

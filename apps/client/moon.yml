@@ -157,3 +157,16 @@ tasks:
       - /uv.lock
     options:
       cache: false
+
+  e2e-docker:
+    command: pnpm exec playwright test
+    deps:
+      - ~:e2e
+      - ~:docker-build
+      - editor:docker-build
+      - server:docker-build
+    env:
+      WORKSPACE_MODE: api
+      WORKSPACE_CONTAINER: '1'
+    options:
+      cache: false

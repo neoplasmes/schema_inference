@@ -4,13 +4,14 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Page, TestInfo } from '@playwright/test';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { finishAudit, observe, settleAudit, type Audit } from '../tests/api-audit';
 
 const directories: string[] = [];
 const resource = 'http://127.0.0.1:8010/api/v2/schemas/schema-1/revisions/s1/nodes/node-6';
 
 afterEach(async () => {
+    vi.unstubAllEnvs();
     await Promise.all(
         directories.splice(0).map(directory =>
             rm(directory, {
@@ -71,6 +72,16 @@ async function fixture() {
 }
 
 describe('browser API audit', () => {
+    it('rejects a development remote in container mode', async () => {
+        vi.stubEnv('WORKSPACE_CONTAINER', '1');
+        const result = await fixture();
+        result.events.emit('request', {
+            url: () => 'http://localhost:3010/remoteEntry.js',
+        });
+        expect(result.audit.errors).toHaveLength(1);
+        await expect(result.finish()).rejects.toThrow();
+    });
+
     it('drains requests started before headers until their bodies are captured', async () => {
         const result = await fixture();
         const request = {
