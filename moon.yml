@@ -79,7 +79,7 @@ tasks:
       - ~:test
       - ~:build
       - client:e2e
-      - client:e2e-api
+      - client:e2e-docker
       - backend-e2e:test
 
   install-frontend:

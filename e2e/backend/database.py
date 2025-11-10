@@ -14,12 +14,15 @@ ROOT = Path(__file__).resolve().parents[2]
 class DatabaseStack:
     """Own an isolated PostgreSQL and PgBouncer Compose project for tests."""
 
-    def __init__(self, *, api: bool = False, api_port: int | None = None) -> None:
+    def __init__(
+        self, *, api: bool = False, api_port: int | None = None, client: bool = False
+    ) -> None:
         self.name = f"workspace-test-{uuid4().hex[:12]}"
         self.url = ""
         self.api_url = ""
-        self.api = api
+        self.api = api or client
         self.api_port = api_port
+        self.client = client
         self.compose: DockerCompose | None = None
 
     @contextmanager
@@ -40,6 +43,13 @@ class DatabaseStack:
                 overrides += (
                     "  server:\n"
                     f"    ports: !override ['127.0.0.1:{self.api_port or ''}:8000']\n"
+                )
+
+            if self.client:
+                files.append(str(ROOT / "docker-compose.client.yaml"))
+                overrides += (
+                    "  client:\n"
+                    "    ports: !override ['127.0.0.1:4173:8080']\n"
                 )
 
             override.write_text(overrides)
@@ -65,7 +75,8 @@ class DatabaseStack:
 
                 yield self
             finally:
-                artifacts = ROOT / "artifacts" / "database-tests" / self.name
+                group = "client-docker-e2e" if self.client else "database-tests"
+                artifacts = ROOT / "artifacts" / group / self.name
                 artifacts.mkdir(parents=True, exist_ok=True)
 
                 try:

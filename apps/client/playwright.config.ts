@@ -1,7 +1,9 @@
 import { defineConfig } from '@playwright/test';
 
 const api = process.env.WORKSPACE_MODE === 'api';
-const artifacts = api ? '../../artifacts/client-api-e2e' : '../../artifacts/client-e2e';
+const artifacts = process.env.WORKSPACE_CONTAINER === '1'
+    ? '../../artifacts/client-docker-e2e'
+    : api ? '../../artifacts/client-api-e2e' : '../../artifacts/client-e2e';
 
 export default defineConfig({
     testDir: './tests',

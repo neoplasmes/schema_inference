@@ -17,7 +17,9 @@ def serve() -> None:
         return
 
     with DatabaseStack(
-        api=True, api_port=int(os.environ.get("PORT", "8010"))
+        api=True,
+        api_port=int(os.environ.get("PORT", "8010")),
+        client=os.environ.get("WORKSPACE_CONTAINER") == "1",
     ).running():
         print("Backend containers are ready", flush=True)
 
