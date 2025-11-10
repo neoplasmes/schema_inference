@@ -33,6 +33,17 @@ tasks:
       - dist
   typecheck:
     command: pnpm exec tsc --noEmit
+
+  docker-build:
+    command: docker build -t schema-workspace-editor:development .
+    deps:
+      - ~:build
+    inputs:
+      - Dockerfile
+      - .dockerignore
+      - nginx.conf
+    options:
+      cache: false
   test:
     command: pnpm exec vitest run
   lint:

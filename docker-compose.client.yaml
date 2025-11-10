@@ -1,0 +1,27 @@
+services:
+  editor:
+    image: schema-workspace-editor:development
+    build:
+      context: ./apps/editor
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  client:
+    image: schema-workspace-client:development
+    build:
+      context: ./apps/client
+    ports:
+      - '127.0.0.1:3000:8080'
+    depends_on:
+      editor:
+        condition: service_healthy
+        restart: true
+      server:
+        condition: service_healthy
+        restart: true
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
