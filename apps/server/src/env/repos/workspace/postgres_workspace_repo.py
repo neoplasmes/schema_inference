@@ -46,6 +46,16 @@ class PostgresWorkspaceRepository:
             )
         ]
 
+    def pending_analyses(self) -> list[str]:
+        """List identifiers of analyses that are queued or processing."""
+        return [
+            row[0]
+            for row in self._db.execute(
+                "SELECT id FROM resources WHERE kind='analysis' "
+                "AND data->>'status' IN ('queued', 'processing') ORDER BY id"
+            )
+        ]
+
     def replay(self, scope: str, key: str, digest: str) -> str | None:
         """Serialize retries before checking keys, including keys not yet inserted."""
         if self._writable:

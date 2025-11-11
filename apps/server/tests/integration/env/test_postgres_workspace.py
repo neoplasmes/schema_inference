@@ -220,3 +220,21 @@ def test_concurrent_replays_create_one_resource(database_url):
             repository.replay("analyses", "request", "different")
 
     assert error.value.code == "idempotency_conflict"
+
+
+def test_pending_analyses_returns_only_queued_and_processing_ids(database_url):
+    persistence = store(database_url)
+
+    with persistence.transaction() as repository:
+        for identifier, status in [
+            ("c", "processing"),
+            ("a", "queued"),
+            ("b", "completed"),
+            ("d", "failed"),
+        ]:
+            repository.put_resource("analysis", {"id": identifier, "status": status})
+
+        repository.put_resource("schema", {"id": "e", "status": "queued"})
+
+    with persistence.read() as repository:
+        assert repository.pending_analyses() == ["a", "c"]
