@@ -1,3 +1,52 @@
 implicitInputs:
+  - /.moon/tasks/python.yml
   - /pyproject.toml
   - /uv.lock
+
+fileGroups:
+  src:
+    - src/**/*.py
+  test-unit: []
+  test-int: []
+  cfg:
+    - pyproject.toml
+  fixtures:
+    - tests/fixtures/**/*.{xml,yaml,yml,json,txt}
+
+tasks:
+  lint:
+    command: uv run --no-sync ruff check @files(src) @files(test-unit) @files(test-int)
+    inputs: &sources
+      - '@group(src)'
+      - '@group(test-unit)'
+      - '@group(test-int)'
+      - '@group(cfg)'
+
+  lint-fix:
+    command: uv run --no-sync ruff check --fix @files(src) @files(test-unit) @files(test-int)
+    inputs: *sources
+    options:
+      cache: false
+      runInCI: false
+
+  fmt:
+    command: uv run --no-sync ruff format @files(src) @files(test-unit) @files(test-int)
+    deps:
+      - ~:lint-fix
+    inputs: *sources
+    options:
+      cache: false
+      runInCI: false
+
+  typecheck:
+    command: uv run --no-sync pyright
+    inputs: *sources
+
+  check:
+    command: noop
+    deps:
+      - ~:fmt
+      - ~:typecheck
+    inputs: *sources
+    options:
+      runInCI: false

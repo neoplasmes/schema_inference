@@ -1,28 +1,77 @@
 language: python
 type: application
+dependsOn:
+  - documents-generator
+
+fileGroups:
+  src:
+    - src/**/*.{py,sql,json}
+  test-unit:
+    - tests/unit/**/*.py
+    - tests/conftest.py
+  test-int:
+    - tests/integration/**/*.py
+    - tests/conftest.py
+  database:
+    - /e2e/backend/**/*.py
+    - /docker-compose.database.yaml
+    - /infrastructure/pgbouncer/*.{ini,txt}
+  generator:
+    - /packages/documents_generator/src/**/*.py
+    - /packages/documents_generator/pyproject.toml
 
 tasks:
   lint:
     command: uv run --no-sync ruff check src tests
+    options:
+      mergeArgs: replace
+
+  lint-fix:
+    command: uv run --no-sync ruff check --fix src tests
+    options:
+      mergeArgs: replace
 
   fmt:
     command: uv run --no-sync ruff format src tests
     options:
-      cache: false
-      runInCI: false
+      mergeArgs: replace
 
   typecheck:
-    command: uv run --no-sync pyright
+    inputs:
+      - '@group(database)'
+      - '@group(generator)'
 
   test-unit:
-    command: uv run --no-sync pytest
+    command: uv run --no-sync pytest tests/unit
     env:
       PYTHONPATH: $workspaceRoot
+    inputs:
+      - '@group(src)'
+      - '@group(test-unit)'
+      - '@group(fixtures)'
+      - '@group(cfg)'
+      - '@group(database)'
+      - '@group(generator)'
+
+  test-int:
+    command: uv run --no-sync pytest tests/integration
+    env:
+      PYTHONPATH: $workspaceRoot
+    inputs:
+      - '@group(src)'
+      - '@group(test-int)'
+      - '@group(fixtures)'
+      - '@group(cfg)'
+      - '@group(database)'
+      - '@group(generator)'
     options:
       cache: false
 
   build:
     command: uv build --out-dir dist
+    inputs:
+      - '@group(src)'
+      - '@group(cfg)'
     outputs:
       - dist
 
@@ -37,38 +86,38 @@ tasks:
     command: docker build -f apps/server/Dockerfile -t schema-workspace-api:development .
     platform: system
     inputs:
-      - src/**/*
+      - '@group(src)'
+      - '@group(cfg)'
       - Dockerfile
-      - pyproject.toml
-      - /pyproject.toml
-      - /uv.lock
       - /.dockerignore
-      - /infrastructure/docker/**/*
+      - /infrastructure/docker/*.py
+      - /packages/documents_generator/src/**/*.py
+      - /packages/documents_generator/pyproject.toml
     options:
       runFromWorkspaceRoot: true
       cache: false
 
-  ci:
-    deps:
-      - ~:lint
-      - ~:typecheck
-      - ~:test-unit
-      - ~:build
-
   start:
     command: uv run --no-sync python -m main
-    local: true
-    options:
-      persistent: true
+    preset: server
 
   setup-wordnet:
     command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
-    local: true
+    options:
+      cache: false
+      runInCI: false
 
   test-int-corpus:
     command: uv run --no-sync python -m integration.evaluate --all --output ../../artifacts/inference-review --fail-on-forbidden
     env:
       PYTHONPATH: tests
+    inputs:
+      - '@group(src)'
+      - '@group(test-int)'
+      - '@group(fixtures)'
+      - '@group(cfg)'
+      - '@group(generator)'
+    outputs:
+      - /artifacts/inference-review
     options:
-      cache: false
       runInCI: false
