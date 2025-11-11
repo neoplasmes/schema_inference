@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
+from functools import cached_property
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import uuid4
@@ -9,6 +10,15 @@ from psycopg import sql
 from testcontainers.compose import DockerCompose
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+class StandaloneCompose(DockerCompose):
+    """Use the Proto-pinned standalone CLI with Testcontainers 4.13."""
+
+    @cached_property
+    def compose_command_property(self) -> list[str]:
+        """Preserve Compose options while replacing the Docker plugin prefix."""
+        return ["docker-compose", *super().compose_command_property[2:]]
 
 
 class DatabaseStack:
@@ -54,10 +64,9 @@ class DatabaseStack:
 
             override.write_text(overrides)
             files.append(str(override))
-            compose = DockerCompose(
+            compose = StandaloneCompose(
                 str(ROOT),
                 compose_file_name=files,
-                docker_command_path=str(ROOT / "infrastructure/docker/compose.py"),
                 wait=True,
             )
             self.compose = compose

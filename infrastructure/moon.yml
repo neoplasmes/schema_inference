@@ -2,63 +2,73 @@ language: system
 type: configuration
 
 fileGroups:
-  database:
+  cfg:
     - /docker-compose.database.yaml
-    - pgbouncer/*
+    - /docker-compose.yaml
+    - /docker-compose.client.yaml
+    - pgbouncer/pgbouncer.ini
+    - pgbouncer/userlist.txt
+  src:
+    - docker/*.py
 
 tasks:
-  version:
-    command: python $workspaceRoot/infrastructure/docker/compose.py version
+  setup:
+    command: proto install docker-compose
     options:
       cache: false
       runInCI: false
 
-  compose-up-database:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml up -d --wait --wait-timeout 120
+  lint:
+    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml config --quiet
     inputs:
-      - '@group(database)'
+      - '@group(cfg)'
     options:
-      cache: false
-      runInCI: false
-
-  compose-down-database:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml down
-    options:
-      cache: false
-      runInCI: false
-
-  logs:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml logs --tail=100
-    options:
-      cache: false
-      runInCI: false
-
-  compose-up-api:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml up -d --wait --wait-timeout 120
-    deps:
-      - server:image
-    options:
-      cache: false
-      runInCI: false
-
-  compose-down-api:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml down
-    options:
-      cache: false
-      runInCI: false
+      runFromWorkspaceRoot: true
 
   compose-up:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml -f $workspaceRoot/docker-compose.client.yaml up -d --wait --wait-timeout 120
+    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml up -d --wait --wait-timeout 120
     deps:
       - client:image
       - editor:image
       - server:image
-    options:
+    inputs:
+      - '@group(cfg)'
+    options: &compose-options
       cache: false
       runInCI: false
+      runFromWorkspaceRoot: true
+      mutex: workspace-compose
 
   compose-down:
-    command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml -f $workspaceRoot/docker-compose.client.yaml down
-    options:
-      cache: false
-      runInCI: false
+    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml down --remove-orphans
+    inputs:
+      - '@group(cfg)'
+    options: *compose-options
+
+  compose-up-database:
+    command: docker-compose -f docker-compose.database.yaml up -d --wait --wait-timeout 120
+    inputs:
+      - /docker-compose.database.yaml
+      - pgbouncer/pgbouncer.ini
+      - pgbouncer/userlist.txt
+    options: *compose-options
+
+  compose-down-database:
+    command: docker-compose -f docker-compose.database.yaml down
+    inputs:
+      - /docker-compose.database.yaml
+    options: *compose-options
+
+  compose-up-api:
+    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml up -d --wait --wait-timeout 120
+    deps:
+      - server:image
+    inputs:
+      - '@group(cfg)'
+    options: *compose-options
+
+  compose-down-api:
+    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml down
+    inputs:
+      - '@group(cfg)'
+    options: *compose-options

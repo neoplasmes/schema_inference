@@ -1,0 +1,7 @@
+implicitInputs:
+  - /.prototools
+  - /.moon/plugins/*.toml
+
+taskOptions:
+  unixShell: bash
+  windowsShell: pwsh
