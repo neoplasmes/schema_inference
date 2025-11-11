@@ -4,19 +4,8 @@ type: tool
 tasks:
   build:
     command: uv run --no-sync documents-generator --output generated --scenario all --documents 100 --seed 42
+    inputs:
+      - '@group(src)'
+      - '@group(cfg)'
     outputs:
       - generated
-    options:
-      cache: false
-
-  lint:
-    command: uv run --no-sync ruff check src
-
-  typecheck:
-    command: uv run --no-sync pyright
-
-  fmt:
-    command: uv run --no-sync ruff format src
-    options:
-      cache: false
-      runInCI: false
