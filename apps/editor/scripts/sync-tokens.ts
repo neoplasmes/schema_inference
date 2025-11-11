@@ -53,14 +53,14 @@ await mkdir(path.resolve(editorDirectory, 'src/shared/ui/theme'), {
 await writeFile(
     path.resolve(editorDirectory, 'src/board/theme/tokens.ts'),
     format(
-        `/** Generated from ${sourceLabel}. Run moon run editor:sync-tokens. */\nexport const tokens = ${JSON.stringify(document.tokens, null, 4)} as const;\n\nexport type BoardTheme = typeof tokens;\n`,
+        `/** Generated from ${sourceLabel}. Run moon run editor:build-tokens. */\nexport const tokens = ${JSON.stringify(document.tokens, null, 4)} as const;\n\nexport type BoardTheme = typeof tokens;\n`,
         'src/board/theme/tokens.ts'
     )
 );
 await writeFile(
     path.resolve(editorDirectory, 'src/shared/ui/theme/tokens.css'),
     format(
-        `/* Generated from ${sourceLabel}. Run moon run editor:sync-tokens. */\n.schema-editor {\n${declarations.join('\n')}\n}\n`,
+        `/* Generated from ${sourceLabel}. Run moon run editor:build-tokens. */\n.schema-editor {\n${declarations.join('\n')}\n}\n`,
         'src/shared/ui/theme/tokens.css'
     )
 );

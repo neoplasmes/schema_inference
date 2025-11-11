@@ -2,7 +2,7 @@ language: python
 type: tool
 
 tasks:
-  generate:
+  build:
     command: uv run --no-sync documents-generator --output generated --scenario all --documents 100 --seed 42
     outputs:
       - generated

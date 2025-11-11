@@ -2,10 +2,10 @@ language: python
 type: automation
 
 tasks:
-  test:
+  test-e2e:
     command: uv run --no-sync pytest -c $workspaceRoot/apps/server/pyproject.toml $projectRoot
     deps:
-      - server:docker-build
+      - server:image
     env:
       PYTHONPATH: $workspaceRoot
     options:
@@ -25,7 +25,7 @@ tasks:
     env:
       PYTHONPATH: $workspaceRoot
 
-  serve:
+  start:
     command: uv run --no-sync python -m e2e.backend.serve
     env:
       PYTHONPATH: $workspaceRoot

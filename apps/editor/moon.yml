@@ -34,7 +34,7 @@ tasks:
   typecheck:
     command: pnpm exec tsc --noEmit
 
-  docker-build:
+  image:
     command: docker build -t schema-workspace-editor:development .
     deps:
       - ~:build
@@ -44,12 +44,12 @@ tasks:
       - nginx.conf
     options:
       cache: false
-  test:
+  test-unit:
     command: pnpm exec vitest run
   lint:
     command: pnpm exec eslint src scripts playground visual webpack.config.ts
     deps:
-      - ~:architecture
+      - ~:lint-architecture
   fmt:
     command: pnpm exec biome format --write .
     deps:
@@ -62,19 +62,19 @@ tasks:
     options:
       cache: false
       runInCI: false
-  sync-tokens:
+  build-tokens:
     command: pnpm exec tsx scripts/sync-tokens.ts
     options:
       cache: false
       runInCI: false
-  visual:
+  test-e2e-visual:
     command: pnpm exec tsx visual/run.ts
     local: true
-  perf:
+  test-e2e-performance:
     command: pnpm exec tsx visual/perf.ts
     local: true
 
-  architecture:
+  lint-architecture:
     command: pnpm exec tsx scripts/check-architecture.ts
     inputs:
       - "@group(sources)"
