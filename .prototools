@@ -4,6 +4,7 @@ python = "3.12.12"
 uv = "0.9.4"
 node = "22.20.0"
 pnpm = "10.18.3"
+docker-compose = "2.40.1"
 
 [env]
 UV_PYTHON = "3.12.12"
@@ -17,4 +18,5 @@ node = "https://github.com/moonrepo/plugins/releases/download/node_tool-v0.17.3/
 pnpm = "https://github.com/moonrepo/plugins/releases/download/node_depman_tool-v0.17.0/node_depman_tool.wasm"
 uv = "https://github.com/moonrepo/plugins/releases/download/python_uv_tool-v0.2.2/python_uv_tool.wasm"
 python = "source:./.moon/plugins/python.toml"
+docker-compose = "source:./.moon/plugins/docker-compose.toml"
 internal-schema = "https://github.com/moonrepo/plugins/releases/download/schema_tool-v0.17.7/schema_tool.wasm"
