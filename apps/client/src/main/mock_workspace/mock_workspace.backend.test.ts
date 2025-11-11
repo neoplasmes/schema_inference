@@ -46,7 +46,7 @@ describe('mock workspace flow', () => {
             'Catalog',
             1
         );
-        expect(first.documents[0].content).toBe('{}');
+        expect(first.documents[0]).not.toHaveProperty('content');
         await vi.advanceTimersByTimeAsync(2000);
         const read = backend.request(`/api/v2/analyses/${first.id}`);
         await vi.runAllTimersAsync();

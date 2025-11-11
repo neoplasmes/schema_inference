@@ -23,7 +23,7 @@ export type CommandOptions<I> = Readonly<{
     ) => readonly EntityPatch[];
 }>;
 
-export type ReadSettings = Readonly<{
+export type ReadSettings<O = unknown> = Readonly<{
     enabled?: boolean;
-    refetchInterval?: number | false;
+    refetchInterval?: number | false | ((data: O | undefined) => number | false);
 }>;

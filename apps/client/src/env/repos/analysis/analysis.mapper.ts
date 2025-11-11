@@ -23,7 +23,6 @@ function mapDocument(value: unknown): SourceDocument {
         name: text(dto.name, 'document.name'),
         format,
         size: integer(dto.size, 'document.size'),
-        content: text(dto.content, 'document.content'),
     };
 }
 

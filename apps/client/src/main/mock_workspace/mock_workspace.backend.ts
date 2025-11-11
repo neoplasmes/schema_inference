@@ -36,6 +36,20 @@ interface WorkspaceSnapshot {
 
 const storageKey = 'schema-workspace.host.v1';
 
+function representation(analysis: AnalysisRecord): Omit<AnalysisRecord, 'documents'> & {
+    documents: Omit<DocumentRecord, 'content'>[];
+} {
+    return {
+        ...analysis,
+        documents: analysis.documents.map(({ id, name, format, size }) => ({
+            id,
+            name,
+            format,
+            size,
+        })),
+    };
+}
+
 function json(body: unknown, status = 200): Response {
     return new Response(JSON.stringify(body), {
         status,
@@ -133,7 +147,7 @@ export class MockWorkspaceBackend {
                 );
             }
 
-            return json(this.currentAnalysis(analysis));
+            return json(representation(this.currentAnalysis(analysis)));
         }
 
         return (
@@ -219,7 +233,7 @@ export class MockWorkspaceBackend {
                 });
 
             return matches
-                ? json(this.currentAnalysis(previous))
+                ? json(representation(this.currentAnalysis(previous)))
                 : json(
                       {
                           error: 'idempotency_key_reused',
@@ -252,7 +266,7 @@ export class MockWorkspaceBackend {
         this.snapshot.attempts[key] = id;
         this.persist();
 
-        return json(analysis, 202);
+        return json(representation(analysis), 202);
     }
 
     private currentAnalysis(analysis: AnalysisRecord): AnalysisRecord {

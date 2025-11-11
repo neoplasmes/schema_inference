@@ -24,7 +24,10 @@ export function useWorkspaceController() {
         },
         {
             enabled: Boolean(analysisId),
-            refetchInterval: 500,
+            refetchInterval: current =>
+                current?.status === 'completed' || current?.status === 'failed'
+                    ? false
+                    : 500,
         }
     );
     const create = useCommand(dependencies.createAnalysis);
