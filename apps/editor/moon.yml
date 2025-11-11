@@ -1,81 +1,101 @@
 language: typescript
 type: application
+dependsOn:
+  - entity-cache
 
 fileGroups:
-  sources:
-    - src/**/*
-    - playground/**/*
-    - scripts/**/*
-    - index.html
-  configs:
+  code:
+    - src/**/*.{ts,tsx,css}
+    - scripts/**/*.ts
+    - playground/**/*.ts
+  src:
+    - src/**/*.{ts,tsx,css}
+    - '!src/**/*.test.{ts,tsx}'
+    - playground/**/*.ts
+  cfg:
     - package.json
     - tsconfig.json
-    - '*.config.*'
+    - webpack.config.ts
+  assets:
+    - index.html
+  test-e2e:
+    - visual/*.ts
+  containers:
+    - Dockerfile
+    - .dockerignore
+    - nginx.conf
 
 tasks:
   dev:
     command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development
-    local: true
-    options:
-      persistent: true
-  playground:
-    command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development
-    local: true
-    options:
-      persistent: true
+    preset: server
+
   build:
     command: pnpm exec tsx scripts/build.ts
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /packages/entity-cache/src/**/*
+      - '@group(src)'
+      - '@group(assets)'
+      - '@group(cfg)'
+      - '@group(shared-cache)'
+      - scripts/build.ts
     outputs:
       - dist
-  typecheck:
-    command: pnpm exec tsc --noEmit
 
   image:
     command: docker build -t schema-workspace-editor:development .
     deps:
-      - ~:build
+      - editor:build
     inputs:
-      - Dockerfile
-      - .dockerignore
-      - nginx.conf
+      - '@group(containers)'
+      - '@group(src)'
+      - '@group(assets)'
+      - '@group(cfg)'
+      - '@group(shared-cache)'
+      - scripts/build.ts
     options:
       cache: false
-  test-unit:
-    command: pnpm exec vitest run
+
   lint:
     command: pnpm exec eslint src scripts playground visual webpack.config.ts
     deps:
-      - ~:lint-architecture
+      - editor:lint-architecture
+
   fmt:
-    command: pnpm exec biome format --write .
     deps:
-      - ~:fmt-markup
-    options:
-      cache: false
-      runInCI: false
+      - editor:fmt-markup
+
   fmt-markup:
     command: pnpm exec prettier --write index.html
     options:
       cache: false
       runInCI: false
+
   build-tokens:
     command: pnpm exec tsx scripts/sync-tokens.ts
     options:
       cache: false
       runInCI: false
+
   test-e2e-visual:
     command: pnpm exec tsx visual/run.ts
-    local: true
+    inputs:
+      - '@group(src)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+    options:
+      cache: false
+      runInCI: false
+      mutex: editor-browser
+
   test-e2e-performance:
+    extends: test-e2e-visual
     command: pnpm exec tsx visual/perf.ts
-    local: true
+    options:
+      mergeArgs: replace
 
   lint-architecture:
     command: pnpm exec tsx scripts/check-architecture.ts
     inputs:
-      - "@group(sources)"
-      - "@group(configs)"
+      - src/**/*.{ts,tsx}
+      - scripts/check-architecture.ts
+      - scripts/architecture/**/*.ts

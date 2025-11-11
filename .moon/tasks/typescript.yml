@@ -1,5 +1,97 @@
 implicitInputs:
+  - /.moon/tasks/typescript.yml
   - /package.json
   - /pnpm-lock.yaml
   - /pnpm-workspace.yaml
   - /.pnpmfile.cjs
+
+fileGroups:
+  code:
+    - src/**/*.{ts,tsx,css}
+    - scripts/**/*.ts
+  src:
+    - src/**/*.{ts,tsx,css}
+    - '!src/**/*.test.{ts,tsx}'
+  scripts:
+    - scripts/**/*.ts
+    - '!scripts/**/*.test.ts'
+  test-unit:
+    - src/**/*.test.{ts,tsx}
+    - scripts/**/*.test.ts
+  test-e2e: []
+  assets: []
+  cfg:
+    - package.json
+    - tsconfig.json
+  cfg-lint:
+    - eslint.config.js
+  cfg-fmt:
+    - /biome.json
+  shared-cache:
+    - /packages/entity-cache/src/**/*.{ts,tsx}
+
+tasks:
+  typecheck:
+    command: pnpm exec tsc --noEmit
+    inputs:
+      - '@group(code)'
+      - '@group(test-unit)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(shared-cache)'
+
+  test-unit:
+    command: pnpm exec vitest run
+    inputs:
+      - '@group(code)'
+      - '@group(test-unit)'
+      - '@group(cfg)'
+      - '@group(shared-cache)'
+
+  lint:
+    inputs:
+      - '@group(code)'
+      - '@group(test-unit)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(cfg-lint)'
+
+  lint-fix:
+    extends: lint
+    args: --fix
+    options:
+      cache: false
+      runInCI: false
+
+  fmt:
+    command: pnpm exec biome format --write --files-ignore-unknown=true @files(src) @files(scripts) @files(test-unit) @files(test-e2e) @files(cfg) @files(cfg-lint) @files(assets)
+    deps:
+      - ~:lint-fix
+    inputs:
+      - '@group(code)'
+      - '@group(test-unit)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(cfg-lint)'
+      - '@group(assets)'
+      - '@group(cfg-fmt)'
+    options:
+      cache: false
+      runInCI: false
+
+  check:
+    command: noop
+    deps:
+      - ~:fmt
+      - ~:typecheck
+    inputs:
+      - '@group(code)'
+      - '@group(test-unit)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(cfg-lint)'
+      - '@group(cfg-fmt)'
+      - '@group(assets)'
+      - '@group(shared-cache)'
+    options:
+      runInCI: false
