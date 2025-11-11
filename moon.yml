@@ -2,6 +2,39 @@ language: system
 type: configuration
 
 fileGroups:
+  src:
+    - apps/*/src/**/*.{py,sql,json,ts,tsx,css}
+    - apps/editor/playground/*.ts
+    - packages/*/src/**/*.{py,ts,tsx}
+    - apps/*/scripts/*.ts
+    - apps/editor/scripts/architecture/*.ts
+    - infrastructure/docker/*.py
+  tests:
+    - apps/*/tests/**/*.{py,ts,xml,json,yaml,yml}
+    - apps/editor/visual/*.ts
+    - e2e/backend/**/*.py
+  cfg:
+    - .moon/tasks/*.yml
+    - apps/*/Dockerfile
+    - apps/*/.dockerignore
+    - apps/*/nginx.conf
+    - .dockerignore
+    - apps/*/*.{json,js,ts}
+    - apps/*/pyproject.toml
+    - packages/*/*.{json,js,ts,toml}
+    - /docker-compose*.yaml
+    - infrastructure/pgbouncer/*.{ini,txt}
+    - package.json
+    - pyproject.toml
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
+    - .pnpmfile.cjs
+    - uv.lock
+    - biome.json
+    - prettier.config.js
+  assets:
+    - apps/*/index.html
+    - apps/client/public/*.json
   formatting:
     - biome.json
     - package.json
@@ -10,6 +43,12 @@ fileGroups:
 
 tasks:
   lint:
+    command: noop
+    inputs: &workspace-inputs
+      - '@group(src)'
+      - '@group(tests)'
+      - '@group(cfg)'
+      - '@group(assets)'
     deps:
       - client:lint
       - editor:lint
@@ -17,6 +56,7 @@ tasks:
       - server:lint
       - documents-generator:lint
       - backend-e2e:lint
+      - infrastructure:lint
 
   fmt:
     command: pnpm exec biome format --write @files(formatting)
@@ -24,8 +64,10 @@ tasks:
     deps:
       - client:fmt
       - editor:fmt
+      - entity-cache:fmt
       - server:fmt
       - documents-generator:fmt
+      - backend-e2e:fmt
     options:
       cache: false
       runInCI: false
@@ -44,14 +86,9 @@ tasks:
       cache: false
       runInCI: false
 
-  fmt-check:
-    command: pnpm exec biome format --files-ignore-unknown=true --no-errors-on-unmatched
-    platform: node
-    options:
-      cache: false
-      runInCI: false
-
   typecheck:
+    command: noop
+    inputs: *workspace-inputs
     deps:
       - client:typecheck
       - editor:typecheck
@@ -60,34 +97,59 @@ tasks:
       - documents-generator:typecheck
       - backend-e2e:typecheck
 
+  check:
+    command: noop
+    inputs: *workspace-inputs
+    deps:
+      - root:fmt
+      - root:lint
+      - root:typecheck
+    options:
+      runDepsInParallel: false
+      runInCI: false
+
   test-unit:
+    command: noop
+    inputs: *workspace-inputs
     deps:
       - client:test-unit
       - editor:test-unit
       - entity-cache:test-unit
       - server:test-unit
 
-  build:
+  test-int:
+    command: noop
+    inputs: *workspace-inputs
     deps:
-      - client:build
-      - server:build
+      - server:test-int
 
-  ci:
+  test-e2e:
+    command: noop
+    inputs: *workspace-inputs
     deps:
-      - ~:lint
-      - ~:typecheck
-      - ~:test-unit
-      - ~:build
       - client:test-e2e-mock
+      - client:test-e2e-api
       - client:test-e2e
       - backend-e2e:test-e2e
 
-  setup-frontend:
-    command: pnpm install --frozen-lockfile --ignore-scripts
-    platform: system
+  build:
+    command: noop
+    inputs: *workspace-inputs
+    deps:
+      - client:build
+      - server:build
+      - documents-generator:build
+
+  setup:
+    command: noop
+    deps:
+      - root:setup-frontend
+      - root:setup-backend
+      - client:setup-browser
     options:
       cache: false
       runInCI: false
+      runDepsInParallel: false
 
   setup-tools:
     command: proto install
@@ -95,15 +157,35 @@ tasks:
       cache: false
       runInCI: false
 
-  lock-backend:
-    command: uv lock --upgrade
+  setup-frontend:
+    command: pnpm install --frozen-lockfile --ignore-scripts
     platform: system
+    deps:
+      - root:setup-tools
     options:
       cache: false
       runInCI: false
 
   setup-backend:
     command: uv sync --all-packages --locked --no-python-downloads
+    platform: system
+    deps:
+      - root:setup-tools
+    options:
+      cache: false
+      runInCI: false
+
+  lock:
+    command: noop
+    deps:
+      - root:lock-backend
+      - root:lock-frontend
+    options:
+      cache: false
+      runInCI: false
+
+  lock-backend:
+    command: uv lock --upgrade
     platform: system
     options:
       cache: false
