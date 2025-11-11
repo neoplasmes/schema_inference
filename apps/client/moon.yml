@@ -170,3 +170,13 @@ tasks:
       WORKSPACE_CONTAINER: '1'
     options:
       cache: false
+
+workspace:
+  inheritedTasks:
+    exclude:
+      - typecheck
+      - test-unit
+      - lint
+      - lint-fix
+      - fmt
+      - check

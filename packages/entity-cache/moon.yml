@@ -2,33 +2,11 @@ language: typescript
 type: library
 
 fileGroups:
-  sources:
-    - src/**/*.ts
-    - src/**/*.tsx
-  configs:
+  cfg:
     - package.json
     - tsconfig.json
     - vitest.config.ts
 
 tasks:
-  typecheck:
-    command: pnpm exec tsc --noEmit
-    inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-  test-unit:
-    command: pnpm exec vitest run
-    inputs:
-      - '@group(sources)'
-      - '@group(configs)'
   lint:
     command: pnpm exec eslint src vitest.config.ts
-    inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - eslint.config.js
-  fmt:
-    command: pnpm exec biome format --write src package.json tsconfig.json vitest.config.ts
-    options:
-      cache: false
-      runInCI: false
