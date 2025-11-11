@@ -60,12 +60,12 @@ tasks:
       - documents-generator:typecheck
       - backend-e2e:typecheck
 
-  test:
+  test-unit:
     deps:
-      - client:test
-      - editor:test
-      - entity-cache:test
-      - server:test
+      - client:test-unit
+      - editor:test-unit
+      - entity-cache:test-unit
+      - server:test-unit
 
   build:
     deps:
@@ -76,13 +76,13 @@ tasks:
     deps:
       - ~:lint
       - ~:typecheck
-      - ~:test
+      - ~:test-unit
       - ~:build
-      - client:e2e
-      - client:e2e-docker
-      - backend-e2e:test
+      - client:test-e2e-mock
+      - client:test-e2e
+      - backend-e2e:test-e2e
 
-  install-frontend:
+  setup-frontend:
     command: pnpm install --frozen-lockfile --ignore-scripts
     platform: system
     options:
@@ -102,7 +102,7 @@ tasks:
       cache: false
       runInCI: false
 
-  install-backend:
+  setup-backend:
     command: uv sync --all-packages --locked --no-python-downloads
     platform: system
     options:

@@ -13,7 +13,7 @@ tasks:
       cache: false
       runInCI: false
 
-  up:
+  compose-up-database:
     command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml up -d --wait --wait-timeout 120
     inputs:
       - '@group(database)'
@@ -21,7 +21,7 @@ tasks:
       cache: false
       runInCI: false
 
-  down:
+  compose-down-database:
     command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml down
     options:
       cache: false
@@ -33,31 +33,31 @@ tasks:
       cache: false
       runInCI: false
 
-  up-api:
+  compose-up-api:
     command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml up -d --wait --wait-timeout 120
     deps:
-      - server:docker-build
+      - server:image
     options:
       cache: false
       runInCI: false
 
-  down-api:
+  compose-down-api:
     command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml down
     options:
       cache: false
       runInCI: false
 
-  up-client:
+  compose-up:
     command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml -f $workspaceRoot/docker-compose.client.yaml up -d --wait --wait-timeout 120
     deps:
-      - client:docker-build
-      - editor:docker-build
-      - server:docker-build
+      - client:image
+      - editor:image
+      - server:image
     options:
       cache: false
       runInCI: false
 
-  down-client:
+  compose-down:
     command: python $workspaceRoot/infrastructure/docker/compose.py -f $workspaceRoot/docker-compose.database.yaml -f $workspaceRoot/docker-compose.yaml -f $workspaceRoot/docker-compose.client.yaml down
     options:
       cache: false

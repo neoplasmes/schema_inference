@@ -14,7 +14,7 @@ tasks:
   typecheck:
     command: uv run --no-sync pyright
 
-  test:
+  test-unit:
     command: uv run --no-sync pytest
     env:
       PYTHONPATH: $workspaceRoot
@@ -26,14 +26,14 @@ tasks:
     outputs:
       - dist
 
-  install-runtime:
+  setup-runtime:
     command: uv sync --locked --no-dev --no-editable --package backend
     platform: system
     options:
       cache: false
       runInCI: false
 
-  docker-build:
+  image:
     command: docker build -f apps/server/Dockerfile -t schema-workspace-api:development .
     platform: system
     inputs:
@@ -52,7 +52,7 @@ tasks:
     deps:
       - ~:lint
       - ~:typecheck
-      - ~:test
+      - ~:test-unit
       - ~:build
 
   start:
@@ -61,11 +61,11 @@ tasks:
     options:
       persistent: true
 
-  download-wordnet:
+  setup-wordnet:
     command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
     local: true
 
-  evaluate:
+  test-int-corpus:
     command: uv run --no-sync python -m integration.evaluate --all --output ../../artifacts/inference-review --fail-on-forbidden
     env:
       PYTHONPATH: tests

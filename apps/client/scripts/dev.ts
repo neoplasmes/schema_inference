@@ -144,7 +144,7 @@ process.once('SIGTERM', onSignal);
 try {
     if (mode === 'api') {
         await Promise.race([
-            startTask('infrastructure:up', false).closed,
+            startTask('infrastructure:compose-up-database', false).closed,
             aborted,
         ]);
         controller.signal.throwIfAborted();

@@ -16,7 +16,7 @@ tasks:
     inputs:
       - '@group(sources)'
       - '@group(configs)'
-  test:
+  test-unit:
     command: pnpm exec vitest run
     inputs:
       - '@group(sources)'
