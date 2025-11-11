@@ -16,12 +16,12 @@ pre-commit:
     - name: client eslint
       root: apps/client/
       glob: 'apps/client/src/**/*.{ts,tsx}'
-      run: pnpm exec eslint --fix {staged_files}
+      run: moon run client:lint-fix --affected --status staged
       stage_fixed: true
 
     - name: ruff
       glob: '*.py'
-      run: uv run --no-sync ruff check --fix {staged_files} && uv run --no-sync ruff format {staged_files}
+      run: moon run server:fmt documents-generator:fmt backend-e2e:fmt --affected --status staged
       stage_fixed: true
 
     - name: lint and typecheck
