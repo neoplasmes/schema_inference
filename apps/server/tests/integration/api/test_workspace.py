@@ -43,6 +43,7 @@ def analyze(
         "/api/v2/analyses", json=body, headers={"Idempotency-Key": "analysis-1"}
     )
     assert response.status_code == 202, response.text
+    assert all("content" not in document for document in response.json()["documents"])
     assert response.headers["location"] == f"/api/v2/analyses/{response.json()['id']}"
     resource = response.json()
 
@@ -57,6 +58,8 @@ def analyze(
         time.sleep(0.01)
 
     assert resource["status"] == "completed", resource
+    assert resource["documents"]
+    assert all("content" not in document for document in resource["documents"])
     manifest = client.get(
         f"/api/v2/analyses/{resource['id']}/revisions/{resource['revision']}/manifest"
     ).json()

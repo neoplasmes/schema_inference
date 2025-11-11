@@ -9,6 +9,6 @@ export interface DocumentInput {
     readonly content: string;
 }
 
-export interface SourceDocument extends Entity, DocumentInput {
+export interface SourceDocument extends Entity, Omit<DocumentInput, 'content'> {
     readonly id: string;
 }

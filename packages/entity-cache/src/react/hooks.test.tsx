@@ -36,6 +36,45 @@ async function settle(): Promise<void> {
 }
 
 describe('React cache adapter', () => {
+    it('stops polling when the refetch interval function returns false', async () => {
+        let calls = 0;
+        const query = {
+            name: 'job',
+            reads: () => [
+                'job:1',
+            ],
+            execute: async () => {
+                calls += 1;
+
+                return {
+                    ref: 'job:1',
+                    status: calls < 3 ? 'processing' : 'failed',
+                };
+            },
+        };
+
+        function View() {
+            useRead(query, undefined, {
+                refetchInterval: job => (job?.status === 'failed' ? false : 5),
+            });
+
+            return null;
+        }
+
+        await act(async () =>
+            root.render(
+                <CacheProvider runtime={runtime}>
+                    <View />
+                </CacheProvider>
+            )
+        );
+        await settle();
+        await settle();
+        await settle();
+
+        expect(calls).toBe(3);
+    });
+
     it('subscribes to nested entities while preserving an unrelated read snapshot', async () => {
         const query = {
             name: 'order',

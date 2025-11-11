@@ -14,6 +14,15 @@ def resource_links(kind: str, value: dict[str, Any]) -> dict[str, Any]:
     if kind == "schema":
         links["changesets"] = {"href": f"{path}/changesets"}
 
+    if kind == "analysis":
+        value = {
+            **value,
+            "documents": [
+                {key: item for key, item in document.items() if key != "content"}
+                for document in value["documents"]
+            ],
+        }
+
     return {**value, "_links": links}
 
 

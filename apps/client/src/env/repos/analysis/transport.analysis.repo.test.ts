@@ -18,7 +18,6 @@ const dto = {
             name: 'catalog.json',
             format: 'json',
             size: 2,
-            content: '{}',
         },
     ],
 };
@@ -36,6 +35,7 @@ describe('analysis repository boundary', () => {
         expect(analysis.documents[0].ref).toBe('document:d1');
         expect(analysis.createdAt).toBe(dto.created_at);
         expect(analysis).not.toHaveProperty('created_at');
+        expect(analysis.documents[0]).not.toHaveProperty('content');
         expect(handler).toHaveBeenCalledWith('/api/v2/analyses/a1', {
             signal,
         });
