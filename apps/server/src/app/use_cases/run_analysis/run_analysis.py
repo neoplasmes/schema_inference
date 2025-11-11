@@ -8,6 +8,8 @@ from app.use_cases.infer_schema import InferSchema, InferSchemaError
 from app.use_cases.workspace_support import digest
 from core.processes.build_schema_draft import build_schema_draft
 
+MAX_ATTEMPTS = 3
+
 
 class RunAnalysis:
     """Publish inference evidence and observed whole-document alternatives atomically."""
@@ -20,21 +22,39 @@ class RunAnalysis:
         self._inference = inference
 
     def pending(self) -> list[str]:
+        """Return identifiers of analyses that still need to run."""
         with self._store.read() as repository:
-            return [
-                item["id"]
-                for item in repository.resources("analysis")
-                if item["status"] in ("queued", "processing")
-            ]
+            return repository.pending_analyses()
 
     def execute(self, identifier: str) -> None:
+        """Run one analysis, logging any failure instead of losing it."""
+        try:
+            self._execute(identifier)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Analysis %s could not be executed", identifier
+            )
+
+    def _execute(self, identifier: str) -> None:
         with self._store.transaction() as repository:
             resource = repository.resource("analysis", identifier)
 
             if resource["status"] not in ("queued", "processing"):
                 return
 
-            resource.update(status="processing", progress=10)
+            attempts = resource.get("attempts", 0) + 1
+
+            if attempts > MAX_ATTEMPTS:
+                resource.update(
+                    status="failed",
+                    error="Analysis was interrupted too many times.",
+                    progress=100,
+                )
+                repository.put_resource("analysis", resource)
+
+                return
+
+            resource.update(status="processing", progress=10, attempts=attempts)
             repository.put_resource("analysis", resource)
 
         try:
@@ -116,8 +136,15 @@ class RunAnalysis:
     def _fail(self, resource, message: str) -> None:
         resource.update(status="failed", error=message, progress=100)
 
-        with self._store.transaction() as repository:
-            if repository.resource("analysis", resource["id"])["status"] == "completed":
-                return
+        try:
+            with self._store.transaction() as repository:
+                current = repository.resource("analysis", resource["id"])
 
-            repository.put_resource("analysis", resource)
+                if current["status"] == "completed":
+                    return
+
+                repository.put_resource("analysis", resource)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Analysis %s could not be marked as failed", resource["id"]
+            )
