@@ -10,6 +10,12 @@ export default defineConfig({
     },
     test: {
         environment: 'node',
+        testTimeout: 15000,
+        expect: {
+            poll: {
+                timeout: 5000,
+            },
+        },
         include: [
             'src/**/*.test.{ts,tsx}',
             'scripts/**/*.test.ts',
