@@ -10,15 +10,24 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
 const container = process.env.WORKSPACE_CONTAINER === '1';
 const endpoints = [
     'http://127.0.0.1:8010/api/v2/schemas',
-    ...(container ? [
-        'http://127.0.0.1:4173/',
-        'http://127.0.0.1:4173/api/v2/schemas',
-        'http://127.0.0.1:4173/editor/mf-manifest.json',
-    ] : []),
+    ...(container
+        ? [
+              'http://127.0.0.1:4173/',
+              'http://127.0.0.1:4173/api/v2/schemas',
+              'http://127.0.0.1:4173/editor/mf-manifest.json',
+          ]
+        : []),
 ];
 
 export async function startBackend(): Promise<() => Promise<void>> {
-    for (const port of container ? [8010, 4173] : [8010]) {
+    for (const port of container
+        ? [
+              8010,
+              4173,
+          ]
+        : [
+              8010,
+          ]) {
         const probe = createServer();
         await new Promise<void>((resolve, reject) => {
             probe.once('error', error => {
@@ -118,8 +127,10 @@ async function launchBackend(): Promise<() => Promise<void>> {
         }
 
         await exited;
-        const artifacts = path.join(root, container
-            ? 'artifacts/client-docker-e2e' : 'artifacts/client-api-e2e');
+        const artifacts = path.join(
+            root,
+            container ? 'artifacts/client-docker-e2e' : 'artifacts/client-api-e2e'
+        );
         await mkdir(artifacts, {
             recursive: true,
         });
@@ -141,11 +152,13 @@ async function launchBackend(): Promise<() => Promise<void>> {
                 );
             }
 
-            const responses = await Promise.all(endpoints.map(endpoint =>
-                fetch(endpoint, {
-                    signal: AbortSignal.timeout(1000),
-                }).catch(() => undefined)
-            ));
+            const responses = await Promise.all(
+                endpoints.map(endpoint =>
+                    fetch(endpoint, {
+                        signal: AbortSignal.timeout(1000),
+                    }).catch(() => undefined)
+                )
+            );
 
             if (responses.every(response => response?.ok)) {
                 return stop;

@@ -39,7 +39,7 @@ while (!locked) {
 try {
     let archive = path.resolve(directory, '../editor/dist/@mf-types.zip');
 
-    if (process.env.EDITOR_TYPES_URL) {
+    if (process.env.EDITOR_TYPES_URL && !process.argv.includes('--local')) {
         const response = await fetch(process.env.EDITOR_TYPES_URL);
 
         if (!response.ok) {

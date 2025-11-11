@@ -1,115 +1,106 @@
 language: typescript
 type: application
+dependsOn:
+  - entity-cache
 
 fileGroups:
-  configs:
+  cfg:
     - package.json
     - tsconfig.json
-    - '*.config.{js,ts}'
-  sources:
+    - webpack.config.ts
+    - vitest.config.js
+    - playwright.config.ts
+  test-e2e:
+    - tests/**/*.ts
+  assets:
     - index.html
-    - src/**/*
-    - scripts/**/*
-    - public/**/*
-    - tests/**/*
+    - public/*.json
+  architecture:
+    - /apps/editor/scripts/architecture/**/*.ts
+  containers:
+    - Dockerfile
+    - .dockerignore
+    - nginx.conf
+  backend:
+    - /e2e/backend/**/*.py
+    - /apps/server/src/**/*.{py,sql,json}
+    - /docker-compose*.yaml
+    - /infrastructure/pgbouncer/*.{ini,txt}
+    - /apps/server/pyproject.toml
+    - /apps/server/Dockerfile
+    - /infrastructure/docker/*.py
+    - /uv.lock
 
 tasks:
   dev:
     command: pnpm exec tsx scripts/dev.ts
-    local: true
-    options:
-      persistent: true
-
-  dev-api:
-    command: pnpm exec tsx scripts/dev.ts
-    env:
-      WORKSPACE_MODE: api
-    local: true
-    options:
-      persistent: true
+    preset: server
 
   dev-web:
     command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js serve --config webpack.config.ts --mode development
-    local: true
-    options:
-      persistent: true
+    preset: server
 
   build-types:
-    command: pnpm exec tsx scripts/consume-editor-types.ts
+    command: pnpm exec tsx scripts/consume-editor-types.ts --local
     deps:
       - editor:build
     inputs:
       - scripts/consume-editor-types.ts
-      - /apps/editor/dist/@mf-types.zip
     outputs:
       - '@mf-types'
-    options:
-      cache: false
 
   build:
     command: pnpm exec tsx ./node_modules/webpack-cli/bin/cli.js --config webpack.config.ts --mode production
     deps:
-      - ~:build-types
+      - client:build-types
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /packages/entity-cache/src/**/*
+      - '@group(src)'
+      - '@group(assets)'
+      - '@group(shared-cache)'
+      - package.json
+      - tsconfig.json
+      - webpack.config.ts
     outputs:
       - dist
 
   typecheck:
-    command: pnpm exec tsc --noEmit
     deps:
-      - ~:build-types
+      - client:build-types
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /packages/entity-cache/src/**/*
+      - '@group(architecture)'
 
   image:
     command: docker build -t schema-workspace-client:development .
     deps:
-      - ~:build
+      - client:build
     inputs:
-      - Dockerfile
-      - .dockerignore
-      - nginx.conf
+      - '@group(containers)'
+      - '@group(src)'
+      - '@group(assets)'
+      - '@group(cfg)'
+      - '@group(shared-cache)'
     options:
       cache: false
 
   test-unit:
-    command: pnpm exec vitest run
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /packages/entity-cache/src/**/*
+      - '@group(architecture)'
 
   lint:
     command: pnpm exec eslint src scripts tests playwright.config.ts webpack.config.ts
     deps:
-      - ~:lint-architecture
-    inputs:
-      - '@group(sources)'
-      - '@group(configs)'
+      - client:lint-architecture
 
   lint-architecture:
     command: pnpm exec tsx scripts/check-architecture.ts
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /apps/editor/scripts/architecture/**/*
-
-  lint-fix:
-    command: pnpm exec eslint --fix src scripts tests playwright.config.ts webpack.config.ts
-    local: true
+      - src/**/*.{ts,tsx}
+      - '@group(architecture)'
+      - scripts/check-architecture.ts
 
   fmt:
-    command: pnpm exec biome format --write .
     deps:
-      - ~:fmt-markup
-    options:
-      cache: false
-      runInCI: false
+      - client:fmt-markup
 
   fmt-markup:
     command: pnpm exec prettier --write index.html
@@ -126,57 +117,57 @@ tasks:
   test-e2e-mock:
     command: pnpm exec playwright test
     deps:
-      - ~:build
+      - client:build
+    env:
+      WORKSPACE_MODE: mock
+      WORKSPACE_CONTAINER: '0'
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /apps/editor/src/**/*
-      - /packages/entity-cache/src/**/*
-    options:
+      - '@group(src)'
+      - '@group(scripts)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(assets)'
+      - '@group(shared-cache)'
+      - /apps/editor/src/**/*.{ts,tsx,css}
+    options: &browser-options
       cache: false
+      mutex: client-browser
 
   start-e2e:
     command: pnpm exec tsx scripts/serve-e2e.ts
-    local: true
-    options:
-      persistent: true
+    preset: server
 
   test-e2e-api:
-    command: pnpm exec playwright test
+    extends: test-e2e-mock
     deps:
-      - ~:build
-      - ~:test-e2e-mock
       - server:image
     env:
       WORKSPACE_MODE: api
     inputs:
-      - '@group(sources)'
-      - '@group(configs)'
-      - /apps/editor/src/**/*
-      - /apps/server/src/**/*
-      - /uv.lock
-    options:
-      cache: false
+      - '@group(backend)'
 
   test-e2e:
     command: pnpm exec playwright test
     deps:
-      - ~:test-e2e-mock
-      - ~:image
+      - client:image
       - editor:image
       - server:image
     env:
       WORKSPACE_MODE: api
       WORKSPACE_CONTAINER: '1'
-    options:
-      cache: false
-
-workspace:
-  inheritedTasks:
-    exclude:
-      - typecheck
-      - test-unit
-      - lint
-      - lint-fix
-      - fmt
-      - check
+    inputs:
+      - '@group(backend)'
+      - '@group(containers)'
+      - '@group(src)'
+      - '@group(scripts)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(assets)'
+      - '@group(shared-cache)'
+      - /apps/editor/src/**/*.{ts,tsx,css}
+      - /apps/editor/nginx.conf
+      - /apps/editor/Dockerfile
+      - /apps/editor/.dockerignore
+      - /apps/editor/webpack.config.ts
+      - /apps/editor/scripts/build.ts
+    options: *browser-options
