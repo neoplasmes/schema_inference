@@ -28,11 +28,11 @@ Everything below is a consequence of this rule.
 ### 1.1 Core
 
 - **Entities** are plain data. Every entity carries its address: `ref: EntityRef`. Domain behaviour is written as pure functions next to the entity (`canPromote(user)`, `cartTotal(cart)`, `renameBoard(board, title)`), not as class methods. Plain data survives serialization (SSR), structural sharing and normalization; class instances do not.
-- **`entity_ref.ts`** is the vocabulary of the whole data layer. An `EntityRef` is simultaneously the identity of an entity in the store and the unit of invalidation.
+- **`entityRef.ts`** is the vocabulary of the whole data layer. An `EntityRef` is simultaneously the identity of an entity in the store and the unit of invalidation.
 - **Processes** are business decisions spanning several entities. They only accept and return data.
 
 ```ts
-// core/entities/entity_ref.ts
+// core/entities/entityRef.ts
 export type EntityName = 'user' | 'cart' | 'order' | 'session';
 export type EntityRef = EntityName | `${EntityName}:${string}`;
 //                      ^ collection  ^ concrete entity
@@ -174,7 +174,7 @@ export interface Query<I, O> {
   reads(input: I): EntityRef[];
 }
 
-// app/ports/repos/read_options.ts
+// app/ports/repos/readOptions.ts
 export type ReadOptions = { signal?: AbortSignal };
 ```
 
@@ -210,7 +210,7 @@ A CI script (ts-morph) collects every `EntityRef` literal from `reads` and `writ
 1. a ref appears in `reads` but no command `writes` it: such data never refreshes after writes (warning; read-only reference data goes to an explicit allowlist);
 2. a ref appears in `writes` but no query `reads` it: an invalidation that invalidates nothing;
 3. a name in `EntityName` is used nowhere;
-4. `entity_ref.ts` contains anything except the union.
+4. `entityRef.ts` contains anything except the union.
 
 ### 3.5 The litmus test
 
@@ -241,7 +241,7 @@ Normalization cannot know whether a new order belongs to "page 2 of paid orders"
 ### 4.2 EntityStore
 
 ```ts
-// env/cache/entity_store.ts
+// env/cache/entityStore.ts
 class EntityStore {
   get(ref: EntityRef): Entity | undefined
   upsert(ref: EntityRef, partial: Partial<Entity>): void
@@ -263,28 +263,28 @@ The store is implemented on top of a vanilla Zustand store and is covered by a t
 ### 4.3 Reads
 
 ```ts
-// env/cache/query_options_for.ts
+// env/cache/queryOptionsFor.ts
 queryOptionsFor(query, input)
   // queryKey:  [query.name, input]
   // queryFn:   ({ signal }) -> query.execute(input, { signal }) -> normalize into EntityStore
   // meta.tags: query.reads(input)
   // staleTime: from freshness.ts
 
-// env/cache/use_read.ts
+// env/cache/useRead.ts
 useRead(query, input): { data, isPending, error }
   // useQuery(queryOptionsFor(...)) + denormalize with subscriptions to the refs in the result
 ```
 
 The same `queryOptionsFor` is used by router loaders and SSR prefetch: `queryClient.ensureQueryData(queryOptionsFor(query, input))`.
 
-**Freshness** is not a property of an operation, it is a policy of the cache. A global default is set in `main/query_client.ts`; overrides by query name live in `env/cache/freshness.ts`.
+**Freshness** is not a property of an operation, it is a policy of the cache. A global default is set in `main/queryClient.ts`; overrides by query name live in `env/cache/freshness.ts`.
 
 Cancellation path: `useRead` -> `queryFn({ signal })` -> `query.execute` -> port -> transport -> `fetch`. TanStack Query aborts only if `signal` is accessed in `queryFn`; `queryOptionsFor` always does.
 
 ### 4.4 Writes and optimistic UI
 
 ```ts
-// env/cache/use_command.ts
+// env/cache/useCommand.ts
 export type EntityPatch =
   | { ref: EntityRef; patch: Partial<Entity> }
   | { ref: EntityRef; remove: true };
@@ -407,20 +407,22 @@ shared/model/theme.store.ts                         <- the whole application
 
 ## 8. Naming
 
-- Underscore joins a compound name, a dot separates logical parts, the implementation name goes first:
+- Files and folders that are not React components use lower camelCase; React component files and folders use PascalCase; CSS modules use lower camelCase. A dot separates logical parts, the implementation name goes first:
 
 ```
 transport.order.repo.ts          class TransportOrderRepo implements OrderRepo
 idb.drafts.repo.ts               class IdbDraftsRepo implements DraftsRepo
 http.transport.ts                class HttpTransport
-web_socket.transport.ts          class WebSocketTransport
+webSocket.transport.ts           class WebSocketTransport
 checkout.command.ts              class Checkout implements Command<...>
-checkout_preview.query.ts        class CheckoutPreview implements Query<...>
+checkoutPreview.query.ts         class CheckoutPreview implements Query<...>
 checkout.command.error.ts
 order.repo.ts                    interface OrderRepo (port)
 order.repo.error.ts
-assert_checkoutable.process.ts
-use_read.ts
+assertCheckoutable.process.ts
+useRead.ts
+RemoteEditor.page.tsx            React component (PascalCase)
+remoteEditor.page.module.css     its CSS module (lower camelCase)
 ```
 
 - Every package exposes its public names through `index.ts`. Imports go to packages, never to implementation files.
@@ -434,12 +436,12 @@ use_read.ts
 src/
   main/
     dependencies.ts               <- transports, repos, commands, queries, stores, wiring
-    query_client.ts
+    queryClient.ts
     main.tsx
   core/
     entities/
       entity.ts
-      entity_ref.ts
+      entityRef.ts
       <name>/
         <name>.entity.ts          <- type + pure functions
         <name>.events.ts          <- realtime event types, if any
@@ -465,7 +467,7 @@ src/
         index.ts
     ports/
       repos/
-        read_options.ts
+        readOptions.ts
         subscription.ts           <- Unsubscribe, Listener<T>
         <name>.repo.ts
         <name>.repo.error.ts
@@ -475,7 +477,7 @@ src/
   env/
     transport/
       http.transport.ts
-      web_socket.transport.ts
+      webSocket.transport.ts
       index.ts
     repos/
       <name>/
@@ -484,12 +486,12 @@ src/
         index.ts
     cache/
       register.d.ts
-      entity_store.ts
+      entityStore.ts
       normalize.ts
-      query_options_for.ts
+      queryOptionsFor.ts
       freshness.ts
-      use_read.ts
-      use_command.ts
+      useRead.ts
+      useCommand.ts
       invalidator.ts
       realtime.sync.ts
       streams/
