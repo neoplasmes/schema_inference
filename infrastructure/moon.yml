@@ -12,21 +12,15 @@ fileGroups:
     - docker/*.py
 
 tasks:
-  setup:
-    command: proto install docker-compose
-    options:
-      cache: false
-      runInCI: false
-
   lint:
-    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml config --quiet
+    command: docker compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml config --quiet
     inputs:
       - '@group(cfg)'
     options:
       runFromWorkspaceRoot: true
 
   compose-up:
-    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml up -d --wait --wait-timeout 120
+    command: docker compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml up -d --wait --wait-timeout 120
     deps:
       - client:image
       - editor:image
@@ -40,13 +34,13 @@ tasks:
       mutex: workspace-compose
 
   compose-down:
-    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml down --remove-orphans
+    command: docker compose -f docker-compose.database.yaml -f docker-compose.yaml -f docker-compose.client.yaml down --remove-orphans
     inputs:
       - '@group(cfg)'
     options: *compose-options
 
   compose-up-database:
-    command: docker-compose -f docker-compose.database.yaml up -d --wait --wait-timeout 120
+    command: docker compose -f docker-compose.database.yaml up -d --wait --wait-timeout 120
     inputs:
       - /docker-compose.database.yaml
       - pgbouncer/pgbouncer.ini
@@ -54,13 +48,13 @@ tasks:
     options: *compose-options
 
   compose-down-database:
-    command: docker-compose -f docker-compose.database.yaml down
+    command: docker compose -f docker-compose.database.yaml down
     inputs:
       - /docker-compose.database.yaml
     options: *compose-options
 
   compose-up-api:
-    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml up -d --wait --wait-timeout 120
+    command: docker compose -f docker-compose.database.yaml -f docker-compose.yaml up -d --wait --wait-timeout 120
     deps:
       - server:image
     inputs:
@@ -68,7 +62,7 @@ tasks:
     options: *compose-options
 
   compose-down-api:
-    command: docker-compose -f docker-compose.database.yaml -f docker-compose.yaml down
+    command: docker compose -f docker-compose.database.yaml -f docker-compose.yaml down
     inputs:
       - '@group(cfg)'
     options: *compose-options
