@@ -1,6 +1,5 @@
 from collections.abc import Iterator
 from contextlib import contextmanager
-from functools import cached_property
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from uuid import uuid4
@@ -10,15 +9,6 @@ from psycopg import sql
 from testcontainers.compose import DockerCompose
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-class StandaloneCompose(DockerCompose):
-    """Use the Proto-pinned standalone CLI with Testcontainers 4.13."""
-
-    @cached_property
-    def compose_command_property(self) -> list[str]:
-        """Preserve Compose options while replacing the Docker plugin prefix."""
-        return ["docker-compose", *super().compose_command_property[2:]]
 
 
 class DatabaseStack:
@@ -57,14 +47,11 @@ class DatabaseStack:
 
             if self.client:
                 files.append(str(ROOT / "docker-compose.client.yaml"))
-                overrides += (
-                    "  client:\n"
-                    "    ports: !override ['127.0.0.1:4173:8080']\n"
-                )
+                overrides += "  client:\n    ports: !override ['127.0.0.1:4173:8080']\n"
 
             override.write_text(overrides)
             files.append(str(override))
-            compose = StandaloneCompose(
+            compose = DockerCompose(
                 str(ROOT),
                 compose_file_name=files,
                 wait=True,
@@ -89,7 +76,9 @@ class DatabaseStack:
                 artifacts.mkdir(parents=True, exist_ok=True)
 
                 try:
-                    (artifacts / "containers.log").write_text("\n".join(compose.get_logs()))
+                    (artifacts / "containers.log").write_text(
+                        "\n".join(compose.get_logs())
+                    )
                 finally:
                     compose.stop()
 

@@ -1,6 +1,6 @@
 implicitInputs:
   - /.prototools
-  - /.moon/plugins/*.toml
+  - /.proto/plugins/*.toml
 
 taskOptions:
   unixShell: bash
