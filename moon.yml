@@ -35,6 +35,10 @@ fileGroups:
   assets:
     - apps/*/index.html
     - apps/client/public/*.json
+  generator-src:
+    - tools/documents-generator/src/**/*.py
+  generator-cfg:
+    - tools/documents-generator/pyproject.toml
   formatting:
     - biome.json
     - package.json
@@ -54,7 +58,7 @@ tasks:
       - editor:lint
       - entity-cache:lint
       - server:lint
-      - documents-generator:lint
+      - root:lint-generator
       - backend-e2e:lint
       - env:lint
 
@@ -66,7 +70,7 @@ tasks:
       - editor:fmt
       - entity-cache:fmt
       - server:fmt
-      - documents-generator:fmt
+      - root:fmt-generator
       - backend-e2e:fmt
     options:
       cache: false
@@ -94,7 +98,7 @@ tasks:
       - editor:typecheck
       - entity-cache:typecheck
       - server:typecheck
-      - documents-generator:typecheck
+      - root:typecheck-generator
       - backend-e2e:typecheck
 
   check:
@@ -138,7 +142,7 @@ tasks:
     deps:
       - client:build
       - server:build
-      - documents-generator:build
+      - root:build-generator
 
   setup:
     command: noop
@@ -185,7 +189,7 @@ tasks:
       runInCI: false
 
   lock-backend:
-    command: uv lock --upgrade
+    command: uv lock
     platform: system
     options:
       cache: false
@@ -197,3 +201,49 @@ tasks:
     options:
       cache: false
       runInCI: false
+
+  lint-generator:
+    command: uv run --no-sync ruff check tools/documents-generator/src
+    platform: system
+    inputs: &generator-inputs
+      - '@group(generator-src)'
+      - '@group(generator-cfg)'
+
+  lint-fix-generator:
+    command: uv run --no-sync ruff check --fix tools/documents-generator/src
+    platform: system
+    inputs: *generator-inputs
+    options:
+      cache: false
+      runInCI: false
+
+  fmt-generator:
+    command: uv run --no-sync ruff format tools/documents-generator/src
+    platform: system
+    deps:
+      - root:lint-fix-generator
+    inputs: *generator-inputs
+    options:
+      cache: false
+      runInCI: false
+
+  typecheck-generator:
+    command: uv run --no-sync pyright -p tools/documents-generator
+    platform: system
+    inputs: *generator-inputs
+
+  check-generator:
+    command: noop
+    deps:
+      - root:fmt-generator
+      - root:typecheck-generator
+    inputs: *generator-inputs
+    options:
+      runInCI: false
+
+  build-generator:
+    command: uv run --no-sync documents-generator --output tools/documents-generator/generated --scenario all --documents 100 --seed 42
+    platform: system
+    inputs: *generator-inputs
+    outputs:
+      - tools/documents-generator/generated
