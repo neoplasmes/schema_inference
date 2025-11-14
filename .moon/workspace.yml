@@ -5,7 +5,7 @@ projects:
   entity-cache: packages/entity-cache
   server: apps/server
   documents-generator: packages/documents_generator
-  infrastructure: infrastructure
+  env: env
   backend-e2e: e2e/backend
 
 versionConstraint: '1.41.5'

@@ -24,11 +24,11 @@ fileGroups:
   backend:
     - /e2e/backend/**/*.py
     - /apps/server/src/**/*.{py,sql,json}
-    - /docker-compose*.yaml
-    - /infrastructure/pgbouncer/*.{ini,txt}
+    - /env/local/docker-compose*.yaml
+    - /env/pgbouncer/*.{ini,txt}
     - /apps/server/pyproject.toml
     - /apps/server/Dockerfile
-    - /infrastructure/docker/*.py
+    - /env/docker/*.py
     - /uv.lock
 
 tasks:

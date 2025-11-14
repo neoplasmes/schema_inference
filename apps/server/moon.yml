@@ -14,8 +14,8 @@ fileGroups:
     - tests/conftest.py
   database:
     - /e2e/backend/**/*.py
-    - /docker-compose.database.yaml
-    - /infrastructure/pgbouncer/*.{ini,txt}
+    - /env/local/docker-compose.database.yaml
+    - /env/pgbouncer/*.{ini,txt}
   generator:
     - /packages/documents_generator/src/**/*.py
     - /packages/documents_generator/pyproject.toml
@@ -90,7 +90,7 @@ tasks:
       - '@group(cfg)'
       - Dockerfile
       - /.dockerignore
-      - /infrastructure/docker/*.py
+      - /env/docker/*.py
       - /packages/documents_generator/src/**/*.py
       - /packages/documents_generator/pyproject.toml
     options:

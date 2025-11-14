@@ -1,0 +1,68 @@
+language: system
+type: configuration
+
+fileGroups:
+  cfg:
+    - local/docker-compose.database.yaml
+    - local/docker-compose.server.yaml
+    - local/docker-compose.client.yaml
+    - pgbouncer/pgbouncer.ini
+    - pgbouncer/userlist.txt
+  src:
+    - docker/*.py
+
+tasks:
+  lint:
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet
+    inputs:
+      - '@group(cfg)'
+    options:
+      runFromWorkspaceRoot: true
+
+  compose-up:
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml up -d --wait --wait-timeout 120
+    deps:
+      - client:image
+      - editor:image
+      - server:image
+    inputs:
+      - '@group(cfg)'
+    options: &compose-options
+      cache: false
+      runInCI: false
+      runFromWorkspaceRoot: true
+      mutex: workspace-compose
+
+  compose-down:
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml down --remove-orphans
+    inputs:
+      - '@group(cfg)'
+    options: *compose-options
+
+  compose-up-database:
+    command: docker compose -f env/local/docker-compose.database.yaml up -d --wait --wait-timeout 120
+    inputs:
+      - local/docker-compose.database.yaml
+      - pgbouncer/pgbouncer.ini
+      - pgbouncer/userlist.txt
+    options: *compose-options
+
+  compose-down-database:
+    command: docker compose -f env/local/docker-compose.database.yaml down
+    inputs:
+      - local/docker-compose.database.yaml
+    options: *compose-options
+
+  compose-up-server:
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml up -d --wait --wait-timeout 120
+    deps:
+      - server:image
+    inputs:
+      - '@group(cfg)'
+    options: *compose-options
+
+  compose-down-server:
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml down
+    inputs:
+      - '@group(cfg)'
+    options: *compose-options

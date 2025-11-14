@@ -36,17 +36,17 @@ class DatabaseStack:
                 "  pgbouncer:\n"
                 "    ports: !override ['127.0.0.1::6432']\n"
             )
-            files = [str(ROOT / "docker-compose.database.yaml")]
+            files = [str(ROOT / "env" / "local" / "docker-compose.database.yaml")]
 
             if self.api:
-                files.append(str(ROOT / "docker-compose.yaml"))
+                files.append(str(ROOT / "env" / "local" / "docker-compose.server.yaml"))
                 overrides += (
                     "  server:\n"
                     f"    ports: !override ['127.0.0.1:{self.api_port or ''}:8000']\n"
                 )
 
             if self.client:
-                files.append(str(ROOT / "docker-compose.client.yaml"))
+                files.append(str(ROOT / "env" / "local" / "docker-compose.client.yaml"))
                 overrides += "  client:\n    ports: !override ['127.0.0.1:4173:8080']\n"
 
             override.write_text(overrides)

@@ -8,7 +8,7 @@ fileGroups:
     - packages/*/src/**/*.{py,ts,tsx}
     - apps/*/scripts/*.ts
     - apps/editor/scripts/architecture/*.ts
-    - infrastructure/docker/*.py
+    - env/docker/*.py
   tests:
     - apps/*/tests/**/*.{py,ts,xml,json,yaml,yml}
     - apps/editor/visual/*.ts
@@ -22,8 +22,8 @@ fileGroups:
     - apps/*/*.{json,js,ts}
     - apps/*/pyproject.toml
     - packages/*/*.{json,js,ts,toml}
-    - /docker-compose*.yaml
-    - infrastructure/pgbouncer/*.{ini,txt}
+    - /env/local/docker-compose*.yaml
+    - env/pgbouncer/*.{ini,txt}
     - package.json
     - pyproject.toml
     - pnpm-lock.yaml
@@ -56,7 +56,7 @@ tasks:
       - server:lint
       - documents-generator:lint
       - backend-e2e:lint
-      - infrastructure:lint
+      - env:lint
 
   fmt:
     command: pnpm exec biome format --write @files(formatting)
