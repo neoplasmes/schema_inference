@@ -20,11 +20,15 @@ const card: BoardCard = {
     title: 'Category',
     display: 'summary',
     width: 127.296875,
-    metrics: { row: 20 },
+    metrics: {
+        row: 20,
+    },
     pinned: false,
     collapsed: false,
     suggested: false,
-    rows: [row],
+    rows: [
+        row,
+    ],
     rowWindow: {
         firstMemberId: row.memberId,
         totalItems: 1,
@@ -52,12 +56,23 @@ it('uses the same measured columns for input bounds and leaves the type and row 
     const edited: BoardCard = {
         ...card,
         width: 370,
-        metrics: { row: 34 },
-        rows: [{ ...row, name: 'net_weight', typeLabel: 'decimal' }],
+        metrics: {
+            row: 34,
+        },
+        rows: [
+            {
+                ...row,
+                name: 'net_weight',
+                typeLabel: 'decimal',
+            },
+        ],
     };
     const geometry = createCardGeometry(
         edited,
-        { x: 100, y: 200 },
+        {
+            x: 100,
+            y: 200,
+        },
         'working',
         [],
         0,
@@ -75,7 +90,12 @@ it('uses the same measured columns for input bounds and leaves the type and row 
 });
 
 it('counts emphasized number and secondary suffix widths independently', () => {
-    const count = { ...row, name: 'dimensions', typeLabel: 'fields', typeCount: 3 };
+    const count = {
+        ...row,
+        name: 'dimensions',
+        typeLabel: 'fields',
+        typeCount: 3,
+    };
     const columns = rowColumns(
         count,
         322,

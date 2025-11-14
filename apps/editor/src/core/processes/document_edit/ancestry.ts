@@ -8,7 +8,9 @@ export function checkMoveAncestry(
     sourceNodeId: string,
     targetNodeId: string
 ): void {
-    const pending = [sourceNodeId];
+    const pending = [
+        sourceNodeId,
+    ];
     const visited = new Set<string>();
     let incomplete = false;
 

@@ -33,7 +33,9 @@ function applyOperation<T extends MemberCollection>(
             items: found.window.items.filter(row => row.member.id !== operation.memberId),
             totalItems: found.window.totalItems - (sameCollection ? 0 : 1),
         });
-        const items = [...(windows.get(target.collectionId)?.items ?? [])];
+        const items = [
+            ...(windows.get(target.collectionId)?.items ?? []),
+        ];
         const index =
             operation.beforeMemberId === null
                 ? items.length
@@ -56,7 +58,13 @@ function applyOperation<T extends MemberCollection>(
                 row.member.id === operation.memberId &&
                 row.member.kind === 'property'
             ) {
-                return { ...row, member: { ...row.member, name: operation.name } };
+                return {
+                    ...row,
+                    member: {
+                        ...row.member,
+                        name: operation.name,
+                    },
+                };
             }
 
             if (operation.kind === 'renameXmlName') {
@@ -65,7 +73,13 @@ function applyOperation<T extends MemberCollection>(
                     row.member.id === operation.target.id &&
                     row.member.kind === 'xmlAttribute'
                 ) {
-                    return { ...row, member: { ...row.member, name: operation.name } };
+                    return {
+                        ...row,
+                        member: {
+                            ...row.member,
+                            name: operation.name,
+                        },
+                    };
                 }
 
                 if (
@@ -85,6 +99,9 @@ function applyOperation<T extends MemberCollection>(
             return row;
         });
 
-        windows.set(id, { ...window, items });
+        windows.set(id, {
+            ...window,
+            items,
+        });
     }
 }

@@ -19,7 +19,10 @@ function layoutSize(card: BoardModel['cards'][number], lod: BoardLod, hiddenCoun
         }
     }
 
-    return { ...size, width: size.width + extra };
+    return {
+        ...size,
+        width: size.width + extra,
+    };
 }
 
 /** Explicit positions remain authoritative; containment alone assigns automatic columns. */
@@ -28,7 +31,12 @@ export function layoutCards(
     lod: BoardLod,
     hidden: ReadonlyMap<string, readonly string[]> = new Map()
 ): Map<string, Point> {
-    const cards = new Map(model.cards.map(card => [card.blockId, card]));
+    const cards = new Map(
+        model.cards.map(card => [
+            card.blockId,
+            card,
+        ])
+    );
     const children = new Map<string, string[]>();
     const incoming = new Set<string>();
 
@@ -50,7 +58,10 @@ export function layoutCards(
     const depth = new Map<string, number>();
     const queue = model.cards
         .filter(card => !incoming.has(card.blockId))
-        .map(card => ({ id: card.blockId, level: 0 }));
+        .map(card => ({
+            id: card.blockId,
+            level: 0,
+        }));
     let cursor = 0;
     let component = 0;
 
@@ -59,7 +70,10 @@ export function layoutCards(
             const id = model.cards[component++].blockId;
 
             if (!depth.has(id)) {
-                queue.push({ id, level: 0 });
+                queue.push({
+                    id,
+                    level: 0,
+                });
             }
 
             continue;
@@ -71,7 +85,10 @@ export function layoutCards(
             depth.set(id, level);
 
             for (const child of children.get(id) ?? []) {
-                queue.push({ id: child, level: level + 1 });
+                queue.push({
+                    id: child,
+                    level: level + 1,
+                });
             }
         }
     }
@@ -99,7 +116,12 @@ export function layoutCards(
 
     const positions = new Map<string, Point>();
     const occupied = new SpatialIndex<{
-        bounds: { x: number; y: number; width: number; height: number };
+        bounds: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        };
     }>();
 
     for (const card of model.cards) {
@@ -141,8 +163,13 @@ export function layoutCards(
             })[0];
         }
 
-        positions.set(card.blockId, { x: bounds.x, y: bounds.y });
-        occupied.set(card.blockId, { bounds });
+        positions.set(card.blockId, {
+            x: bounds.x,
+            y: bounds.y,
+        });
+        occupied.set(card.blockId, {
+            bounds,
+        });
         bottoms.set(level, bounds.y + bounds.height + CARD.gapY);
     }
 

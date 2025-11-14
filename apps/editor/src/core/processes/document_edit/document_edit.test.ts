@@ -10,7 +10,13 @@ import {
 
 function property(id: string, valueNodeId = 'string'): MemberSummary {
     return {
-        member: { id, kind: 'property', name: id, required: true, valueNodeId },
+        member: {
+            id,
+            kind: 'property',
+            name: id,
+            required: true,
+            valueNodeId,
+        },
         valueSummary: {
             id: valueNodeId,
             kind: 'scalar',
@@ -42,8 +48,18 @@ function state(
     nodes: readonly SchemaNode[] = []
 ): DocumentEditState {
     return {
-        collections: new Map(collections.map(value => [value.collectionId, value])),
-        nodes: new Map(nodes.map(node => [node.id, node])),
+        collections: new Map(
+            collections.map(value => [
+                value.collectionId,
+                value,
+            ])
+        ),
+        nodes: new Map(
+            nodes.map(node => [
+                node.id,
+                node,
+            ])
+        ),
     };
 }
 
@@ -51,7 +67,10 @@ function owner(id: string, collectionId: string): SchemaNode {
     return {
         id,
         kind: 'object',
-        properties: { id: collectionId, totalItems: 0 },
+        properties: {
+            id: collectionId,
+            totalItems: 0,
+        },
         additionalProperties: false,
     };
 }
@@ -63,22 +82,36 @@ describe('document edit processes', () => {
             member: {
                 id: 'code',
                 kind: 'xmlAttribute',
-                name: { namespaceUri: 'urn:orders', localName: 'code' },
+                name: {
+                    namespaceUri: 'urn:orders',
+                    localName: 'code',
+                },
                 required: true,
                 valueNodeId: 'string',
             },
         };
-        const document = state([collection('attributes', [row])]);
+        const document = state([
+            collection('attributes', [
+                row,
+            ]),
+        ]);
         const original = structuredClone(document);
         const edit = createRenameEdit(document, 'code', 'number');
         expect(edit).not.toBeNull();
-        const renamed = projectCollections(document.collections, [edit!.forward]);
+        const renamed = projectCollections(document.collections, [
+            edit!.forward,
+        ]);
         expect(renamed.get('attributes')?.items[0].member).toMatchObject({
-            name: { namespaceUri: 'urn:orders', localName: 'number' },
+            name: {
+                namespaceUri: 'urn:orders',
+                localName: 'number',
+            },
         });
-        expect(projectCollections(renamed, [edit!.inverse])).toEqual(
-            document.collections
-        );
+        expect(
+            projectCollections(renamed, [
+                edit!.inverse,
+            ])
+        ).toEqual(document.collections);
         expect(document).toEqual(original);
     });
 
@@ -100,12 +133,19 @@ describe('document edit processes', () => {
             },
         };
         const document = state(
-            [collection('particles', [row])],
+            [
+                collection('particles', [
+                    row,
+                ]),
+            ],
             [
                 {
                     id: 'element',
                     kind: 'xmlElement',
-                    name: { namespaceUri: 'urn:orders', localName: 'original' },
+                    name: {
+                        namespaceUri: 'urn:orders',
+                        localName: 'original',
+                    },
                     contentNodeId: 'string',
                     nillable: false,
                 },
@@ -114,7 +154,10 @@ describe('document edit processes', () => {
         const edit = createRenameEdit(document, 'element-field', 'next');
         expect(edit?.inverse).toMatchObject({
             kind: 'renameXmlName',
-            name: { namespaceUri: 'urn:orders', localName: 'current' },
+            name: {
+                namespaceUri: 'urn:orders',
+                localName: 'current',
+            },
         });
         expect(createRenameEdit(document, 'element-field', 'current')).toBeNull();
     });
@@ -122,10 +165,18 @@ describe('document edit processes', () => {
     it('projects and reverses a transfer without changing either source collection', () => {
         const document = state(
             [
-                collection('source', [property('first'), property('second')]),
-                collection('target', [property('last')]),
+                collection('source', [
+                    property('first'),
+                    property('second'),
+                ]),
+                collection('target', [
+                    property('last'),
+                ]),
             ],
-            [owner('source-node', 'source'), owner('target-node', 'target')]
+            [
+                owner('source-node', 'source'),
+                owner('target-node', 'target'),
+            ]
         );
         const original = structuredClone(document);
         const edit = createMoveEdit(document, 'first', 'target', 'last');
@@ -133,25 +184,39 @@ describe('document edit processes', () => {
             targetCollectionId: 'source',
             beforeMemberId: 'second',
         });
-        const moved = projectCollections(document.collections, [edit!.forward]);
+        const moved = projectCollections(document.collections, [
+            edit!.forward,
+        ]);
         expect(moved.get('source')?.totalItems).toBe(1);
         expect(moved.get('target')?.items.map(row => row.member.id)).toEqual([
             'first',
             'last',
         ]);
-        expect(projectCollections(moved, [edit!.inverse])).toEqual(document.collections);
+        expect(
+            projectCollections(moved, [
+                edit!.inverse,
+            ])
+        ).toEqual(document.collections);
         expect(document).toEqual(original);
     });
 
     it('requires known sibling order before moving the last visible field', () => {
         const document = state(
             [
-                collection('fields', [property('first')], {
-                    complete: false,
-                    totalItems: 2,
-                }),
+                collection(
+                    'fields',
+                    [
+                        property('first'),
+                    ],
+                    {
+                        complete: false,
+                        totalItems: 2,
+                    }
+                ),
             ],
-            [owner('root', 'fields')]
+            [
+                owner('root', 'fields'),
+            ]
         );
         expect(() => createMoveEdit(document, 'first', 'fields', null)).toThrow(
             'original field order for undo'
@@ -160,12 +225,20 @@ describe('document edit processes', () => {
 
     it('rejects a member kind that the destination cannot contain', () => {
         const document = state(
-            [collection('fields', [property('first')]), collection('attributes', [])],
+            [
+                collection('fields', [
+                    property('first'),
+                ]),
+                collection('attributes', []),
+            ],
             [
                 {
                     id: 'xml',
                     kind: 'xmlComplex',
-                    attributes: { id: 'attributes', totalItems: 0 },
+                    attributes: {
+                        id: 'attributes',
+                        totalItems: 0,
+                    },
                     particleNodeId: null,
                     mixed: false,
                 },
@@ -186,22 +259,34 @@ describe('document edit processes', () => {
         };
         const document = state(
             [
-                collection('root-fields', [parent]),
+                collection('root-fields', [
+                    parent,
+                ]),
                 collection('child-fields', []),
                 collection('target', []),
             ],
-            [owner('child', 'child-fields'), owner('target-node', 'target')]
+            [
+                owner('child', 'child-fields'),
+                owner('target-node', 'target'),
+            ]
         );
         expect(() => createMoveEdit(document, 'parent', 'child-fields', null)).toThrow(
             'own descendants'
         );
         const incomplete = state(
-            [...document.collections.values()].map(value =>
+            [
+                ...document.collections.values(),
+            ].map(value =>
                 value.collectionId === 'child-fields'
-                    ? { ...value, complete: false }
+                    ? {
+                          ...value,
+                          complete: false,
+                      }
                     : value
             ),
-            [...document.nodes.values()]
+            [
+                ...document.nodes.values(),
+            ]
         );
         expect(() => createMoveEdit(incomplete, 'parent', 'target', null)).toThrow(
             'ancestry can be checked'

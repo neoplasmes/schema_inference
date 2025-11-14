@@ -19,12 +19,19 @@ export function contains(bounds: Rectangle, x: number, y: number): boolean {
 }
 
 /** A uniform grid bounds each object's index footprint, including very long connections. */
-export class SpatialIndex<T extends { bounds: Rectangle }> {
+export class SpatialIndex<
+    T extends {
+        bounds: Rectangle;
+    },
+> {
     private readonly entries = new Map<string, T>();
     private readonly columns = new Map<number, Map<number, Set<string>>>();
     private readonly memberships = new Map<
         string,
-        readonly (readonly [number, number])[]
+        readonly (readonly [
+            number,
+            number,
+        ])[]
     >();
     private readonly spanning = new Set<string>();
 
@@ -44,7 +51,10 @@ export class SpatialIndex<T extends { bounds: Rectangle }> {
             return;
         }
 
-        const membership: [number, number][] = [];
+        const membership: [
+            number,
+            number,
+        ][] = [];
 
         for (let x = left; x <= right; x += 1) {
             let column = this.columns.get(x);
@@ -63,7 +73,10 @@ export class SpatialIndex<T extends { bounds: Rectangle }> {
                 }
 
                 cell.add(id);
-                membership.push([x, y]);
+                membership.push([
+                    x,
+                    y,
+                ]);
             }
         }
 

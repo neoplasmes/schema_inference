@@ -33,7 +33,10 @@ export class EditorDocument {
     private history: DocumentEdit[] = [];
     private historyPosition = 0;
     private readonly offsets = new Map<string, number>();
-    private pendingSave: Readonly<{ id: string; count: number }> | null = null;
+    private pendingSave: Readonly<{
+        id: string;
+        count: number;
+    }> | null = null;
 
     constructor(
         private manifestValue: SchemaDocument,
@@ -77,7 +80,11 @@ export class EditorDocument {
             throw new Error('Load the collection before changing its loading state.');
         }
 
-        const window = { ...previous, state, error };
+        const window = {
+            ...previous,
+            state,
+            error,
+        };
         this.collectionWindows.set(collectionId, window);
 
         return window;
@@ -116,7 +123,12 @@ export class EditorDocument {
             mode === 'replace'
                 ? previous?.items.filter(row => pinned.has(row.member.id))
                 : previous?.items;
-        const items = new Map(baseItems?.map(row => [row.member.id, row]));
+        const items = new Map(
+            baseItems?.map(row => [
+                row.member.id,
+                row,
+            ])
+        );
         let added = 0;
 
         for (const row of page.items) {
@@ -132,7 +144,9 @@ export class EditorDocument {
                 ? page.items.length
                 : (this.offsets.get(page.collectionId) ?? 0) + added;
         this.offsets.set(page.collectionId, visited);
-        const allItems = [...items.values()];
+        const allItems = [
+            ...items.values(),
+        ];
         const windowStart = Math.max(0, allItems.length - this.rowWindowLimit);
         const retained = allItems.filter(
             (row, index) => index >= windowStart || pinned.has(row.member.id)
@@ -202,11 +216,15 @@ export class EditorDocument {
         this.historyPosition += 1;
     }
 
-    beginSave(
-        id: string
-    ): Readonly<{ id: string; operations: readonly DocumentOperation[] }> {
+    beginSave(id: string): Readonly<{
+        id: string;
+        operations: readonly DocumentOperation[];
+    }> {
         if (!this.pendingSave) {
-            this.pendingSave = { id, count: this.edits.length };
+            this.pendingSave = {
+                id,
+                count: this.edits.length,
+            };
         }
 
         return {
@@ -238,7 +256,10 @@ export class EditorDocument {
                 const node = this.nodeValues.get(operation.target.id);
 
                 if (node?.kind === 'xmlElement') {
-                    this.nodeValues.set(node.id, { ...node, name: operation.name });
+                    this.nodeValues.set(node.id, {
+                        ...node,
+                        name: operation.name,
+                    });
                 }
             }
         }
@@ -247,7 +268,10 @@ export class EditorDocument {
         this.pendingSave = null;
         this.manifestValue = {
             ...this.manifest,
-            snapshot: { ...this.manifest.snapshot, revision },
+            snapshot: {
+                ...this.manifest.snapshot,
+                revision,
+            },
         };
     }
 
@@ -276,7 +300,9 @@ export class EditorDocument {
         return {
             nodes: this.nodeValues,
             collections: new Map(
-                [...this.projectedCollections()].map(([id, window]) => [
+                [
+                    ...this.projectedCollections(),
+                ].map(([id, window]) => [
                     id,
                     {
                         collectionId: window.collectionId,
@@ -295,7 +321,10 @@ export class EditorDocument {
         const result = new Set<string>();
         const operations = [
             ...this.edits,
-            ...this.history.flatMap(edit => [edit.forward, edit.inverse]),
+            ...this.history.flatMap(edit => [
+                edit.forward,
+                edit.inverse,
+            ]),
         ];
 
         for (const operation of operations) {

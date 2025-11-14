@@ -41,7 +41,12 @@ export function parseNode(value: unknown): SchemaNode {
                 throw new ContractViolationError('Unsupported scalar type.');
             }
 
-            return { id, kind, scalarType: type, constraints: object(data.constraints) };
+            return {
+                id,
+                kind,
+                scalarType: type,
+                constraints: object(data.constraints),
+            };
         }
         case 'object':
             return {
@@ -63,10 +68,19 @@ export function parseNode(value: unknown): SchemaNode {
                 throw new ContractViolationError('Unsupported union mode.');
             }
 
-            return { id, kind, mode: data.mode, options: parseCollection(data.options) };
+            return {
+                id,
+                kind,
+                mode: data.mode,
+                options: parseCollection(data.options),
+            };
         }
         case 'ref':
-            return { id, kind, definitionId: string(data.definitionId) };
+            return {
+                id,
+                kind,
+                definitionId: string(data.definitionId),
+            };
         case 'xmlElement':
             return {
                 id,
@@ -76,12 +90,17 @@ export function parseNode(value: unknown): SchemaNode {
                 nillable: boolean(data.nillable),
             };
         case 'xmlComplex': {
-            const simpleContentNodeId = data.simpleContentNodeId === undefined ? null : nullableString(data.simpleContentNodeId);
+            const simpleContentNodeId =
+                data.simpleContentNodeId === undefined
+                    ? null
+                    : nullableString(data.simpleContentNodeId);
             const particleNodeId = nullableString(data.particleNodeId);
             const mixed = boolean(data.mixed);
 
             if (simpleContentNodeId && (particleNodeId || mixed)) {
-                throw new ContractViolationError('XML simple content cannot also contain child particles or mixed text.');
+                throw new ContractViolationError(
+                    'XML simple content cannot also contain child particles or mixed text.'
+                );
             }
 
             return {

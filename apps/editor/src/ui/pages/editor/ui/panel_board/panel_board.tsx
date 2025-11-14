@@ -24,7 +24,12 @@ export function PanelBoard({
         });
 
         return () => report(panel.id, null);
-    }, [canvas.ready, canvas.board, panel, report]);
+    }, [
+        canvas.ready,
+        canvas.board,
+        panel,
+        report,
+    ]);
 
     return (
         <div

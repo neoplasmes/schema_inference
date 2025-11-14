@@ -20,7 +20,10 @@ export function useEditorSession(
         props.apiBaseUrl,
         resource.kind,
         resource.kind === 'schema'
-            ? [resource.schemaId, resource.revision ?? null]
+            ? [
+                  resource.schemaId,
+                  resource.revision ?? null,
+              ]
             : [
                   resource.analysisId,
                   resource.revision,
@@ -101,9 +104,13 @@ export function useEditorSession(
                     let pending = drafts.current.get(resourceKey);
 
                     if (!pending) {
-                        const idempotencyKey = draftKeys.current.get(resourceKey) ?? crypto.randomUUID();
+                        const idempotencyKey =
+                            draftKeys.current.get(resourceKey) ?? crypto.randomUUID();
                         draftKeys.current.set(resourceKey, idempotencyKey);
-                        pending = dependencies.createDraft.execute({ ...props.resource, idempotencyKey });
+                        pending = dependencies.createDraft.execute({
+                            ...props.resource,
+                            idempotencyKey,
+                        });
                         drafts.current.set(resourceKey, pending);
                         void pending.catch(() => drafts.current.delete(resourceKey));
                     }
@@ -115,15 +122,26 @@ export function useEditorSession(
                     return;
                 }
 
-                if (props.resource.kind === 'analysis' && !announcedDrafts.current.has(resourceKey)) {
+                if (
+                    props.resource.kind === 'analysis' &&
+                    !announcedDrafts.current.has(resourceKey)
+                ) {
                     announcedDrafts.current.add(resourceKey);
-                    callbacks.current.onCreated?.({ schemaId: manifest.snapshot.id, revision: manifest.snapshot.revision });
+                    callbacks.current.onCreated?.({
+                        schemaId: manifest.snapshot.id,
+                        revision: manifest.snapshot.revision,
+                    });
                 }
 
                 const document = new EditorDocument(manifest);
                 const branch = await dependencies.loadBranch.execute(
-                    { snapshot: manifest.snapshot, nodeId: manifest.rootNodeId },
-                    { signal: controller.signal }
+                    {
+                        snapshot: manifest.snapshot,
+                        nodeId: manifest.rootNodeId,
+                    },
+                    {
+                        signal: controller.signal,
+                    }
                 );
 
                 if (epoch.current !== generation || controller.signal.aborted) {
@@ -153,7 +171,12 @@ export function useEditorSession(
             reads.current.clear();
             dependencies.cleanup();
         };
-    }, [resourceKey, retry, scene, createDependencies]);
+    }, [
+        resourceKey,
+        retry,
+        scene,
+        createDependencies,
+    ]);
 
     const activeSession = session?.identity === resourceKey ? session : null;
 

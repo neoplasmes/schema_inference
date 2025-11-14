@@ -65,7 +65,10 @@ export class CardChrome extends LabelGroup {
             for (let dash = width; dash < x; dash += 8) {
                 g.moveTo(dash, center)
                     .lineTo(Math.min(dash + 4, x), center)
-                    .stroke({ ...this.paint('edge'), width: 1.5 });
+                    .stroke({
+                        ...this.paint('edge'),
+                        width: 1.5,
+                    });
             }
 
             g.roundRect(x, y, branch.bounds.width, branch.bounds.height, 14).fill(
@@ -142,7 +145,11 @@ export class CardChrome extends LabelGroup {
                 g.roundRect(
                     10,
                     10 + index * 12,
-                    [width * 0.65, width * 0.48, width * 0.58][index],
+                    [
+                        width * 0.65,
+                        width * 0.48,
+                        width * 0.58,
+                    ][index],
                     6,
                     3
                 ).fill(this.paint('fill-control'));
@@ -162,7 +169,11 @@ export class CardChrome extends LabelGroup {
                     g.roundRect(
                         10,
                         10 + index * 12,
-                        [width * 0.65, width * 0.48, width * 0.58][index],
+                        [
+                            width * 0.65,
+                            width * 0.48,
+                            width * 0.58,
+                        ][index],
                         6,
                         3
                     ).fill(this.paint('fill-control'));
@@ -449,7 +460,11 @@ export class CardChrome extends LabelGroup {
                     g.roundRect(
                         14,
                         y + 4 + index * 7,
-                        [width * 0.45, width * 0.3, width * 0.38][index],
+                        [
+                            width * 0.45,
+                            width * 0.3,
+                            width * 0.38,
+                        ][index],
                         4,
                         2
                     ).fill(this.paint('fill-control'));

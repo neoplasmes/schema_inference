@@ -36,9 +36,7 @@ import {
 export class HttpSchemaRepository implements SchemaRepository {
     constructor(private readonly transport: Pick<HttpTransport, 'request'>) {}
 
-    async createFromAnalysis(
-        resource: CreateDraftInput
-    ): Promise<SchemaDocument> {
+    async createFromAnalysis(resource: CreateDraftInput): Promise<SchemaDocument> {
         const analysis = object(
             await this.request(
                 `/api/v2/analyses/${encodeURIComponent(resource.analysisId)}/revisions/${encodeURIComponent(resource.revision)}/manifest`
@@ -72,9 +70,14 @@ export class HttpSchemaRepository implements SchemaRepository {
         return parseManifest(
             await this.request('/api/v2/schemas', {
                 method: 'POST',
-                headers: { 'Idempotency-Key': resource.idempotencyKey },
+                headers: {
+                    'Idempotency-Key': resource.idempotencyKey,
+                },
                 body: JSON.stringify({
-                    title: typeof analysis.title === 'string' ? analysis.title : 'Untitled schema',
+                    title:
+                        typeof analysis.title === 'string'
+                            ? analysis.title
+                            : 'Untitled schema',
                     source: {
                         kind: 'analysis',
                         analysisId: resource.analysisId,
@@ -259,7 +262,10 @@ export class HttpSchemaRepository implements SchemaRepository {
 
                 if (
                     options?.method === 'POST' &&
-                    (error.status === 400 || error.status === 409 || error.status === 422 || error.status === 428)
+                    (error.status === 400 ||
+                        error.status === 409 ||
+                        error.status === 422 ||
+                        error.status === 428)
                 ) {
                     throw new SchemaWriteRejectedError(
                         'invalid',

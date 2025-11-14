@@ -44,7 +44,11 @@ export class DragGhostView {
             .roundRect(0, 0, width, height, themeRadius(this.metrics.theme, 'radius-md'))
             .fill(paint('surface-card', this.metrics.theme));
 
-        for (const offset of [-4, 0, 4]) {
+        for (const offset of [
+            -4,
+            0,
+            4,
+        ]) {
             this.surface
                 .circle(18, center + offset, 0.8)
                 .fill(paint('label-tertiary', this.metrics.theme));

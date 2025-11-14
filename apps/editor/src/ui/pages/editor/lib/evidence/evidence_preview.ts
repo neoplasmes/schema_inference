@@ -98,5 +98,9 @@ export function projectEvidence(
         ];
     }
 
-    return { ...model, cards, connections };
+    return {
+        ...model,
+        cards,
+        connections,
+    };
 }

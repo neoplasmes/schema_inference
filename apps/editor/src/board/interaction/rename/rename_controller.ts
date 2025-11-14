@@ -24,11 +24,19 @@ export function createRenameController(options: BoardInteractionOptions) {
         input = createRenameInput({
             theme: options.theme,
             container,
-            selection: { blockId: target.blockId, memberId },
+            selection: {
+                blockId: target.blockId,
+                memberId,
+            },
             name: row.name,
             geometry: () => renderer.getGeometry(),
             viewport: getViewport,
-            confirm: name => emit('rename', { blockId: target.blockId, memberId, name }),
+            confirm: name =>
+                emit('rename', {
+                    blockId: target.blockId,
+                    memberId,
+                    name,
+                }),
             closed: () => {
                 input = null;
             },

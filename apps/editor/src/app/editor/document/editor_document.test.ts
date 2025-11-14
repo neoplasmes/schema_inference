@@ -4,16 +4,27 @@ import { EditorDocument } from './editor_document';
 
 function document() {
     return new EditorDocument({
-        snapshot: { resource: 'schema', id: 'orders', revision: 's1' },
+        snapshot: {
+            resource: 'schema',
+            id: 'orders',
+            revision: 's1',
+        },
         title: 'Orders',
         rootNodeId: 'root',
-        profile: { syntax: 'json', dialect: 'json-schema-2020-12' },
+        profile: {
+            syntax: 'json',
+            dialect: 'json-schema-2020-12',
+        },
     });
 }
 
 function page(name: string, nextCursor: string | null = null): MemberPage {
     return {
-        snapshot: { resource: 'schema', id: 'orders', revision: 's1' },
+        snapshot: {
+            resource: 'schema',
+            id: 'orders',
+            revision: 's1',
+        },
         collectionId: 'fields',
         scopeId: null,
         items: [
@@ -50,26 +61,31 @@ function numberedPage(start: number, end: number, totalItems: number): MemberPag
         ...page('unused'),
         totalItems,
         nextCursor: end < totalItems ? String(end) : null,
-        items: Array.from({ length: end - start }, (_, index) => {
-            const id = `field-${start + index}`;
+        items: Array.from(
+            {
+                length: end - start,
+            },
+            (_, index) => {
+                const id = `field-${start + index}`;
 
-            return {
-                member: {
-                    id,
-                    kind: 'property' as const,
-                    name: id,
-                    required: true,
-                    valueNodeId: 'string',
-                },
-                valueSummary: {
-                    id: 'string',
-                    kind: 'scalar' as const,
-                    label: 'string',
-                    directMemberCount: 0,
-                    descendantCount: 0,
-                },
-            };
-        }),
+                return {
+                    member: {
+                        id,
+                        kind: 'property' as const,
+                        name: id,
+                        required: true,
+                        valueNodeId: 'string',
+                    },
+                    valueSummary: {
+                        id: 'string',
+                        kind: 'scalar' as const,
+                        label: 'string',
+                        directMemberCount: 0,
+                        descendantCount: 0,
+                    },
+                };
+            }
+        ),
     };
 }
 
@@ -80,11 +96,19 @@ describe('partially loaded document operations', () => {
         const previous = editor.collections.get('fields')!;
         const failed = editor.setCollectionLoadState('fields', 'failed', 'Unavailable');
         expect(failed).not.toBe(previous);
-        expect(failed).toEqual({ ...previous, state: 'failed', error: 'Unavailable' });
+        expect(failed).toEqual({
+            ...previous,
+            state: 'failed',
+            error: 'Unavailable',
+        });
         expect(failed.items).toBe(previous.items);
         expect(editor.collections.get('fields')).toBe(failed);
         const loading = editor.setCollectionLoadState('fields', 'loading');
-        expect(loading).toEqual({ ...previous, state: 'loading', error: undefined });
+        expect(loading).toEqual({
+            ...previous,
+            state: 'loading',
+            error: undefined,
+        });
         expect(editor.operations).toHaveLength(0);
         expect(() => editor.setCollectionLoadState('unknown', 'loading')).toThrow(
             'Load the collection'
@@ -107,7 +131,9 @@ describe('partially loaded document operations', () => {
 
     it('retains a field with an expanded child when later pages evict ordinary rows', () => {
         const editor = document();
-        const retained = new Set(['field-0']);
+        const retained = new Set([
+            'field-0',
+        ]);
         editor.addPage(numberedPage(0, 50, 150));
         editor.addPage(numberedPage(50, 100, 150), 'append', retained);
         editor.addPage(numberedPage(100, 150, 150), 'append', retained);
@@ -161,13 +187,19 @@ describe('partially loaded document operations', () => {
         editor.integrateNode({
             id: 'child',
             kind: 'object',
-            properties: { id: 'fields', totalItems: 150 },
+            properties: {
+                id: 'fields',
+                totalItems: 150,
+            },
             additionalProperties: false,
         });
         editor.integrateNode({
             id: 'target',
             kind: 'object',
-            properties: { id: 'target-fields', totalItems: 0 },
+            properties: {
+                id: 'target-fields',
+                totalItems: 0,
+            },
             additionalProperties: false,
         });
         editor.addPage({
@@ -222,7 +254,11 @@ describe('partially loaded document operations', () => {
         expect(() =>
             editor.addPage({
                 ...page('stale'),
-                snapshot: { resource: 'schema', id: 'orders', revision: 'old' },
+                snapshot: {
+                    resource: 'schema',
+                    id: 'orders',
+                    revision: 'old',
+                },
             })
         ).toThrow('another schema revision');
         expect(currentName(editor)).toBe('name');
@@ -250,7 +286,11 @@ describe('partially loaded document operations', () => {
         editor.undo();
         expect(editor.manifest.snapshot.revision).toBe('s2');
         expect(editor.operations).toEqual([
-            { kind: 'renameProperty', memberId: 'name', name: 'name' },
+            {
+                kind: 'renameProperty',
+                memberId: 'name',
+                name: 'name',
+            },
         ]);
         expect(currentName(editor)).toBe('name');
         editor.redo();
@@ -259,7 +299,11 @@ describe('partially loaded document operations', () => {
 
     it('keeps incomplete collections distinct from empty collections', () => {
         const editor = document();
-        editor.addPage({ ...page('unused', 'next'), items: [], totalItems: 20 });
+        editor.addPage({
+            ...page('unused', 'next'),
+            items: [],
+            totalItems: 20,
+        });
         expect(editor.collections.get('fields')).toMatchObject({
             state: 'partial',
             totalItems: 20,
@@ -273,7 +317,10 @@ describe('partially loaded document operations', () => {
         editor.integrateNode({
             id: 'child',
             kind: 'object',
-            properties: { id: 'child-fields', totalItems: 0 },
+            properties: {
+                id: 'child-fields',
+                totalItems: 0,
+            },
             additionalProperties: false,
         });
         editor.addPage({
@@ -314,13 +361,19 @@ describe('partially loaded document operations', () => {
         editor.integrateNode({
             id: 'root',
             kind: 'object',
-            properties: { id: 'fields', totalItems: 1 },
+            properties: {
+                id: 'fields',
+                totalItems: 1,
+            },
             additionalProperties: false,
         });
         editor.integrateNode({
             id: 'target',
             kind: 'object',
-            properties: { id: 'target-fields', totalItems: 0 },
+            properties: {
+                id: 'target-fields',
+                totalItems: 0,
+            },
             additionalProperties: false,
         });
         editor.addPage(page('name'));

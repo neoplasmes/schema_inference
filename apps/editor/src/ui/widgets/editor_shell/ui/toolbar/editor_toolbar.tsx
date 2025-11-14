@@ -39,7 +39,13 @@ export function EditorToolbar(props: ToolbarProps): React.JSX.Element {
                     </button>
                 )}
                 <strong>{props.title}</strong>
-                <span className={styles.secondary}>{props.profile?.syntax === 'xml' ? 'XSD 1.0' : props.profile ? 'JSON Schema 2020-12' : 'Loading schema…'}</span>
+                <span className={styles.secondary}>
+                    {props.profile?.syntax === 'xml'
+                        ? 'XSD 1.0'
+                        : props.profile
+                          ? 'JSON Schema 2020-12'
+                          : 'Loading schema…'}
+                </span>
             </div>
             <div className={styles.segment} role="group" aria-label="Editor mode">
                 <button

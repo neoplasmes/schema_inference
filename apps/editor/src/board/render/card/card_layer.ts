@@ -19,7 +19,10 @@ export class CardLayer {
     readonly cardLayer = new Container();
     private readonly cardViews = new Map<string, CardView>();
     private readonly cardInputs = new Map<string, CardInputs>();
-    private readonly query: { bounds: Rectangle; geometry: BoardCardGeometry }[] = [];
+    private readonly query: {
+        bounds: Rectangle;
+        geometry: BoardCardGeometry;
+    }[] = [];
     private readonly queryIds = new Set<string>();
     private readonly visibleCards: BoardCardGeometry[] = [];
     private readonly visibleCardIds = new Set<string>();

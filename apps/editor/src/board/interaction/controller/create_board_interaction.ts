@@ -7,7 +7,10 @@ import { createKeyboardController } from '../keyboard';
 import { createSelectionController } from './selection_controller';
 
 export function createBoardInteraction(input: BoardInteractionOptions) {
-    const options = { ...input, theme: input.theme ?? resolveTheme() };
+    const options = {
+        ...input,
+        theme: input.theme ?? resolveTheme(),
+    };
     const { container } = options;
     const view = container.ownerDocument.defaultView;
     const previous = {
@@ -66,7 +69,9 @@ export function createBoardInteraction(input: BoardInteractionOptions) {
     container.addEventListener('pointercancel', pointer.pointerCancel);
     container.addEventListener('lostpointercapture', pointer.pointerCancel);
     container.addEventListener('pointerleave', pointer.leave);
-    container.addEventListener('wheel', viewport.wheel, { passive: false });
+    container.addEventListener('wheel', viewport.wheel, {
+        passive: false,
+    });
     container.addEventListener('keydown', keyboard.keyDown);
     container.addEventListener('keyup', keyboard.keyUp);
     container.addEventListener('dblclick', pointer.doubleClick);

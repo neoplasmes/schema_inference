@@ -10,18 +10,54 @@ import type { BoardTheme } from '../../theme';
 
 export type { BoardViewport } from '../../model';
 
-export type Rectangle = Readonly<{ x: number; y: number; width: number; height: number }>;
+export type Rectangle = Readonly<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}>;
 
 export type BoardHit =
-    | { kind: 'header'; blockId: string }
-    | { kind: 'row'; blockId: string; memberId: string }
-    | { kind: 'expand'; blockId: string; memberId: string }
-    | { kind: 'variant'; blockId: string; variantId: string; scopeId: string }
-    | { kind: 'boundary'; blockId: string; memberId: string }
-    | { kind: 'more'; blockId: string; collectionId: string }
-    | { kind: 'add'; blockId: string; collectionId: string };
+    | {
+          kind: 'header';
+          blockId: string;
+      }
+    | {
+          kind: 'row';
+          blockId: string;
+          memberId: string;
+      }
+    | {
+          kind: 'expand';
+          blockId: string;
+          memberId: string;
+      }
+    | {
+          kind: 'variant';
+          blockId: string;
+          variantId: string;
+          scopeId: string;
+      }
+    | {
+          kind: 'boundary';
+          blockId: string;
+          memberId: string;
+      }
+    | {
+          kind: 'more';
+          blockId: string;
+          collectionId: string;
+      }
+    | {
+          kind: 'add';
+          blockId: string;
+          collectionId: string;
+      };
 
-export type BoardHitRegion = Readonly<{ bounds: Rectangle; target: BoardHit }>;
+export type BoardHitRegion = Readonly<{
+    bounds: Rectangle;
+    target: BoardHit;
+}>;
 
 export type BoardCardGeometry = Readonly<{
     blockId: string;
@@ -92,7 +128,11 @@ export type BoardRenderer = {
     scrollRows(blockId: string, delta: number): boolean;
     revealMember(blockId: string, memberId: string): boolean;
     previewMemberDrag(
-        preview: Readonly<{ blockId: string; memberId: string; position: Point }> | null
+        preview: Readonly<{
+            blockId: string;
+            memberId: string;
+            position: Point;
+        }> | null
     ): void;
     setDropTarget(target: BoardHit | null): void;
     getStats(): BoardRenderStats;

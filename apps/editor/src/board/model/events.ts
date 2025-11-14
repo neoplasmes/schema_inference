@@ -23,7 +23,9 @@ export function createBoardEvents() {
             };
         },
         emit<K extends keyof BoardEventMap>(event: K, payload: BoardEventMap[K]): void {
-            for (const handler of [...(listeners.get(event) ?? [])]) {
+            for (const handler of [
+                ...(listeners.get(event) ?? []),
+            ]) {
                 handler(payload as never);
             }
         },

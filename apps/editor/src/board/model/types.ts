@@ -1,4 +1,7 @@
-export type Point = Readonly<{ x: number; y: number }>;
+export type Point = Readonly<{
+    x: number;
+    y: number;
+}>;
 
 export type BoardSelection = Readonly<{
     blockId: string;
@@ -24,11 +27,17 @@ export type BoardRow = Readonly<{
     expandable: boolean;
     expanded: boolean;
     variantsCount?: number;
-    observation?: Readonly<{ count: number; total: number }>;
+    observation?: Readonly<{
+        count: number;
+        total: number;
+    }>;
     suggested?: boolean;
     nameAlias?: string;
     warning?: string;
-    branch?: Readonly<{ totalItems: number | null; state: CollectionState }>;
+    branch?: Readonly<{
+        totalItems: number | null;
+        state: CollectionState;
+    }>;
 }>;
 
 export type BoardVariant = Readonly<{
@@ -102,14 +111,26 @@ export type BoardModel = Readonly<{
     diagnosticLod?: BoardLod;
 }>;
 
-export type BoardViewport = Readonly<{ x: number; y: number; zoom: number }>;
+export type BoardViewport = Readonly<{
+    x: number;
+    y: number;
+    zoom: number;
+}>;
 
 export type BoardEventMap = {
     select: BoardSelection | null;
     hover: BoardSelection | null;
-    rename: { blockId: string; memberId: string; name: string };
+    rename: {
+        blockId: string;
+        memberId: string;
+        name: string;
+    };
     move:
-        | { kind: 'card'; blockId: string; position: Point }
+        | {
+              kind: 'card';
+              blockId: string;
+              position: Point;
+          }
         | {
               kind: 'member';
               memberId: string;
@@ -118,11 +139,25 @@ export type BoardEventMap = {
               targetCollectionId: string;
               beforeMemberId: string | null;
           };
-    expand: { blockId: string; memberId: string; expanded: boolean };
-    variantChange: { blockId: string; variantId: string; scopeId: string };
+    expand: {
+        blockId: string;
+        memberId: string;
+        expanded: boolean;
+    };
+    variantChange: {
+        blockId: string;
+        variantId: string;
+        scopeId: string;
+    };
     viewportChange: BoardViewport;
-    loadMore: { blockId: string; collectionId: string };
-    add: { blockId: string; collectionId: string };
+    loadMore: {
+        blockId: string;
+        collectionId: string;
+    };
+    add: {
+        blockId: string;
+        collectionId: string;
+    };
 };
 
 export type BoardEventHandler<K extends keyof BoardEventMap> = (

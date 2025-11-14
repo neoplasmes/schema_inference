@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const state = vi.hoisted(() => ({ init: null as null | (() => void), destroy: vi.fn() }));
+const state = vi.hoisted(() => ({
+    init: null as null | (() => void),
+    destroy: vi.fn(),
+}));
 
 vi.mock('pixi.js', () => ({
     Application: class {
@@ -29,8 +32,14 @@ afterEach(() => {
 });
 
 function setup(fonts: Promise<void> = Promise.resolve()) {
-    vi.stubGlobal('window', { devicePixelRatio: 2 });
-    vi.stubGlobal('document', { fonts: { ready: fonts } });
+    vi.stubGlobal('window', {
+        devicePixelRatio: 2,
+    });
+    vi.stubGlobal('document', {
+        fonts: {
+            ready: fonts,
+        },
+    });
     const appendChild = vi.fn();
     const renderer = createBoardRenderer({
         container: {
@@ -40,7 +49,10 @@ function setup(fonts: Promise<void> = Promise.resolve()) {
         } as unknown as HTMLElement,
     });
 
-    return { renderer, appendChild };
+    return {
+        renderer,
+        appendChild,
+    };
 }
 
 describe('asynchronous renderer disposal', () => {
@@ -51,7 +63,9 @@ describe('asynchronous renderer disposal', () => {
         state.init!();
         await renderer.ready;
 
-        expect(state.destroy).toHaveBeenCalledExactlyOnceWith(true, { children: true });
+        expect(state.destroy).toHaveBeenCalledExactlyOnceWith(true, {
+            children: true,
+        });
         expect(appendChild).not.toHaveBeenCalled();
         expect(renderer.getStats().renderedFrames).toBe(0);
     });

@@ -24,15 +24,24 @@ async function healthy(baseUrl: string): Promise<boolean> {
 
 export async function ensureEditorServer(
     baseUrl = process.env.EDITOR_URL ?? 'http://127.0.0.1:3010'
-): Promise<{ baseUrl: string; stop(): Promise<void> }> {
+): Promise<{
+    baseUrl: string;
+    stop(): Promise<void>;
+}> {
     if (await healthy(baseUrl)) {
-        return { baseUrl, stop: async () => undefined };
+        return {
+            baseUrl,
+            stop: async () => undefined,
+        };
     }
 
     const address = new URL(baseUrl);
 
     if (
-        !['127.0.0.1', 'localhost'].includes(address.hostname) ||
+        ![
+            '127.0.0.1',
+            'localhost',
+        ].includes(address.hostname) ||
         address.port !== '3010'
     ) {
         throw new Error(
@@ -40,7 +49,9 @@ export async function ensureEditorServer(
         );
     }
 
-    await mkdir(resolve(editorRoot, 'visual/actual'), { recursive: true });
+    await mkdir(resolve(editorRoot, 'visual/actual'), {
+        recursive: true,
+    });
     const log = createWriteStream(resolve(editorRoot, 'visual/actual/dev-server.log'), {
         flags: 'a',
     });
@@ -55,7 +66,15 @@ export async function ensureEditorServer(
             '--mode',
             'development',
         ],
-        { cwd: editorRoot, stdio: ['ignore', 'pipe', 'pipe'], detached: true }
+        {
+            cwd: editorRoot,
+            stdio: [
+                'ignore',
+                'pipe',
+                'pipe',
+            ],
+            detached: true,
+        }
     );
     child.stdout?.pipe(log);
     child.stderr?.pipe(log);
@@ -102,7 +121,10 @@ export async function ensureEditorServer(
         }
 
         if (await healthy(baseUrl)) {
-            return { baseUrl, stop };
+            return {
+                baseUrl,
+                stop,
+            };
         }
 
         await new Promise(done => setTimeout(done, 250));

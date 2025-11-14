@@ -7,7 +7,9 @@ const sourceRoot = fileURLToPath(new URL('../src/', import.meta.url));
 const modules: SourceModule[] = [];
 
 async function collect(directory: string): Promise<void> {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
+    for (const entry of await readdir(directory, {
+        withFileTypes: true,
+    })) {
         const filename = path.join(directory, entry.name);
 
         if (entry.isDirectory()) {

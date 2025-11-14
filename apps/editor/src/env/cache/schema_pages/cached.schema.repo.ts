@@ -65,9 +65,7 @@ export class CachedSchemaRepository implements SchemaRepository {
         return this.repository.open(resource, options);
     }
 
-    createFromAnalysis(
-        resource: CreateDraftInput
-    ) {
+    createFromAnalysis(resource: CreateDraftInput) {
         return this.repository.createFromAnalysis(resource);
     }
 

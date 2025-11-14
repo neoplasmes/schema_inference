@@ -28,8 +28,19 @@ export default function EditorApplication(props: EditorProps): React.JSX.Element
     const controller = useEditorController(props, scene);
     const { session, version, error, demo } = controller.projection;
     const model = useMemo(
-        () => projectSession({ session, version, error, demo }),
-        [session, version, error, demo]
+        () =>
+            projectSession({
+                session,
+                version,
+                error,
+                demo,
+            }),
+        [
+            session,
+            version,
+            error,
+            demo,
+        ]
     );
     const [zoom, setZoom] = useState(scene.camera.zoom);
     const [previewOpen, setPreviewOpen] = useState(scene.id === 'replace-preview');
@@ -58,7 +69,13 @@ export default function EditorApplication(props: EditorProps): React.JSX.Element
             <div
                 className={styles.board}
                 ref={canvas.container}
-                style={hasPanels ? { pointerEvents: 'none' } : undefined}
+                style={
+                    hasPanels
+                        ? {
+                              pointerEvents: 'none',
+                          }
+                        : undefined
+                }
             />
             {hasPanels &&
                 scene.panels?.map(panel => (

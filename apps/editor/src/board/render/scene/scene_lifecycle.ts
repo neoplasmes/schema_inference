@@ -148,7 +148,9 @@ export class SceneLifecycle {
     private destroyApplication(): void {
         if (this.applicationInitialized && !this.applicationDestroyed) {
             this.applicationDestroyed = true;
-            this.app.destroy(true, { children: true });
+            this.app.destroy(true, {
+                children: true,
+            });
         }
     }
 

@@ -12,7 +12,11 @@ export type Gesture = {
     blockedBlocks: ReadonlySet<string> | null;
 };
 
-export type Pinch = { viewport: BoardViewport; distance: number; center: Point };
+export type Pinch = {
+    viewport: BoardViewport;
+    distance: number;
+    center: Point;
+};
 
 export const DRAG_THRESHOLD = 5;
 
@@ -21,7 +25,10 @@ export function hitSelection(hit: BoardHit | null): BoardSelection | null {
         return null;
     }
 
-    return { blockId: hit.blockId, memberId: 'memberId' in hit ? hit.memberId : null };
+    return {
+        blockId: hit.blockId,
+        memberId: 'memberId' in hit ? hit.memberId : null,
+    };
 }
 
 export function sameSelection(
@@ -32,7 +39,10 @@ export function sameSelection(
 }
 
 export function midpoint(points: readonly Point[]): Point {
-    return { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 };
+    return {
+        x: (points[0].x + points[1].x) / 2,
+        y: (points[0].y + points[1].y) / 2,
+    };
 }
 
 export function distance(points: readonly Point[]): number {
@@ -47,14 +57,25 @@ export type GestureState = {
 };
 
 export function createGestureState(): GestureState {
-    return { pointers: new Map(), gesture: null, pinch: null, spacePressed: false };
+    return {
+        pointers: new Map(),
+        gesture: null,
+        pinch: null,
+        spacePressed: false,
+    };
 }
 
 export function localPoint(
     container: HTMLElement,
-    event: { clientX: number; clientY: number }
+    event: {
+        clientX: number;
+        clientY: number;
+    }
 ): Point {
     const rect = container.getBoundingClientRect();
 
-    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+    };
 }

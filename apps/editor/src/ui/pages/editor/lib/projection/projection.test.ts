@@ -10,7 +10,12 @@ function setup() {
     const view = initialView(template);
     const project = () => projectDocument(document, view, template, 1);
 
-    return { document, view, project, template };
+    return {
+        document,
+        view,
+        project,
+        template,
+    };
 }
 
 describe('semantic document presentation', () => {
@@ -123,7 +128,10 @@ describe('semantic document presentation', () => {
 
     it('keeps expansion, variant and pinned positions out of semantic operations', () => {
         const { document, view, project } = setup();
-        view.positions.set('order', { x: 500, y: 400 });
+        view.positions.set('order', {
+            x: 500,
+            y: 400,
+        });
         view.expanded.set('order/customer', false);
         view.variants.set('payment', 'invoice');
         const model = project();
@@ -180,13 +188,23 @@ it('creates separate fixture snapshots and clean local documents for each resour
     expect(reopened.document.operations).toEqual([]);
     expect(second.document.manifest.snapshot).toEqual(secondSnapshot);
     expect(
-        [...second.fixture.pages.values()].every(page => page.snapshot === secondSnapshot)
+        [
+            ...second.fixture.pages.values(),
+        ].every(page => page.snapshot === secondSnapshot)
     ).toBe(true);
     expect(
         second.document.collections.get('members-order/attributes')?.items[0].member
-    ).toMatchObject({ name: { localName: 'id' } });
+    ).toMatchObject({
+        name: {
+            localName: 'id',
+        },
+    });
     expect(
         reopened.document.collections.get('members-order/attributes')?.items[0].member
-    ).toMatchObject({ name: { localName: 'id' } });
+    ).toMatchObject({
+        name: {
+            localName: 'id',
+        },
+    });
     expect(reopened.document).not.toBe(first.document);
 });

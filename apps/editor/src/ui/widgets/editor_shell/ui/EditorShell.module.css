@@ -3,7 +3,7 @@
     inset: 0;
     pointer-events: none;
     color: var(--label);
-    font: 13px/18px var(--font-sans);
+    font: 13px / 18px var(--font-sans);
 }
 .panel {
     position: absolute;
@@ -299,7 +299,7 @@
     color: var(--label-secondary);
 }
 .path {
-    font: 12px/16px var(--font-mono);
+    font: 12px / 16px var(--font-mono);
     color: var(--label-secondary);
 }
 .propertyGrid {
@@ -429,7 +429,7 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font: 11px/14px var(--font-mono);
+    font: 11px / 14px var(--font-mono);
 }
 .sources > span > span {
     color: var(--label-secondary);

@@ -13,6 +13,8 @@ export class CreateDraftCommand implements Command<CreateDraftInput, SchemaDocum
     }
 
     writes(_input: CreateDraftInput, output: SchemaDocument): readonly EntityRef[] {
-        return [`schema.document:${output.snapshot.id}`];
+        return [
+            `schema.document:${output.snapshot.id}`,
+        ];
     }
 }

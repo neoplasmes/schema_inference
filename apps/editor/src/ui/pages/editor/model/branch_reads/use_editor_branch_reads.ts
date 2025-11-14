@@ -66,8 +66,13 @@ export function useEditorBranchReads(
 
         try {
             const branch = await target.dependencies.loadBranch.execute(
-                { snapshot, nodeId: row.member.valueNodeId },
-                { signal: controller.signal }
+                {
+                    snapshot,
+                    nodeId: row.member.valueNodeId,
+                },
+                {
+                    signal: controller.signal,
+                }
             );
 
             if (
@@ -148,8 +153,13 @@ export function useEditorBranchReads(
                 const controller = new AbortController();
                 reads.current.set(key, controller);
                 const node = await target.dependencies.readNode.execute(
-                    { snapshot, nodeId: row.member.valueNodeId },
-                    { signal: controller.signal }
+                    {
+                        snapshot,
+                        nodeId: row.member.valueNodeId,
+                    },
+                    {
+                        signal: controller.signal,
+                    }
                 );
 
                 if (
@@ -196,8 +206,14 @@ export function useEditorBranchReads(
 
         try {
             const page = await target.dependencies.readMembers.execute(
-                { snapshot, collectionId: input.collectionId, cursor: window.nextCursor },
-                { signal: controller.signal }
+                {
+                    snapshot,
+                    collectionId: input.collectionId,
+                    cursor: window.nextCursor,
+                },
+                {
+                    signal: controller.signal,
+                }
             );
 
             if (
@@ -247,5 +263,9 @@ export function useEditorBranchReads(
         }
     }
 
-    return { expand, rename, loadMore };
+    return {
+        expand,
+        rename,
+        loadMore,
+    };
 }

@@ -132,7 +132,16 @@ export function hiddenSourceMembers(
         }
     }
 
-    return new Map([...hidden].map(([id, members]) => [id, [...members]]));
+    return new Map(
+        [
+            ...hidden,
+        ].map(([id, members]) => [
+            id,
+            [
+                ...members,
+            ],
+        ])
+    );
 }
 
 export function cardSize(
@@ -140,22 +149,34 @@ export function cardSize(
     lod: BoardLod,
     hiddenCount = 0,
     rowOffset = 0
-): { width: number; height: number } {
+): {
+    width: number;
+    height: number;
+} {
     const width = card.width ?? CARD.width;
     const metrics = cardMetrics(card, lod);
 
     if (lod === 'overview') {
-        return { width: card.width ?? 138, height: width <= 90 ? 52 : 56 };
+        return {
+            width: card.width ?? 138,
+            height: width <= 90 ? 52 : 56,
+        };
     }
 
     if (card.rowWindow.state === 'loading' && !card.rows.length) {
-        return { width, height: 54 };
+        return {
+            width,
+            height: 54,
+        };
     }
 
     const window = rowWindowFor(card, lod, rowOffset);
 
     if (card.display === 'summary') {
-        return { width, height: 8 + Math.max(1, window.rows.length) * metrics.row };
+        return {
+            width,
+            height: 8 + Math.max(1, window.rows.length) * metrics.row,
+        };
     }
 
     const contentHeight = card.collapsed ? 0 : window.height;
@@ -184,7 +205,10 @@ export function createCardGeometry(
     const size = cardSize(card, lod, hiddenMembers.length, rowOffset);
     const window = rowWindowFor(card, lod, rowOffset);
     const metrics = cardMetrics(card, lod);
-    const bounds = { ...position, ...size };
+    const bounds = {
+        ...position,
+        ...size,
+    };
     const header = {
         x: position.x + 4,
         y: position.y + 4,
@@ -192,9 +216,19 @@ export function createCardGeometry(
         height: metrics.header,
     };
     const regions: BoardHitRegion[] = [
-        { bounds: header, target: { kind: 'header', blockId: card.blockId } },
+        {
+            bounds: header,
+            target: {
+                kind: 'header',
+                blockId: card.blockId,
+            },
+        },
     ];
-    const rows: { memberId: string; bounds: Rectangle; nameBounds: Rectangle }[] = [];
+    const rows: {
+        memberId: string;
+        bounds: Rectangle;
+        nameBounds: Rectangle;
+    }[] = [];
     const nameBounds = (row: BoardRow, rowBounds: Rectangle): Rectangle => {
         const columns = rowColumns(
             row,
@@ -216,17 +250,41 @@ export function createCardGeometry(
     let y = header.y + header.height;
 
     if (lod === 'overview') {
-        regions[0] = { bounds, target: { kind: 'header', blockId: card.blockId } };
+        regions[0] = {
+            bounds,
+            target: {
+                kind: 'header',
+                blockId: card.blockId,
+            },
+        };
 
-        return { blockId: card.blockId, bounds, header, rows, regions };
+        return {
+            blockId: card.blockId,
+            bounds,
+            header,
+            rows,
+            regions,
+        };
     }
 
     if (!card.rows.length && card.rowWindow.state === 'loading') {
-        return { blockId: card.blockId, bounds, header, rows, regions };
+        return {
+            blockId: card.blockId,
+            bounds,
+            header,
+            rows,
+            regions,
+        };
     }
 
     if (card.display === 'summary') {
-        regions[0] = { bounds, target: { kind: 'header', blockId: card.blockId } };
+        regions[0] = {
+            bounds,
+            target: {
+                kind: 'header',
+                blockId: card.blockId,
+            },
+        };
 
         window.rows.forEach((row, index) => {
             const rowBounds = {
@@ -242,7 +300,11 @@ export function createCardGeometry(
             });
             regions.push({
                 bounds: rowBounds,
-                target: { kind: 'row', blockId: card.blockId, memberId: row.memberId },
+                target: {
+                    kind: 'row',
+                    blockId: card.blockId,
+                    memberId: row.memberId,
+                },
             });
 
             if (row.expandable) {
@@ -267,7 +329,11 @@ export function createCardGeometry(
                     width: row.branch.totalItems === null ? 160 : 123,
                     height: 28,
                 };
-                branches.push({ memberId: row.memberId, bounds: pill, ...row.branch });
+                branches.push({
+                    memberId: row.memberId,
+                    bounds: pill,
+                    ...row.branch,
+                });
                 regions.push({
                     bounds: pill,
                     target: {
@@ -311,7 +377,10 @@ export function createCardGeometry(
         return {
             blockId: card.blockId,
             bounds,
-            header: { ...header, height: metrics.row },
+            header: {
+                ...header,
+                height: metrics.row,
+            },
             rows,
             regions,
             branches,
@@ -362,7 +431,11 @@ export function createCardGeometry(
                     width: header.width / hiddenMembers.length,
                     height: metrics.boundary,
                 },
-                target: { kind: 'boundary', blockId: card.blockId, memberId },
+                target: {
+                    kind: 'boundary',
+                    blockId: card.blockId,
+                    memberId,
+                },
             });
         });
 
@@ -386,7 +459,11 @@ export function createCardGeometry(
             });
             regions.push({
                 bounds: rowBounds,
-                target: { kind: 'row', blockId: card.blockId, memberId: row.memberId },
+                target: {
+                    kind: 'row',
+                    blockId: card.blockId,
+                    memberId: row.memberId,
+                },
             });
 
             if (row.expandable) {
@@ -412,7 +489,11 @@ export function createCardGeometry(
                     width: row.branch.totalItems === null ? 200 : 180,
                     height: 28,
                 };
-                branches.push({ memberId: row.memberId, bounds: pill, ...row.branch });
+                branches.push({
+                    memberId: row.memberId,
+                    bounds: pill,
+                    ...row.branch,
+                });
                 regions.push({
                     bounds: pill,
                     target: {
@@ -535,7 +616,12 @@ export function rowScrollbar(card: BoardCard, geometry: BoardCardGeometry) {
     const thumbTop =
         trackTop + ((trackHeight - thumbHeight) * first) / Math.max(1, maximum);
 
-    return { trackTop, trackHeight, thumbTop, thumbHeight };
+    return {
+        trackTop,
+        trackHeight,
+        thumbTop,
+        thumbHeight,
+    };
 }
 
 export function connectionGeometry(
@@ -555,7 +641,10 @@ export function connectionGeometry(
         x: source.bounds.x + source.bounds.width,
         y: sourceBounds.y + sourceBounds.height / 2,
     };
-    const to = { x: target.bounds.x, y: target.header.y + target.header.height / 2 };
+    const to = {
+        x: target.bounds.x,
+        y: target.header.y + target.header.height / 2,
+    };
     const bend = Math.max(40, Math.abs(to.x - from.x) / 2);
     const left = Math.min(from.x, to.x - bend);
     const right = Math.max(to.x, from.x + bend);
@@ -576,7 +665,12 @@ export function connectionGeometry(
 
 export function aggregateBounds(cards: readonly BoardCardGeometry[]): Rectangle {
     if (!cards.length) {
-        return { x: 0, y: 0, width: 0, height: 0 };
+        return {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+        };
     }
 
     let x = Infinity;
@@ -592,12 +686,22 @@ export function aggregateBounds(cards: readonly BoardCardGeometry[]): Rectangle 
         bottom = Math.max(bottom, bounds.y + bounds.height);
     }
 
-    return { x, y, width: right - x, height: bottom - y };
+    return {
+        x,
+        y,
+        width: right - x,
+        height: bottom - y,
+    };
 }
 
 export const EMPTY_GEOMETRY: BoardGeometry = {
     version: 0,
     cards: [],
     connections: [],
-    bounds: { x: 0, y: 0, width: 0, height: 0 },
+    bounds: {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    },
 };

@@ -129,7 +129,10 @@ export class RetainedLabel {
         private readonly metrics: LabelMetrics,
         resolution: number
     ) {
-        this.view = new Text({ text: '', resolution });
+        this.view = new Text({
+            text: '',
+            resolution,
+        });
         this.view.anchor.set(0, 0.5);
     }
 

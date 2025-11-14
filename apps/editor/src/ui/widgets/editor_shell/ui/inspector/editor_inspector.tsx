@@ -112,9 +112,18 @@ export function EditorInspector(props: InspectorProps): React.JSX.Element {
                                 </button>
                                 <div className={styles.evidenceActions}>
                                     {[
-                                        ['Allow both', 'xs:choice'],
-                                        ['Merge fields', 'looser schema'],
-                                        ['Build custom', 'keeps origin'],
+                                        [
+                                            'Allow both',
+                                            'xs:choice',
+                                        ],
+                                        [
+                                            'Merge fields',
+                                            'looser schema',
+                                        ],
+                                        [
+                                            'Build custom',
+                                            'keeps origin',
+                                        ],
                                     ].map(([label, hint]) => (
                                         <button
                                             key={label}

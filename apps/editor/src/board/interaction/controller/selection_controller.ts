@@ -58,7 +58,10 @@ export function createSelectionController(
                 scopeId: hit.scopeId,
             });
         } else if (hit.kind === 'add') {
-            emit('add', { blockId: hit.blockId, collectionId: hit.collectionId });
+            emit('add', {
+                blockId: hit.blockId,
+                collectionId: hit.collectionId,
+            });
         } else if (hit.kind === 'more') {
             const card = getModel().cards.find(card => card.blockId === hit.blockId);
 

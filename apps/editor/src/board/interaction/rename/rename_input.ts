@@ -5,7 +5,9 @@ import { worldToScreen } from '../../viewport';
 
 type RenameInputOptions = {
     container: HTMLElement;
-    selection: BoardSelection & { memberId: string };
+    selection: BoardSelection & {
+        memberId: string;
+    };
     name: string;
     geometry: () => BoardGeometry;
     viewport: () => BoardViewport;
@@ -55,7 +57,9 @@ export function createRenameInput(options: RenameInputOptions) {
         options.closed();
 
         if (restoreFocus) {
-            options.container.focus({ preventScroll: true });
+            options.container.focus({
+                preventScroll: true,
+            });
         }
     }
 
@@ -130,9 +134,14 @@ export function createRenameInput(options: RenameInputOptions) {
     reposition();
 
     if (!destroyed) {
-        input.focus({ preventScroll: true });
+        input.focus({
+            preventScroll: true,
+        });
         input.select();
     }
 
-    return { reposition, destroy: () => close(false) };
+    return {
+        reposition,
+        destroy: () => close(false),
+    };
 }

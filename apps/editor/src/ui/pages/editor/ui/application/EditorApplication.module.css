@@ -8,7 +8,7 @@
     box-sizing: border-box;
     background: var(--surface-canvas);
     color: var(--label);
-    font: 13px/18px var(--font-sans);
+    font: 13px / 18px var(--font-sans);
     text-align: left;
     letter-spacing: normal;
     text-transform: none;

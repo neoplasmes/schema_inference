@@ -12,7 +12,11 @@ export class HttpTransport {
             ...options,
             headers: {
                 Accept: 'application/json',
-                ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
+                ...(options?.body
+                    ? {
+                          'Content-Type': 'application/json',
+                      }
+                    : {}),
                 ...options?.headers,
             },
         });

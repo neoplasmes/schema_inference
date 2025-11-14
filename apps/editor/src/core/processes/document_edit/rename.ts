@@ -23,21 +23,39 @@ export function createRenameEdit(
 
     if (row.member.kind === 'property') {
         return {
-            forward: { kind: 'renameProperty', memberId, name },
-            inverse: { kind: 'renameProperty', memberId, name: previousName },
+            forward: {
+                kind: 'renameProperty',
+                memberId,
+                name,
+            },
+            inverse: {
+                kind: 'renameProperty',
+                memberId,
+                name: previousName,
+            },
         };
     }
 
     if (row.member.kind === 'xmlAttribute') {
-        const target = { kind: 'member' as const, id: memberId };
+        const target = {
+            kind: 'member' as const,
+            id: memberId,
+        };
 
         return {
             forward: {
                 kind: 'renameXmlName',
                 target,
-                name: { ...row.member.name, localName: name },
+                name: {
+                    ...row.member.name,
+                    localName: name,
+                },
             },
-            inverse: { kind: 'renameXmlName', target, name: row.member.name },
+            inverse: {
+                kind: 'renameXmlName',
+                target,
+                name: row.member.name,
+            },
         };
     }
 
@@ -47,18 +65,27 @@ export function createRenameEdit(
         throw new DocumentEditError('Load the XML element before renaming it.');
     }
 
-    const target = { kind: 'node' as const, id: node.id };
+    const target = {
+        kind: 'node' as const,
+        id: node.id,
+    };
 
     return {
         forward: {
             kind: 'renameXmlName',
             target,
-            name: { ...node.name, localName: name },
+            name: {
+                ...node.name,
+                localName: name,
+            },
         },
         inverse: {
             kind: 'renameXmlName',
             target,
-            name: { ...node.name, localName: previousName },
+            name: {
+                ...node.name,
+                localName: previousName,
+            },
         },
     };
 }

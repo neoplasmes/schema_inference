@@ -13,7 +13,12 @@ export function useEditorController(props: EditorProps, scene: PlaygroundScene) 
     const { save } = useEditorSave(props, state);
 
     return {
-        projection: { session: activeSession, version, error, demo },
+        projection: {
+            session: activeSession,
+            version,
+            error,
+            demo,
+        },
         ...intents,
         demo,
         session: activeSession,

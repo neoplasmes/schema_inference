@@ -8,19 +8,27 @@ function fixture(): BoardModel {
         nodeId: 'source-node',
         collectionId: 'source-members',
         title: 'source',
-        position: { x: 0, y: 0 },
+        position: {
+            x: 0,
+            y: 0,
+        },
         pinned: false,
         collapsed: false,
         suggested: false,
-        rows: Array.from({ length: 20 }, (_, index) => ({
-            memberId: `member-${index}`,
-            name: `field${index}`,
-            typeLabel: 'string',
-            icon: 'element',
-            change: 'unchanged',
-            expandable: index === 15,
-            expanded: index === 15,
-        })),
+        rows: Array.from(
+            {
+                length: 20,
+            },
+            (_, index) => ({
+                memberId: `member-${index}`,
+                name: `field${index}`,
+                typeLabel: 'string',
+                icon: 'element',
+                change: 'unchanged',
+                expandable: index === 15,
+                expanded: index === 15,
+            })
+        ),
         rowWindow: {
             firstMemberId: 'member-0',
             totalItems: 20,
@@ -33,7 +41,10 @@ function fixture(): BoardModel {
         blockId: 'child',
         nodeId: 'child-node',
         title: 'child',
-        position: { x: 400, y: 0 },
+        position: {
+            x: 400,
+            y: 0,
+        },
         rows: [],
         rowWindow: {
             firstMemberId: null,
@@ -47,7 +58,10 @@ function fixture(): BoardModel {
         version: 1,
         state: 'ready',
         selection: null,
-        cards: [source, child],
+        cards: [
+            source,
+            child,
+        ],
         connections: [
             {
                 id: 'nested',
@@ -74,11 +88,24 @@ it('keeps loaded row scrolling and row connection anchors together without a cam
     expect(scene.scrollRows('source', 280)).toBe(true);
     const scrolled = scene.getGeometry();
     expect(scrolled.cards[0].rows.map(row => row.memberId)).toEqual(
-        Array.from({ length: 10 }, (_, index) => `member-${index + 10}`)
+        Array.from(
+            {
+                length: 10,
+            },
+            (_, index) => `member-${index + 10}`
+        )
     );
     expect(scrolled.connections[0].sourceHidden).toBe(false);
-    expect(scrolled.connections[0].source).toEqual({ x: 248, y: 192 });
-    expect(scene.hitTest({ x: 20, y: 192 })).toEqual({
+    expect(scrolled.connections[0].source).toEqual({
+        x: 248,
+        y: 192,
+    });
+    expect(
+        scene.hitTest({
+            x: 20,
+            y: 192,
+        })
+    ).toEqual({
         kind: 'row',
         blockId: 'source',
         memberId: 'member-15',
@@ -98,14 +125,24 @@ it('retains stable row anchors across model revisions and releases the spatial w
     const version = {
         ...model,
         version: 2,
-        selection: { blockId: 'source', memberId: 'member-15' },
+        selection: {
+            blockId: 'source',
+            memberId: 'member-15',
+        },
     };
     scene.setModel(version);
     scene.scrollRows('source', 28);
     expect(scene.getGeometry().version).toBe(2);
     expect(scene.getGeometry().cards[0].rows[0].memberId).toBe('member-7');
     scene.clear();
-    expect(scene.queryCards({ x: 0, y: 0, width: 800, height: 600 })).toEqual([]);
+    expect(
+        scene.queryCards({
+            x: 0,
+            y: 0,
+            width: 800,
+            height: 600,
+        })
+    ).toEqual([]);
     expect(scene.getGeometry().cards).toEqual([]);
     expect(scene.getGeometry().connections).toEqual([]);
 });

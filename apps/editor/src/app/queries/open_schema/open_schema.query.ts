@@ -7,7 +7,12 @@ import type {
     SchemaRepository,
 } from '../../ports/repos/schema';
 
-export type OpenSchemaInput = Extract<EditorResource, { kind: 'schema' }>;
+export type OpenSchemaInput = Extract<
+    EditorResource,
+    {
+        kind: 'schema';
+    }
+>;
 
 export class OpenSchemaQuery implements Query<OpenSchemaInput, SchemaDocument> {
     readonly name = 'schema.open';
@@ -19,6 +24,8 @@ export class OpenSchemaQuery implements Query<OpenSchemaInput, SchemaDocument> {
     }
 
     reads(input: OpenSchemaInput): readonly EntityRef[] {
-        return [`schema.document:${input.schemaId}`];
+        return [
+            `schema.document:${input.schemaId}`,
+        ];
     }
 }

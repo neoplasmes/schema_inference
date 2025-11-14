@@ -13,16 +13,30 @@ it('appends several edges into the same retained layer without clearing earlier 
     };
     const edge = {
         id: 'first',
-        source: { x: 0, y: 0 },
-        target: { x: 300, y: 100 },
+        source: {
+            x: 0,
+            y: 0,
+        },
+        target: {
+            x: 300,
+            y: 100,
+        },
         sourceHidden: false,
-        bounds: { x: 0, y: 0, width: 300, height: 100 },
+        bounds: {
+            x: 0,
+            y: 0,
+            width: 300,
+            height: 100,
+        },
     };
     const layer = graphics as unknown as Graphics;
     drawConnection(layer, edge, false, false, resolveTheme(), 1, false);
     drawConnection(
         layer,
-        { ...edge, id: 'second' },
+        {
+            ...edge,
+            id: 'second',
+        },
         true,
         false,
         resolveTheme(),

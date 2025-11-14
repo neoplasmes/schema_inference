@@ -4,7 +4,10 @@ import type { EntityRef } from '../../../core/entities';
 import type { Snapshot } from '../../../core/entities/schema';
 import type { ReadOptions, SchemaRepository } from '../../ports/repos/schema';
 
-export type ReadSchemaNodeInput = { snapshot: Snapshot; nodeId: string };
+export type ReadSchemaNodeInput = {
+    snapshot: Snapshot;
+    nodeId: string;
+};
 
 export class ReadSchemaNodeQuery implements Query<ReadSchemaNodeInput, SchemaNode> {
     readonly name = 'schema.node';

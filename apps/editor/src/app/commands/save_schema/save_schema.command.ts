@@ -4,7 +4,10 @@ import type { EditorDocument } from '../../editor/document';
 import type { ChangeReceipt, SchemaRepository } from '../../ports/repos/schema';
 import { SchemaWriteRejectedError } from '../../ports/repos/schema';
 
-export type SaveSchemaInput = { document: EditorDocument; mutationId: string };
+export type SaveSchemaInput = {
+    document: EditorDocument;
+    mutationId: string;
+};
 
 export class SaveSchemaCommand implements Command<SaveSchemaInput, ChangeReceipt> {
     constructor(private readonly repository: SchemaRepository) {}
@@ -41,11 +44,15 @@ export class SaveSchemaCommand implements Command<SaveSchemaInput, ChangeReceipt
     }
 
     writes(
-        input: { document: EditorDocument },
+        input: {
+            document: EditorDocument;
+        },
         output: ChangeReceipt
     ): readonly EntityRef[] {
         return output.status === 'applied'
-            ? [`schema.document:${input.document.manifest.snapshot.id}`]
+            ? [
+                  `schema.document:${input.document.manifest.snapshot.id}`,
+              ]
             : [];
     }
 }

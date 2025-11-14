@@ -57,7 +57,10 @@ export function useSchemaBoard(
             })
         );
 
-        void Promise.all([instance.ready, document.fonts.ready])
+        void Promise.all([
+            instance.ready,
+            document.fonts.ready,
+        ])
             .then(() => {
                 if (disposed) {
                     return;
@@ -91,11 +94,21 @@ export function useSchemaBoard(
                 board.current = null;
             }
         };
-    }, [identity, background]);
+    }, [
+        identity,
+        background,
+    ]);
 
     useEffect(() => {
         board.current?.setModel(model);
-    }, [model]);
+    }, [
+        model,
+    ]);
 
-    return { container, board, ready, error };
+    return {
+        container,
+        board,
+        ready,
+        error,
+    };
 }

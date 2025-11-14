@@ -59,12 +59,18 @@ export function VariantComparison(props: ComparisonProps): React.JSX.Element {
                         Preview {activeVariant?.title ?? 'Invoice'}
                     </button>
                     {[
-                        ['Allow both', 'Adds an xs:choice with two branches'],
+                        [
+                            'Allow both',
+                            'Adds an xs:choice with two branches',
+                        ],
                         [
                             'Merge and relax',
                             'All fields, the differing ones optional. Allows combinations never observed.',
                         ],
-                        ['Build custom', 'A manual copy that remembers its origin'],
+                        [
+                            'Build custom',
+                            'A manual copy that remembers its origin',
+                        ],
                     ].map(([label, description]) => (
                         <button
                             key={label}

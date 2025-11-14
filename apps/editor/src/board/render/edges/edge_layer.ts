@@ -24,7 +24,10 @@ export class EdgeLayer {
     private readonly badgeLayer = new Container();
     private readonly badgeViews = new Map<
         string,
-        { label: RetainedLabel; badge: Graphics }
+        {
+            label: RetainedLabel;
+            badge: Graphics;
+        }
     >();
     private readonly edgeGroups = new Map<string, EdgeGroup>();
     private readonly edgeGroupsById = new Map<string, EdgeGroup>();
@@ -126,7 +129,13 @@ export class EdgeLayer {
                 group.selected ||= selected;
                 group.dashed ||= dashed;
             } else {
-                group = { geometry, connection, selected, dashed, count: 1 };
+                group = {
+                    geometry,
+                    connection,
+                    selected,
+                    dashed,
+                    count: 1,
+                };
                 this.edgeGroups.set(key, group);
             }
 
@@ -189,7 +198,12 @@ export class EdgeLayer {
                     .clear()
                     .roundRect(x - 13, y - 9, 26, 18, 9)
                     .fill(paint('surface-card', this.theme));
-                entry.label.update({ text: `×${count}`, x: x - 9, y, role: 'footnote' });
+                entry.label.update({
+                    text: `×${count}`,
+                    x: x - 9,
+                    y,
+                    role: 'footnote',
+                });
             }
         }
 
