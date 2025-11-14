@@ -3,7 +3,7 @@ from contextlib import closing
 
 import docker
 import httpx
-from e2e.backend import DatabaseStack
+from support import DatabaseStack
 
 
 def restart_server(stack: DatabaseStack) -> None:

@@ -56,7 +56,7 @@ async function launchBackend(): Promise<() => Promise<void>> {
         'moon',
         [
             'run',
-            'backend-e2e:start',
+            'server:start-e2e',
             '--no-actions',
         ],
         {

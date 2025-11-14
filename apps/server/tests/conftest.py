@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 
 import pytest
-from e2e.backend import DatabaseStack
+from support import DatabaseStack
 
 
 @pytest.fixture(scope="session")

@@ -3,7 +3,7 @@ import signal
 from pathlib import Path
 from threading import Event
 
-from e2e.backend import DatabaseStack
+from . import DatabaseStack
 
 
 def serve() -> None:

@@ -22,7 +22,7 @@ fileGroups:
     - .dockerignore
     - nginx.conf
   backend:
-    - /e2e/backend/**/*.py
+    - /apps/server/e2e/**/*.py
     - /apps/server/src/**/*.{py,sql,json}
     - /env/local/docker-compose*.yaml
     - /env/pgbouncer/*.{ini,txt}

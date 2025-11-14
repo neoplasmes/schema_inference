@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterator
 
 import httpx
 import pytest
-from e2e.backend import DatabaseStack
+from support import DatabaseStack
 
 
 @pytest.fixture(scope="session")

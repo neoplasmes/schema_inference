@@ -12,7 +12,7 @@ fileGroups:
   tests:
     - apps/*/tests/**/*.{py,ts,xml,json,yaml,yml}
     - apps/editor/visual/*.ts
-    - e2e/backend/**/*.py
+    - apps/server/e2e/**/*.py
   cfg:
     - .moon/tasks/*.yml
     - apps/*/Dockerfile
@@ -59,8 +59,8 @@ tasks:
       - entity-cache:lint
       - server:lint
       - root:lint-generator
-      - backend-e2e:lint
       - env:lint
+      - env:lint-python
 
   fmt:
     command: pnpm exec biome format --write @files(formatting)
@@ -71,7 +71,7 @@ tasks:
       - entity-cache:fmt
       - server:fmt
       - root:fmt-generator
-      - backend-e2e:fmt
+      - env:fmt
     options:
       cache: false
       runInCI: false
@@ -99,7 +99,6 @@ tasks:
       - entity-cache:typecheck
       - server:typecheck
       - root:typecheck-generator
-      - backend-e2e:typecheck
 
   check:
     command: noop
@@ -134,7 +133,7 @@ tasks:
       - client:test-e2e-mock
       - client:test-e2e-api
       - client:test-e2e
-      - backend-e2e:test-e2e
+      - server:test-e2e
 
   build:
     command: noop
