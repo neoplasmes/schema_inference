@@ -16,7 +16,7 @@ export default tseslint.config(
         files: [
             'src/**/*.{js,jsx,ts,tsx}',
             'scripts/**/*.ts',
-            'tests/**/*.ts',
+            'e2e/**/*.ts',
             '*.config.ts',
         ],
         extends: [

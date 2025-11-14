@@ -21,14 +21,21 @@ test.afterEach(async ({ page }, testInfo) => {
 });
 
 if (process.env.WORKSPACE_CONTAINER === '1') {
-    test('serves the workspace and federated assets through nginx', async ({ request }, testInfo) => {
+    test('serves the workspace and federated assets through nginx', async ({
+        request,
+    }, testInfo) => {
         const workspace = await request.get('/workspace-runtime.json');
         expect(workspace.ok()).toBe(true);
-        expect(await workspace.json()).toMatchObject({ mode: 'api', apiBaseUrl: '' });
+        expect(await workspace.json()).toMatchObject({
+            mode: 'api',
+            apiBaseUrl: '',
+        });
         const runtime = await request.get('/editor-runtime.json');
         expect(runtime.ok()).toBe(true);
         const configuration = await runtime.json();
-        expect(configuration.editorManifestUrl).toBe('http://127.0.0.1:4173/editor/mf-manifest.json');
+        expect(configuration.editorManifestUrl).toBe(
+            'http://127.0.0.1:4173/editor/mf-manifest.json'
+        );
         const manifest = await request.get(configuration.editorManifestUrl);
         expect(manifest.ok()).toBe(true);
         expect(manifest.headers()['content-type']).toContain('application/json');
@@ -40,13 +47,21 @@ if (process.env.WORKSPACE_CONTAINER === '1') {
         const script = html.match(/src="([^"]+\.js)"/)?.[1];
         expect(script).toBeTruthy();
 
-        for (const url of [script!, '/editor/remoteEntry.js']) {
+        for (const url of [
+            script!,
+            '/editor/remoteEntry.js',
+        ]) {
             const asset = await request.get(url);
             expect(asset.status()).toBe(200);
-            expect(asset.headers()['content-type']).toMatch(/(?:application|text)\/javascript/);
+            expect(asset.headers()['content-type']).toMatch(
+                /(?:application|text)\/javascript/
+            );
         }
 
-        for (const url of ['/assets/missing.js', '/editor/assets/missing.js']) {
+        for (const url of [
+            '/assets/missing.js',
+            '/editor/assets/missing.js',
+        ]) {
             expect((await request.get(url)).status()).toBe(404);
         }
 
@@ -70,7 +85,8 @@ for (const fixture of [
     },
     {
         format: 'xml',
-        content: '<invoice><name>Alice</name><amount>12</amount><details><code>A</code></details></invoice>',
+        content:
+            '<invoice><name>Alice</name><amount>12</amount><details><code>A</code></details></invoice>',
     },
 ]) {
     test(`persists a real ${fixture.format} schema through the federated editor`, async ({
@@ -93,15 +109,17 @@ for (const fixture of [
             })
             .click();
         await ready(page);
-        await expect(page.getByText(
-            fixture.format === 'xml' ? 'XSD 1.0' : 'JSON Schema 2020-12',
-            { exact: true }
-        )).toBeVisible();
+        await expect(
+            page.getByText(fixture.format === 'xml' ? 'XSD 1.0' : 'JSON Schema 2020-12', {
+                exact: true,
+            })
+        ).toBeVisible();
         expect((await state(page)).document).toMatchObject({
             revision: 's1',
             operations: [],
         });
-        await expect.poll(() => new URL(page.url()).searchParams.get('schemaId'))
+        await expect
+            .poll(() => new URL(page.url()).searchParams.get('schemaId'))
             .not.toBeNull();
         const schemaId = new URL(page.url()).searchParams.get('schemaId');
         expect((await names(page)).sort()).toEqual([
@@ -109,7 +127,11 @@ for (const fixture of [
             'details',
             'name',
         ]);
-        await recordJson(testInfo, 'environment', await environment(page, browser.version()));
+        await recordJson(
+            testInfo,
+            'environment',
+            await environment(page, browser.version())
+        );
         await capture(page, testInfo, 'inferred-schema');
         await expand(page, 'details');
         await expect.poll(() => names(page)).toContain('code');
@@ -139,8 +161,8 @@ for (const fixture of [
             .click();
         await expect.poll(async () => (await state(page)).document.revision).toBe('s2');
         expect((await state(page)).document.operations).toEqual([]);
-        const creations = audit.requests.filter(request =>
-            request.method === 'POST' && request.path === '/api/v2/schemas'
+        const creations = audit.requests.filter(
+            request => request.method === 'POST' && request.path === '/api/v2/schemas'
         ).length;
         await settleAudit(audit);
         await page.reload();
@@ -151,9 +173,11 @@ for (const fixture of [
             operations: [],
         });
         expect(await names(page)).toContain('customerName');
-        expect(audit.requests.filter(request =>
-            request.method === 'POST' && request.path === '/api/v2/schemas'
-        )).toHaveLength(creations);
+        expect(
+            audit.requests.filter(
+                request => request.method === 'POST' && request.path === '/api/v2/schemas'
+            )
+        ).toHaveLength(creations);
         await capture(page, testInfo, 'direct-reload-schema');
         await settleAudit(audit);
         await page
@@ -188,9 +212,11 @@ for (const fixture of [
             const freshPage = await freshContext.newPage();
             observe(freshPage, audit);
             await freshPage.goto('/');
-            await freshPage.getByRole('link', {
-                name: new RegExp(title),
-            }).click();
+            await freshPage
+                .getByRole('link', {
+                    name: new RegExp(title),
+                })
+                .click();
             await ready(freshPage);
             expect((await names(freshPage)).sort()).toEqual([
                 'amount',
@@ -223,33 +249,45 @@ for (const fixture of [
                 },
             ],
         });
-        expect(audit.responses.find(response =>
-            response.method === 'POST' && response.path === '/api/v2/analyses'
-        )).toMatchObject({
+        expect(
+            audit.responses.find(
+                response =>
+                    response.method === 'POST' && response.path === '/api/v2/analyses'
+            )
+        ).toMatchObject({
             status: 202,
             headers: {
                 location: expect.stringMatching(/^\/api\/v2\/analyses\//),
             },
         });
-        expect(audit.responses.find(response =>
-            response.method === 'POST' && response.path === '/api/v2/schemas'
-        )).toMatchObject({
+        expect(
+            audit.responses.find(
+                response =>
+                    response.method === 'POST' && response.path === '/api/v2/schemas'
+            )
+        ).toMatchObject({
             status: 201,
             headers: {
                 etag: expect.stringMatching(/:s1"$/),
             },
         });
-        expect(audit.responses.find(response =>
-            response.method === 'POST' && response.path.endsWith('/changesets')
-        )).toMatchObject({
+        expect(
+            audit.responses.find(
+                response =>
+                    response.method === 'POST' && response.path.endsWith('/changesets')
+            )
+        ).toMatchObject({
             status: 201,
             headers: {
                 etag: expect.stringMatching(/:s2"$/),
             },
         });
-        expect(audit.requests.find(request =>
-            request.method === 'POST' && request.path.endsWith('/changesets')
-        )?.ifMatch).toMatch(/:s1"$/);
+        expect(
+            audit.requests.find(
+                request =>
+                    request.method === 'POST' && request.path.endsWith('/changesets')
+            )?.ifMatch
+        ).toMatch(/:s1"$/);
         expect(audit.requests.filter(request => request.method === 'PUT')).toEqual([]);
     });
 }

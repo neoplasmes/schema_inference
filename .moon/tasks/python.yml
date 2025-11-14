@@ -46,7 +46,7 @@ tasks:
     command: noop
     deps:
       - ~:fmt
+      - ~:lint-fix
       - ~:typecheck
-    inputs: *sources
     options:
       runInCI: false

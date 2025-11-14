@@ -60,16 +60,6 @@ tasks:
     deps:
       - editor:lint-architecture
 
-  fmt:
-    deps:
-      - editor:fmt-markup
-
-  fmt-markup:
-    command: pnpm exec prettier --write index.html
-    options:
-      cache: false
-      runInCI: false
-
   build-tokens:
     command: pnpm exec tsx scripts/sync-tokens.ts
     options:

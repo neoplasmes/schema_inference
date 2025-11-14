@@ -2,178 +2,28 @@ language: system
 type: configuration
 
 fileGroups:
-  src:
-    - apps/*/src/**/*.{py,sql,json,ts,tsx,css}
-    - apps/editor/playground/*.ts
-    - packages/*/src/**/*.{py,ts,tsx}
-    - apps/*/scripts/*.ts
-    - apps/editor/scripts/architecture/*.ts
-    - env/docker/*.py
-  tests:
-    - apps/*/tests/**/*.{py,ts,xml,json,yaml,yml}
-    - apps/editor/visual/*.ts
-    - apps/server/e2e/**/*.py
   cfg:
-    - .moon/tasks/*.yml
-    - apps/*/Dockerfile
-    - apps/*/.dockerignore
-    - apps/*/nginx.conf
-    - .dockerignore
-    - apps/*/*.{json,js,ts}
-    - apps/*/pyproject.toml
-    - packages/*/*.{json,js,ts,toml}
-    - /env/local/docker-compose*.yaml
-    - env/pgbouncer/*.{ini,txt}
     - package.json
-    - pyproject.toml
     - pnpm-lock.yaml
     - pnpm-workspace.yaml
     - .pnpmfile.cjs
+    - pyproject.toml
     - uv.lock
+    - ty.toml
+    - .prototools
+    - lefthook.yml
+    - .moon/**/*
+  cfg-fmt:
     - biome.json
-    - prettier.config.js
-  assets:
-    - apps/*/index.html
-    - apps/client/public/*.json
-  generator-src:
-    - tools/documents-generator/src/**/*.py
-  generator-cfg:
-    - tools/documents-generator/pyproject.toml
-  formatting:
-    - biome.json
-    - package.json
-    - prettier.config.js
-    - .zed/settings.json
+  tools-src:
+    - tools/**/*.py
+  tools-cfg:
+    - tools/**/pyproject.toml
 
 tasks:
-  lint:
-    command: noop
-    inputs: &workspace-inputs
-      - '@group(src)'
-      - '@group(tests)'
-      - '@group(cfg)'
-      - '@group(assets)'
-    deps:
-      - client:lint
-      - editor:lint
-      - entity-cache:lint
-      - server:lint
-      - root:lint-generator
-      - env:lint
-      - env:lint-python
-
-  fmt:
-    command: pnpm exec biome format --write @files(formatting)
-    platform: node
-    deps:
-      - client:fmt
-      - editor:fmt
-      - entity-cache:fmt
-      - server:fmt
-      - root:fmt-generator
-      - env:fmt
-    options:
-      cache: false
-      runInCI: false
-
-  fmt-files:
-    command: pnpm exec biome format --write --files-ignore-unknown=true --no-errors-on-unmatched
-    platform: node
-    options:
-      cache: false
-      runInCI: false
-
-  fmt-markup-files:
-    command: pnpm exec prettier --write --ignore-unknown
-    platform: node
-    options:
-      cache: false
-      runInCI: false
-
-  typecheck:
-    command: noop
-    inputs: *workspace-inputs
-    deps:
-      - client:typecheck
-      - editor:typecheck
-      - entity-cache:typecheck
-      - server:typecheck
-      - root:typecheck-generator
-
-  check:
-    command: noop
-    inputs: *workspace-inputs
-    deps:
-      - root:fmt
-      - root:lint
-      - root:typecheck
-    options:
-      runDepsInParallel: false
-      runInCI: false
-
-  test-unit:
-    command: noop
-    inputs: *workspace-inputs
-    deps:
-      - client:test-unit
-      - editor:test-unit
-      - entity-cache:test-unit
-      - server:test-unit
-
-  test-int:
-    command: noop
-    inputs: *workspace-inputs
-    deps:
-      - server:test-int
-
-  test-e2e:
-    command: noop
-    inputs: *workspace-inputs
-    deps:
-      - client:test-e2e-mock
-      - client:test-e2e-api
-      - client:test-e2e
-      - server:test-e2e
-
-  build:
-    command: noop
-    inputs: *workspace-inputs
-    deps:
-      - client:build
-      - server:build
-      - root:build-generator
-
   setup:
-    command: noop
-    deps:
-      - root:setup-frontend
-      - root:setup-backend
-      - client:setup-browser
-    options:
-      cache: false
-      runInCI: false
-      runDepsInParallel: false
-
-  setup-tools:
-    command: proto install
-    options:
-      cache: false
-      runInCI: false
-
-  setup-frontend:
-    command: pnpm install --frozen-lockfile --ignore-scripts
+    script: proto install && pnpm install --frozen-lockfile --ignore-scripts && uv sync --all-packages --locked --no-python-downloads
     platform: system
-    deps:
-      - root:setup-tools
-    options:
-      cache: false
-      runInCI: false
-
-  setup-backend:
-    command: uv sync --all-packages --locked --no-python-downloads
-    platform: system
-    deps:
-      - root:setup-tools
     options:
       cache: false
       runInCI: false
@@ -201,48 +51,52 @@ tasks:
       cache: false
       runInCI: false
 
-  lint-generator:
+  lint:
     command: uv run --no-sync ruff check tools/documents-generator/src
     platform: system
-    inputs: &generator-inputs
-      - '@group(generator-src)'
-      - '@group(generator-cfg)'
+    inputs: &tools-inputs
+      - '@group(tools-src)'
+      - '@group(tools-cfg)'
 
-  lint-fix-generator:
+  lint-fix:
     command: uv run --no-sync ruff check --fix tools/documents-generator/src
     platform: system
-    inputs: *generator-inputs
+    inputs: *tools-inputs
     options:
       cache: false
       runInCI: false
 
-  fmt-generator:
-    command: uv run --no-sync ruff format tools/documents-generator/src
+  fmt:
+    script: pnpm exec biome format --write --files-ignore-unknown=true package.json biome.json && uv run --no-sync ruff format tools/documents-generator/src
     platform: system
     deps:
-      - root:lint-fix-generator
-    inputs: *generator-inputs
+      - ~:lint-fix
+    inputs:
+      - '@group(tools-src)'
+      - '@group(tools-cfg)'
+      - '@group(cfg-fmt)'
+      - package.json
     options:
       cache: false
       runInCI: false
 
-  typecheck-generator:
+  typecheck:
     command: uv run --no-sync pyright -p tools/documents-generator
     platform: system
-    inputs: *generator-inputs
+    inputs: *tools-inputs
 
-  check-generator:
+  check:
     command: noop
     deps:
-      - root:fmt-generator
-      - root:typecheck-generator
-    inputs: *generator-inputs
+      - ~:fmt
+      - ~:lint-fix
+      - ~:typecheck
     options:
       runInCI: false
 
-  build-generator:
+  build:
     command: uv run --no-sync documents-generator --output tools/documents-generator/generated --scenario all --documents 100 --seed 42
     platform: system
-    inputs: *generator-inputs
+    inputs: *tools-inputs
     outputs:
       - tools/documents-generator/generated

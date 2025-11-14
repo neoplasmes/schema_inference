@@ -10,8 +10,6 @@ fileGroups:
     - webpack.config.ts
     - vitest.config.js
     - playwright.config.ts
-  test-e2e:
-    - tests/**/*.ts
   assets:
     - index.html
     - public/*.json
@@ -55,6 +53,7 @@ tasks:
       - client:build-types
     inputs:
       - '@group(src)'
+      - '@group(css)'
       - '@group(assets)'
       - '@group(shared-cache)'
       - package.json
@@ -87,7 +86,7 @@ tasks:
       - '@group(architecture)'
 
   lint:
-    command: pnpm exec eslint src scripts tests playwright.config.ts webpack.config.ts
+    command: pnpm exec eslint src scripts e2e playwright.config.ts webpack.config.ts
     deps:
       - client:lint-architecture
 
@@ -98,18 +97,10 @@ tasks:
       - '@group(architecture)'
       - scripts/check-architecture.ts
 
-  fmt:
-    deps:
-      - client:fmt-markup
-
-  fmt-markup:
-    command: pnpm exec prettier --write index.html
-    options:
-      cache: false
-      runInCI: false
-
-  setup-browser:
+  setup:
     command: pnpm exec playwright install chromium
+    deps:
+      - root:setup
     options:
       cache: false
       runInCI: false
@@ -146,7 +137,7 @@ tasks:
     inputs:
       - '@group(backend)'
 
-  test-e2e:
+  test-e2e-container:
     command: pnpm exec playwright test
     deps:
       - client:image
@@ -171,3 +162,12 @@ tasks:
       - /apps/editor/webpack.config.ts
       - /apps/editor/scripts/build.ts
     options: *browser-options
+
+  test-e2e:
+    command: noop
+    deps:
+      - client:test-e2e-mock
+      - client:test-e2e-api
+      - client:test-e2e-container
+    options:
+      runDepsInParallel: false

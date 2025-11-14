@@ -5,10 +5,11 @@ import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { Page, TestInfo } from '@playwright/test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { finishAudit, observe, settleAudit, type Audit } from '../tests/api-audit';
+import { finishAudit, observe, settleAudit, type Audit } from '../e2e/api-audit';
 
 const directories: string[] = [];
-const resource = 'http://127.0.0.1:8010/api/v2/schemas/schema-1/revisions/s1/nodes/node-6';
+const resource =
+    'http://127.0.0.1:8010/api/v2/schemas/schema-1/revisions/s1/nodes/node-6';
 
 afterEach(async () => {
     vi.unstubAllEnvs();
@@ -54,13 +55,22 @@ async function fixture() {
                 url: () => url,
                 request: () => ({
                     method: () => method,
-                    failure: () => (failure ? { errorText: failure } : null),
+                    failure: () =>
+                        failure
+                            ? {
+                                  errorText: failure,
+                              }
+                            : null,
                 }),
                 status: () => status,
-                headers: () => ({ 'content-type': 'application/json' }),
+                headers: () => ({
+                    'content-type': 'application/json',
+                }),
                 json: async () => {
                     if (body === undefined) {
-                        throw new Error('No data found for resource with given identifier');
+                        throw new Error(
+                            'No data found for resource with given identifier'
+                        );
                     }
 
                     return body;
@@ -92,7 +102,12 @@ describe('browser API audit', () => {
         };
         result.events.emit('request', request);
         const settled = settleAudit(result.audit).then(() => 'settled');
-        expect(await Promise.race([settled, delay(25, 'pending')])).toBe('pending');
+        expect(
+            await Promise.race([
+                settled,
+                delay(25, 'pending'),
+            ])
+        ).toBe('pending');
         let resolveBody!: (body: unknown) => void;
         const body = new Promise(resolve => {
             resolveBody = resolve;
@@ -101,13 +116,24 @@ describe('browser API audit', () => {
             url: () => resource,
             request: () => request,
             status: () => 200,
-            headers: () => ({ 'content-type': 'application/json' }),
+            headers: () => ({
+                'content-type': 'application/json',
+            }),
             json: () => body,
         });
-        expect(await Promise.race([settled, delay(25, 'pending')])).toBe('pending');
-        resolveBody({ id: 'node-6' });
+        expect(
+            await Promise.race([
+                settled,
+                delay(25, 'pending'),
+            ])
+        ).toBe('pending');
+        resolveBody({
+            id: 'node-6',
+        });
         expect(await settled).toBe('settled');
-        expect(result.audit.responses[0].body).toEqual({ id: 'node-6' });
+        expect(result.audit.responses[0].body).toEqual({
+            id: 'node-6',
+        });
     });
 
     it('drains a cancelled read before headers and requires its completed replacement', async () => {
@@ -117,40 +143,66 @@ describe('browser API audit', () => {
             method: () => 'GET',
             headers: () => ({}),
             postData: () => null,
-            failure: () => ({ errorText: 'net::ERR_ABORTED' }),
+            failure: () => ({
+                errorText: 'net::ERR_ABORTED',
+            }),
         };
         result.events.emit('request', request);
         result.events.emit('requestfailed', request);
         await expect(settleAudit(result.audit)).resolves.toBeUndefined();
         expect(result.audit.requests[0].failure).toBe('net::ERR_ABORTED');
         await expect(result.finish()).rejects.toThrow();
-        await result.respond('GET', 200, undefined, { id: 'node-6' }, `${resource}?scopeId=other`);
+        await result.respond(
+            'GET',
+            200,
+            undefined,
+            {
+                id: 'node-6',
+            },
+            `${resource}?scopeId=other`
+        );
         await expect(result.finish()).rejects.toThrow();
-        await result.respond('GET', 200, undefined, { id: 'node-6' });
+        await result.respond('GET', 200, undefined, {
+            id: 'node-6',
+        });
         await expect(result.finish()).resolves.toBeUndefined();
     });
 
     it.each([
-        { method: 'GET', failure: 'net::ERR_CONNECTION_RESET' },
-        { method: 'POST', failure: 'net::ERR_ABORTED' },
-        { method: 'PATCH', failure: 'net::ERR_ABORTED' },
-    ])('rejects a $method $failure failure before response headers arrive', async input => {
-        const result = await fixture();
-        const request = {
-            url: () => resource,
-            method: () => input.method,
-            headers: () => ({}),
-            postData: () => null,
-            failure: () => ({ errorText: input.failure }),
-        };
-        result.events.emit('request', request);
-        result.events.emit('requestfailed', request);
-        await expect(settleAudit(result.audit)).resolves.toBeUndefined();
-        expect(result.audit.errors).toEqual([
-            `Failed API request ${resource}: ${input.failure}`,
-        ]);
-        await expect(result.finish()).rejects.toThrow();
-    });
+        {
+            method: 'GET',
+            failure: 'net::ERR_CONNECTION_RESET',
+        },
+        {
+            method: 'POST',
+            failure: 'net::ERR_ABORTED',
+        },
+        {
+            method: 'PATCH',
+            failure: 'net::ERR_ABORTED',
+        },
+    ])(
+        'rejects a $method $failure failure before response headers arrive',
+        async input => {
+            const result = await fixture();
+            const request = {
+                url: () => resource,
+                method: () => input.method,
+                headers: () => ({}),
+                postData: () => null,
+                failure: () => ({
+                    errorText: input.failure,
+                }),
+            };
+            result.events.emit('request', request);
+            result.events.emit('requestfailed', request);
+            await expect(settleAudit(result.audit)).resolves.toBeUndefined();
+            expect(result.audit.errors).toEqual([
+                `Failed API request ${resource}: ${input.failure}`,
+            ]);
+            await expect(result.finish()).rejects.toThrow();
+        }
+    );
 
     it('retains a cancelled read and requires its completed replacement', async () => {
         const result = await fixture();
@@ -162,23 +214,51 @@ describe('browser API audit', () => {
                 url: resource,
                 path: '/api/v2/schemas/schema-1/revisions/s1/nodes/node-6',
                 status: 200,
-                headers: { 'content-type': 'application/json' },
+                headers: {
+                    'content-type': 'application/json',
+                },
                 body: null,
                 failure: 'net::ERR_ABORTED',
             },
         ]);
         await expect(result.finish()).rejects.toThrow();
-        await result.respond('GET', 200, undefined, { id: 'node-6' }, `${resource}?scopeId=other`);
+        await result.respond(
+            'GET',
+            200,
+            undefined,
+            {
+                id: 'node-6',
+            },
+            `${resource}?scopeId=other`
+        );
         await expect(result.finish()).rejects.toThrow();
-        await result.respond('GET', 200, undefined, { id: 'node-6' });
+        await result.respond('GET', 200, undefined, {
+            id: 'node-6',
+        });
         await expect(result.finish()).resolves.toBeUndefined();
     });
 
     it.each([
-        { method: 'POST', status: 201, failure: 'net::ERR_ABORTED' },
-        { method: 'GET', status: 503, failure: 'net::ERR_ABORTED' },
-        { method: 'GET', status: 200, failure: 'net::ERR_CONNECTION_RESET' },
-        { method: 'GET', status: 200, failure: undefined },
+        {
+            method: 'POST',
+            status: 201,
+            failure: 'net::ERR_ABORTED',
+        },
+        {
+            method: 'GET',
+            status: 503,
+            failure: 'net::ERR_ABORTED',
+        },
+        {
+            method: 'GET',
+            status: 200,
+            failure: 'net::ERR_CONNECTION_RESET',
+        },
+        {
+            method: 'GET',
+            status: 200,
+            failure: undefined,
+        },
     ])('rejects an unreadable $method $status response with $failure', async input => {
         const result = await fixture();
         await result.respond(input.method, input.status, input.failure);
@@ -189,7 +269,9 @@ describe('browser API audit', () => {
 
     it('rejects an HTTP error even when its JSON body is readable', async () => {
         const result = await fixture();
-        await result.respond('GET', 500, undefined, { error: 'storage unavailable' });
+        await result.respond('GET', 500, undefined, {
+            error: 'storage unavailable',
+        });
         expect(result.audit.errors).toEqual([]);
         await expect(result.finish()).rejects.toThrow();
     });

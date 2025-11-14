@@ -1,7 +1,5 @@
 language: python
 type: application
-dependsOn:
-  - root
 
 fileGroups:
   src:
@@ -24,6 +22,21 @@ fileGroups:
     - /tools/documents-generator/pyproject.toml
 
 tasks:
+  setup:
+    command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
+    deps:
+      - root:setup
+    options:
+      cache: false
+      runInCI: false
+
+  setup-runtime:
+    script: uv sync --locked --no-dev --no-editable --package backend && uv run --no-sync python -m env.tools.lexical --directory nltk_data
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+
   lint:
     command: uv run --no-sync ruff check src tests e2e
     inputs:
@@ -97,13 +110,6 @@ tasks:
     outputs:
       - dist
 
-  setup-runtime:
-    command: uv sync --locked --no-dev --no-editable --package backend
-    platform: system
-    options:
-      cache: false
-      runInCI: false
-
   image:
     command: docker build -f apps/server/Dockerfile -t schema-workspace-api:development .
     platform: system
@@ -128,12 +134,6 @@ tasks:
     env:
       PYTHONPATH: tests
     preset: server
-
-  setup-wordnet:
-    command: uv run --no-sync python -m env.tools.lexical --directory nltk_data
-    options:
-      cache: false
-      runInCI: false
 
   test-int-corpus:
     command: uv run --no-sync python -m integration.evaluate --all --output ../../artifacts/inference-review --fail-on-forbidden
