@@ -70,19 +70,22 @@ export async function state(page: Page): Promise<EditorState> {
 
 export async function ready(page: Page): Promise<void> {
     await expect
-        .poll(async () => {
-            const value = await state(page).catch(() => undefined);
+        .poll(
+            async () => {
+                const value = await state(page).catch(() => undefined);
 
-            return (
-                value?.ready &&
-                value.model.state === 'ready' &&
-                value.model.version === value.geometry.version &&
-                value.stats.renderedFrames > 0 &&
-                value.geometry.cards.length > 0
-            );
-        }, {
-            timeout: 30000,
-        })
+                return (
+                    value?.ready &&
+                    value.model.state === 'ready' &&
+                    value.model.version === value.geometry.version &&
+                    value.stats.renderedFrames > 0 &&
+                    value.geometry.cards.length > 0
+                );
+            },
+            {
+                timeout: 30000,
+            }
+        )
         .toBe(true);
     await page.evaluate(() => document.fonts.ready.then(() => undefined));
     await page.evaluate(
@@ -100,7 +103,11 @@ export async function names(page: Page): Promise<string[]> {
     );
 }
 
-export async function recordJson(testInfo: TestInfo, name: string, value: unknown): Promise<void> {
+export async function recordJson(
+    testInfo: TestInfo,
+    name: string,
+    value: unknown
+): Promise<void> {
     const path = testInfo.outputPath(`${name}.json`);
     await writeFile(path, JSON.stringify(value, null, 2));
     await testInfo.attach(name, {
@@ -109,7 +116,11 @@ export async function recordJson(testInfo: TestInfo, name: string, value: unknow
     });
 }
 
-export async function capture(page: Page, testInfo: TestInfo, name: string): Promise<void> {
+export async function capture(
+    page: Page,
+    testInfo: TestInfo,
+    name: string
+): Promise<void> {
     await ready(page);
     const path = testInfo.outputPath(`${name}.png`);
     await page.screenshot({
@@ -125,7 +136,9 @@ export async function capture(page: Page, testInfo: TestInfo, name: string): Pro
 
 export async function expand(page: Page, name: string): Promise<void> {
     const before = await state(page);
-    const row = before.model.cards.flatMap(card => card.rows).find(row => row.name === name);
+    const row = before.model.cards
+        .flatMap(card => card.rows)
+        .find(row => row.name === name);
     expect(row?.expandable).toBe(true);
     const treeItem = page.getByRole('treeitem', {
         name: new RegExp(`\\b${name}\\b`),
@@ -141,8 +154,9 @@ export async function expand(page: Page, name: string): Promise<void> {
         connection => connection.sourceMemberId === row!.memberId
     );
     expect(connection).toBeDefined();
-    expect(after.model.cards.find(card => card.blockId === connection!.targetBlockId))
-        .toBeDefined();
+    expect(
+        after.model.cards.find(card => card.blockId === connection!.targetBlockId)
+    ).toBeDefined();
     expect(after.document.operations).toEqual(before.document.operations);
 }
 

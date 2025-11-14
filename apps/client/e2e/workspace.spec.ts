@@ -483,7 +483,10 @@ test('creates an analysis, edits the federated editor and reopens a saved revisi
         name: /Imported invoice/,
     });
     await expect(savedCard).toContainText('1 source document · r2');
-    await expect(savedCard).toHaveAttribute('href', `/edit?schemaId=${encodeURIComponent(schemaId)}`);
+    await expect(savedCard).toHaveAttribute(
+        'href',
+        `/edit?schemaId=${encodeURIComponent(schemaId)}`
+    );
     await screenshot(page, testInfo, 'workspace-saved');
     await page.reload();
     await expect(savedCard).toContainText('1 source document · r2');

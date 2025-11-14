@@ -7,7 +7,7 @@ The editor is a separately built Webpack Module Federation remote. React owns it
 Use the repository's pinned Node 22.20.0, pnpm 10.18.3 and moon 1.41.5.
 
 ```sh
-moon run root:install-frontend
+moon run root:setup
 moon run client:dev
 ```
 

@@ -39,6 +39,8 @@ tasks:
 
   fmt:
     command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker
+    deps:
+      - env:lint-fix-python
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml

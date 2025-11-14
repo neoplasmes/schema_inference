@@ -6,9 +6,10 @@ export default async function setup(): Promise<() => Promise<void>> {
         process.env.WORKSPACE_MODE === 'api' ? await startBackend() : async () => {};
 
     try {
-        const stopServers = process.env.WORKSPACE_CONTAINER === '1'
-            ? async () => {}
-            : await startServers();
+        const stopServers =
+            process.env.WORKSPACE_CONTAINER === '1'
+                ? async () => {}
+                : await startServers();
 
         return async () => {
             try {

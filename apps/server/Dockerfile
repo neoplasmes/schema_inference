@@ -12,7 +12,6 @@ RUN python /tmp/install_tools.py "$TARGETARCH"
 
 COPY . .
 RUN moon run server:setup-runtime --no-actions
-RUN moon run server:setup-wordnet --no-actions
 
 FROM python:3.12.12-slim-bookworm@sha256:4a8e0824201e50fc44ee8d208a2b3e44f33e00448907e524066fca5a96eb5567
 

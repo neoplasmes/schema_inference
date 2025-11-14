@@ -90,26 +90,29 @@ export function observe(page: Page, audit: Audit): void {
             };
             audit.responses.push(entry);
             audit.pending.push(
-                response.json().then(
-                    body => {
-                        entry.body = body;
-                    },
-                    error => {
-                        const failure = response.request().failure()?.errorText;
+                response
+                    .json()
+                    .then(
+                        body => {
+                            entry.body = body;
+                        },
+                        error => {
+                            const failure = response.request().failure()?.errorText;
 
-                        if (
-                            entry.method === 'GET' &&
-                            entry.status < 400 &&
-                            failure === 'net::ERR_ABORTED'
-                        ) {
-                            entry.failure = failure;
+                            if (
+                                entry.method === 'GET' &&
+                                entry.status < 400 &&
+                                failure === 'net::ERR_ABORTED'
+                            ) {
+                                entry.failure = failure;
 
-                            return;
+                                return;
+                            }
+
+                            audit.errors.push(`Unreadable API response ${url}: ${error}`);
                         }
-
-                        audit.errors.push(`Unreadable API response ${url}: ${error}`);
-                    }
-                ).finally(() => active.delete(response.request()))
+                    )
+                    .finally(() => active.delete(response.request()))
             );
         }
     });
@@ -160,7 +163,11 @@ export async function environment(page: Page, browserVersion: string): Promise<u
     };
 }
 
-export async function finishAudit(page: Page, testInfo: TestInfo, audit: Audit): Promise<void> {
+export async function finishAudit(
+    page: Page,
+    testInfo: TestInfo,
+    audit: Audit
+): Promise<void> {
     await settleAudit(audit);
     await recordJson(testInfo, 'api-audit', {
         errors: audit.errors,
@@ -171,7 +178,10 @@ export async function finishAudit(page: Page, testInfo: TestInfo, audit: Audit):
     expect(audit.errors).toEqual([]);
     expect(audit.responses.filter(response => response.status >= 400)).toEqual([]);
     expect(
-        [...audit.requests, ...audit.responses].filter(
+        [
+            ...audit.requests,
+            ...audit.responses,
+        ].filter(
             response =>
                 response.failure &&
                 !audit.responses.some(
@@ -185,8 +195,9 @@ export async function finishAudit(page: Page, testInfo: TestInfo, audit: Audit):
         ),
         'Every cancelled read must have a completed response for the same resource'
     ).toEqual([]);
-    const origin = process.env.WORKSPACE_CONTAINER === '1'
-        ? 'http://127.0.0.1:4173' : 'http://127.0.0.1:8010';
-    expect(audit.requests.every(request => request.origin === origin))
-        .toBe(true);
+    const origin =
+        process.env.WORKSPACE_CONTAINER === '1'
+            ? 'http://127.0.0.1:4173'
+            : 'http://127.0.0.1:8010';
+    expect(audit.requests.every(request => request.origin === origin)).toBe(true);
 }

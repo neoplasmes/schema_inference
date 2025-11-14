@@ -10,15 +10,23 @@ fileGroups:
     - src/**/*.{ts,tsx,css}
     - scripts/**/*.ts
   src:
-    - src/**/*.{ts,tsx,css}
+    - src/**/*.{ts,tsx}
     - '!src/**/*.test.{ts,tsx}'
+    - '!src/**/*.test.int.{ts,tsx}'
+    - '!src/**/.int/**'
+  css:
+    - src/**/*.css
   scripts:
     - scripts/**/*.ts
     - '!scripts/**/*.test.ts'
   test-unit:
     - src/**/*.test.{ts,tsx}
     - scripts/**/*.test.ts
-  test-e2e: []
+  test-int:
+    - src/**/*.test.int.{ts,tsx}
+    - src/**/.int/**
+  test-e2e:
+    - e2e/**/*.ts
   assets: []
   cfg:
     - package.json
@@ -36,6 +44,7 @@ tasks:
     inputs:
       - '@group(code)'
       - '@group(test-unit)'
+      - '@group(test-int)'
       - '@group(test-e2e)'
       - '@group(cfg)'
       - '@group(shared-cache)'
@@ -52,6 +61,7 @@ tasks:
     inputs:
       - '@group(code)'
       - '@group(test-unit)'
+      - '@group(test-int)'
       - '@group(test-e2e)'
       - '@group(cfg)'
       - '@group(cfg-lint)'
@@ -64,12 +74,13 @@ tasks:
       runInCI: false
 
   fmt:
-    command: pnpm exec biome format --write --files-ignore-unknown=true @files(src) @files(scripts) @files(test-unit) @files(test-e2e) @files(cfg) @files(cfg-lint) @files(assets)
+    command: pnpm exec biome format --write --files-ignore-unknown=true @files(src) @files(css) @files(scripts) @files(test-unit) @files(test-int) @files(test-e2e) @files(cfg) @files(cfg-lint) @files(assets)
     deps:
       - ~:lint-fix
     inputs:
       - '@group(code)'
       - '@group(test-unit)'
+      - '@group(test-int)'
       - '@group(test-e2e)'
       - '@group(cfg)'
       - '@group(cfg-lint)'
@@ -83,15 +94,7 @@ tasks:
     command: noop
     deps:
       - ~:fmt
+      - ~:lint-fix
       - ~:typecheck
-    inputs:
-      - '@group(code)'
-      - '@group(test-unit)'
-      - '@group(test-e2e)'
-      - '@group(cfg)'
-      - '@group(cfg-lint)'
-      - '@group(cfg-fmt)'
-      - '@group(assets)'
-      - '@group(shared-cache)'
     options:
       runInCI: false
