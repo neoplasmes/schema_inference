@@ -44,7 +44,12 @@ class ElementStub extends EventTarget {
         this.attributes.delete(name);
     }
     getBoundingClientRect() {
-        return { left: 100, top: 50, width: 800, height: 600 };
+        return {
+            left: 100,
+            top: 50,
+            width: 800,
+            height: 600,
+        };
     }
     querySelector(selector: string) {
         return selector === '[data-board-rename]'
@@ -92,7 +97,9 @@ class DocumentStub {
 }
 
 function event(target: EventTarget, type: string, fields: Record<string, unknown> = {}) {
-    const value = new Event(type, { cancelable: true });
+    const value = new Event(type, {
+        cancelable: true,
+    });
     Object.assign(value, fields);
     target.dispatchEvent(value);
 
@@ -114,7 +121,10 @@ function card(blockId: string, x: number): BoardCard {
         nodeId: `node-${blockId}`,
         collectionId: `collection-${blockId}`,
         title: blockId,
-        position: { x, y: 0 },
+        position: {
+            x,
+            y: 0,
+        },
         pinned: false,
         collapsed: false,
         suggested: false,
@@ -147,13 +157,22 @@ function card(blockId: string, x: number): BoardCard {
     };
 }
 
-function setup(initialViewport: BoardViewport = { x: 0, y: 0, zoom: 1 }) {
+function setup(
+    initialViewport: BoardViewport = {
+        x: 0,
+        y: 0,
+        zoom: 1,
+    }
+) {
     const document = new DocumentStub();
     const container = new ElementStub(document);
     let model: BoardModel = {
         version: 1,
         state: 'ready',
-        cards: [card('a', 0), card('b', 320)],
+        cards: [
+            card('a', 0),
+            card('b', 320),
+        ],
         connections: [],
         selection: null,
     };
@@ -166,7 +185,12 @@ function setup(initialViewport: BoardViewport = { x: 0, y: 0, zoom: 1 }) {
                 createCardGeometry(card, card.position!, 'working')
             ),
             connections: [],
-            bounds: { x: 0, y: 0, width: 600, height: 100 },
+            bounds: {
+                x: 0,
+                y: 0,
+                width: 600,
+                height: 100,
+            },
         };
     };
     rebuild();
@@ -180,8 +204,12 @@ function setup(initialViewport: BoardViewport = { x: 0, y: 0, zoom: 1 }) {
         destroy: vi.fn(),
         getGeometry: () => geometry,
         hitTest: vi.fn(point => {
-            for (const card of [...geometry.cards].reverse()) {
-                const region = [...card.regions]
+            for (const card of [
+                ...geometry.cards,
+            ].reverse()) {
+                const region = [
+                    ...card.regions,
+                ]
                     .reverse()
                     .find(region => inside(point, region.bounds));
 
@@ -219,7 +247,10 @@ function setup(initialViewport: BoardViewport = { x: 0, y: 0, zoom: 1 }) {
             viewport = next;
         },
         emit: (type, payload) => {
-            emitted.push({ type, payload });
+            emitted.push({
+                type,
+                payload,
+            });
         },
     });
     const pointer = (type: string, x: number, y: number, id = 1, button = 0) =>
@@ -230,7 +261,10 @@ function setup(initialViewport: BoardViewport = { x: 0, y: 0, zoom: 1 }) {
             button,
         });
     const key = (key: string, fields: Record<string, unknown> = {}) =>
-        event(container, 'keydown', { key, ...fields });
+        event(container, 'keydown', {
+            key,
+            ...fields,
+        });
     const events = (type: keyof BoardEventMap) =>
         emitted.filter(entry => entry.type === type).map(entry => entry.payload);
 
@@ -265,21 +299,38 @@ afterEach(() => {
 });
 
 describe('board interaction', () => {
-    it.each([0.25, 1, 2.5])(
-        'selects the same stable row through the shared transform at zoom %s',
-        zoom => {
-            const board = setup({ x: 24, y: 18, zoom });
-            board.pointer('pointerdown', 20 * zoom + 24, 50 * zoom + 18);
-            board.pointer('pointerup', 20 * zoom + 24, 50 * zoom + 18);
-            expect(board.events('select')).toEqual([{ blockId: 'a', memberId: 'a-one' }]);
-            board.interaction.destroy();
-        }
-    );
+    it.each([
+        0.25,
+        1,
+        2.5,
+    ])('selects the same stable row through the shared transform at zoom %s', zoom => {
+        const board = setup({
+            x: 24,
+            y: 18,
+            zoom,
+        });
+        board.pointer('pointerdown', 20 * zoom + 24, 50 * zoom + 18);
+        board.pointer('pointerup', 20 * zoom + 24, 50 * zoom + 18);
+        expect(board.events('select')).toEqual([
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+            },
+        ]);
+        board.interaction.destroy();
+    });
 
     it('anchors wheel zoom to the cursor, clamps it, and batches viewport events', () => {
         vi.useFakeTimers();
-        const board = setup({ x: 30, y: 20, zoom: 0.8 });
-        const anchor = { x: 160, y: 100 };
+        const board = setup({
+            x: 30,
+            y: 20,
+            zoom: 0.8,
+        });
+        const anchor = {
+            x: 160,
+            y: 100,
+        };
         const before = screenToWorld(anchor, board.viewport);
         event(board.container, 'wheel', {
             clientX: 260,
@@ -315,7 +366,11 @@ describe('board interaction', () => {
             deltaY: 3,
             deltaMode: 1,
         });
-        expect(board.viewport).toEqual({ x: -32, y: -48, zoom: 1 });
+        expect(board.viewport).toEqual({
+            x: -32,
+            y: -48,
+            zoom: 1,
+        });
         board.interaction.destroy();
     });
 
@@ -330,7 +385,11 @@ describe('board interaction', () => {
             deltaMode: 0,
         });
         expect(board.renderer.scrollRows).toHaveBeenCalledWith('a', 84);
-        expect(board.viewport).toEqual({ x: 0, y: 0, zoom: 1 });
+        expect(board.viewport).toEqual({
+            x: 0,
+            y: 0,
+            zoom: 1,
+        });
         expect(board.events('move')).toEqual([]);
         expect(board.events('viewportChange')).toEqual([]);
         event(board.container, 'wheel', {
@@ -355,20 +414,34 @@ describe('board interaction', () => {
         board.pointer('pointerdown', 20, 50);
         board.pointer('pointerup', 20, 50);
         expect(board.renderer.revealMember).toHaveBeenCalledWith('a', 'a-two');
-        expect(board.events('select')).toEqual([{ blockId: 'a', memberId: 'a-two' }]);
+        expect(board.events('select')).toEqual([
+            {
+                blockId: 'a',
+                memberId: 'a-two',
+            },
+        ]);
         expect(board.events('move')).toEqual([]);
-        expect(board.viewport).toEqual({ x: 0, y: 0, zoom: 1 });
+        expect(board.viewport).toEqual({
+            x: 0,
+            y: 0,
+            zoom: 1,
+        });
         board.interaction.destroy();
     });
 
     it('uses all loaded rows for keyboard navigation across a local window boundary', () => {
         const board = setup();
         const source = board.model.cards[0];
-        const rows = Array.from({ length: 50 }, (_, index) => ({
-            ...source.rows[1],
-            memberId: `row-${index}`,
-            name: `row ${index}`,
-        }));
+        const rows = Array.from(
+            {
+                length: 50,
+            },
+            (_, index) => ({
+                ...source.rows[1],
+                memberId: `row-${index}`,
+                name: `row ${index}`,
+            })
+        );
         board.setModel({
             ...board.model,
             cards: [
@@ -383,7 +456,10 @@ describe('board interaction', () => {
                     },
                 },
             ],
-            selection: { blockId: 'a', memberId: 'row-9' },
+            selection: {
+                blockId: 'a',
+                memberId: 'row-9',
+            },
         });
         board.key('ArrowDown');
         expect(board.events('select').at(-1)).toEqual({
@@ -396,7 +472,11 @@ describe('board interaction', () => {
     });
 
     it('keeps card movement as a preview and commits once without a click', () => {
-        const board = setup({ x: 0, y: 0, zoom: 2 });
+        const board = setup({
+            x: 0,
+            y: 0,
+            zoom: 2,
+        });
         board.pointer('pointerdown', 40, 30);
         board.pointer('pointermove', 80, 90);
         board.pointer('pointermove', 100, 110);
@@ -408,7 +488,14 @@ describe('board interaction', () => {
         board.pointer('pointerup', 100, 110);
         board.pointer('pointerup', 100, 110);
         expect(board.events('move')).toEqual([
-            { kind: 'card', blockId: 'a', position: { x: 30, y: 40 } },
+            {
+                kind: 'card',
+                blockId: 'a',
+                position: {
+                    x: 30,
+                    y: 40,
+                },
+            },
         ]);
         expect(board.events('select')).toEqual([]);
         expect(board.renderer.previewCardPosition).toHaveBeenLastCalledWith('a', null);
@@ -427,7 +514,11 @@ describe('board interaction', () => {
         board.pointer('pointermove', 750, 550);
         expect(board.viewport.x).toBe(50);
         board.key('Escape');
-        expect(board.viewport).toEqual({ x: 0, y: 0, zoom: 1 });
+        expect(board.viewport).toEqual({
+            x: 0,
+            y: 0,
+            zoom: 1,
+        });
         expect(board.events('viewportChange')).toEqual([]);
         board.interaction.destroy();
     });
@@ -457,7 +548,12 @@ describe('board interaction', () => {
         board.setModel({
             ...board.model,
             cards: board.model.cards.map(card =>
-                card.blockId === 'b' ? { ...card, display: 'summary' } : card
+                card.blockId === 'b'
+                    ? {
+                          ...card,
+                          display: 'summary',
+                      }
+                    : card
             ),
         });
         board.pointer('pointerdown', 20, 50);
@@ -484,7 +580,10 @@ describe('board interaction', () => {
                 card.blockId === 'b'
                     ? {
                           ...card,
-                          rows: card.rows.map(row => ({ ...row, icon: 'attribute' })),
+                          rows: card.rows.map(row => ({
+                              ...row,
+                              icon: 'attribute',
+                          })),
                       }
                     : card
             ),
@@ -495,7 +594,10 @@ describe('board interaction', () => {
         expect(board.events('move')).toEqual([]);
         board.setModel({
             ...board.model,
-            cards: [card('a', 0), card('b', 320)],
+            cards: [
+                card('a', 0),
+                card('b', 320),
+            ],
             connections: [
                 {
                     id: 'edge',
@@ -519,7 +621,11 @@ describe('board interaction', () => {
         board.pointer('pointerdown', 235, 50);
         board.pointer('pointerup', 235, 50);
         expect(board.events('expand')).toEqual([
-            { blockId: 'a', memberId: 'a-one', expanded: true },
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+                expanded: true,
+            },
         ]);
         board.setModel({
             ...board.model,
@@ -527,7 +633,13 @@ describe('board interaction', () => {
                 {
                     ...card('a', 0),
                     variants: [
-                        { variantId: 'v', scopeId: 's', title: 'V', count: 1, total: 2 },
+                        {
+                            variantId: 'v',
+                            scopeId: 's',
+                            title: 'V',
+                            count: 1,
+                            total: 2,
+                        },
                     ],
                     rowWindow: {
                         firstMemberId: 'a-one',
@@ -541,7 +653,11 @@ describe('board interaction', () => {
         board.pointer('pointerdown', 20, 45);
         board.pointer('pointerup', 20, 45);
         expect(board.events('variantChange')).toEqual([
-            { blockId: 'a', variantId: 'v', scopeId: 's' },
+            {
+                blockId: 'a',
+                variantId: 'v',
+                scopeId: 's',
+            },
         ]);
         const more = board.renderer
             .getGeometry()
@@ -549,7 +665,10 @@ describe('board interaction', () => {
         board.pointer('pointerdown', more.x + more.width / 2, more.y + more.height / 2);
         board.pointer('pointerup', more.x + more.width / 2, more.y + more.height / 2);
         expect(board.events('loadMore')).toEqual([
-            { blockId: 'a', collectionId: 'collection-a' },
+            {
+                blockId: 'a',
+                collectionId: 'collection-a',
+            },
         ]);
         board.interaction.destroy();
     });
@@ -560,7 +679,10 @@ describe('board interaction', () => {
         board.pointer('pointermove', 30, 52);
         event(board.container, 'pointerleave');
         expect(board.events('hover')).toEqual([
-            { blockId: 'a', memberId: 'a-one' },
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+            },
             null,
         ]);
         expect(board.renderer.setHover).toHaveBeenCalledTimes(2);
@@ -572,8 +694,20 @@ describe('board interaction', () => {
         board.pointer('pointerdown', 500, 400, 1);
         board.pointer('pointerdown', 600, 400, 2);
         board.pointer('pointermove', 700, 400, 2);
-        expect(board.viewport).toEqual({ x: -500, y: -400, zoom: 2 });
-        expect(screenToWorld({ x: 600, y: 400 }, board.viewport)).toEqual({
+        expect(board.viewport).toEqual({
+            x: -500,
+            y: -400,
+            zoom: 2,
+        });
+        expect(
+            screenToWorld(
+                {
+                    x: 600,
+                    y: 400,
+                },
+                board.viewport
+            )
+        ).toEqual({
             x: 550,
             y: 400,
         });
@@ -591,11 +725,21 @@ describe('board interaction', () => {
         board.key('ArrowDown');
         board.key('ArrowRight');
         expect(board.events('select').slice(0, 2)).toEqual([
-            { blockId: 'a', memberId: null },
-            { blockId: 'a', memberId: 'a-one' },
+            {
+                blockId: 'a',
+                memberId: null,
+            },
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+            },
         ]);
         expect(board.events('expand')).toEqual([
-            { blockId: 'a', memberId: 'a-one', expanded: true },
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+                expanded: true,
+            },
         ]);
         board.key('End');
         expect(board.key('Tab').defaultPrevented).toBe(false);
@@ -613,20 +757,31 @@ describe('board interaction', () => {
         expect(input.value).toBe('one');
         input.value = 'renamed';
         event(input, 'compositionstart');
-        event(input, 'keydown', { key: 'Enter', isComposing: true });
+        event(input, 'keydown', {
+            key: 'Enter',
+            isComposing: true,
+        });
         expect(board.events('rename')).toEqual([]);
         expect(board.container.children).toHaveLength(1);
         event(input, 'compositionend');
-        event(input, 'keydown', { key: 'Enter' });
+        event(input, 'keydown', {
+            key: 'Enter',
+        });
         expect(board.events('rename')).toEqual([
-            { blockId: 'a', memberId: 'a-one', name: 'renamed' },
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+                name: 'renamed',
+            },
         ]);
         expect(board.container.children).toHaveLength(0);
         expect(board.document.activeElement).toBe(board.container);
         board.key('F2');
         const canceled = board.container.children[0];
         canceled.value = 'discard';
-        event(canceled, 'keydown', { key: 'Escape' });
+        event(canceled, 'keydown', {
+            key: 'Escape',
+        });
         expect(board.events('rename')).toHaveLength(1);
         expect(board.container.children).toHaveLength(0);
         board.interaction.destroy();
@@ -664,7 +819,11 @@ describe('board interaction', () => {
         board.pointer('pointerdown', 700, 500);
         board.pointer('pointermove', 750, 550);
         event(board.document.defaultView, 'blur');
-        expect(board.viewport).toEqual({ x: 0, y: 0, zoom: 1 });
+        expect(board.viewport).toEqual({
+            x: 0,
+            y: 0,
+            zoom: 1,
+        });
         expect(board.container.captured.size).toBe(0);
         board.key('ArrowDown');
         board.key('ArrowDown');
@@ -715,14 +874,21 @@ describe('board interaction', () => {
         board.key('ArrowDown');
         board.key('F2');
         const input = board.container.children[0];
-        board.setViewport({ x: 50, y: 20, zoom: 2 });
+        board.setViewport({
+            x: 50,
+            y: 20,
+            zoom: 2,
+        });
         expect(input.style.left).toBe('106px');
         expect(input.style.top).toBe('104px');
         expect(input.style.height).toBe('20px');
         expect(Number.parseFloat(input.style.width)).toBeLessThan(240);
         expect(input.style.outline).toBe('none');
         expect(input.style.transform).toBe('scale(2)');
-        board.setModel({ ...board.model, cards: [] });
+        board.setModel({
+            ...board.model,
+            cards: [],
+        });
         expect(board.container.children).toHaveLength(0);
         expect(board.events('rename')).toEqual([]);
         board.interaction.destroy();
@@ -737,13 +903,22 @@ describe('board interaction', () => {
         first.key('ArrowDown');
         first.key('ArrowDown');
         first.key('F2');
-        expect(second.viewport).toEqual({ x: 0, y: 0, zoom: 1 });
+        expect(second.viewport).toEqual({
+            x: 0,
+            y: 0,
+            zoom: 1,
+        });
         expect(second.events('select')).toEqual([]);
         expect(second.container.children).toHaveLength(0);
         first.interaction.destroy();
         second.pointer('pointerdown', 20, 50);
         second.pointer('pointerup', 20, 50);
-        expect(second.events('select')).toEqual([{ blockId: 'a', memberId: 'a-one' }]);
+        expect(second.events('select')).toEqual([
+            {
+                blockId: 'a',
+                memberId: 'a-one',
+            },
+        ]);
         second.interaction.destroy();
     });
 });

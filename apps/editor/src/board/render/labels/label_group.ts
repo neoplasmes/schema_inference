@@ -60,7 +60,9 @@ export class LabelGroup {
     }
 
     destroy(): void {
-        this.root.destroy({ children: true });
+        this.root.destroy({
+            children: true,
+        });
         this.labels.clear();
     }
 }

@@ -19,7 +19,11 @@ export function memberDropAt(
     const sourceRow = sourceCard?.rows.find(row => row.memberId === source.memberId);
     const hit = renderer.hitTest(point);
     const targetGeometry = renderer
-        .queryCards({ ...point, width: 0.01, height: 0.01 })
+        .queryCards({
+            ...point,
+            width: 0.01,
+            height: 0.01,
+        })
         .find(card => !hit || card.blockId === hit.blockId);
     const target = model.cards.find(card => card.blockId === targetGeometry?.blockId);
 

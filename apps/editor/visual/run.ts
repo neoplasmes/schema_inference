@@ -29,12 +29,17 @@ const names =
               'lod',
               'builder',
           ];
-const launchArgs = ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'];
+const launchArgs = [
+    '--use-gl=swiftshader',
+    '--enable-unsafe-swiftshader',
+];
 
 type Diagnostics = {
     ready: boolean;
     scene: string;
-    stats: { renderedFrames: number };
+    stats: {
+        renderedFrames: number;
+    };
     model: BoardModel;
     geometry: BoardGeometry;
     viewport: BoardViewport;
@@ -43,7 +48,11 @@ type Diagnostics = {
 async function diagnostic(page: Page): Promise<Diagnostics> {
     return page.evaluate(() =>
         (
-            window as unknown as { __editorPlayground: { read(): Diagnostics } }
+            window as unknown as {
+                __editorPlayground: {
+                    read(): Diagnostics;
+                };
+            }
         ).__editorPlayground.read()
     );
 }
@@ -53,7 +62,10 @@ async function fieldPoint(
     blockId: string,
     memberId: string,
     fraction = 0.5
-): Promise<{ x: number; y: number }> {
+): Promise<{
+    x: number;
+    y: number;
+}> {
     const value = await diagnostic(page);
     const row = value.geometry.cards
         .find(card => card.blockId === blockId)
@@ -77,13 +89,19 @@ async function ready(page: Page): Promise<void> {
     await page.waitForFunction(
         () => {
             const diagnostic = (
-                window as unknown as { __editorPlayground?: { read(): Diagnostics } }
+                window as unknown as {
+                    __editorPlayground?: {
+                        read(): Diagnostics;
+                    };
+                }
             ).__editorPlayground?.read();
 
             return diagnostic?.ready === true && diagnostic.stats.renderedFrames > 0;
         },
         null,
-        { timeout: 30000 }
+        {
+            timeout: 30000,
+        }
     );
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(
@@ -113,7 +131,10 @@ async function compare(
 
                 return image;
             };
-            const [a, b] = await Promise.all([load(actual), load(reference)]);
+            const [a, b] = await Promise.all([
+                load(actual),
+                load(reference),
+            ]);
             const width = Math.round(crop.actual.width * 2);
             const height = Math.round(crop.actual.height * 2);
             const make = (image: HTMLImageElement, bounds: ReferenceCrop['actual']) => {
@@ -186,8 +207,14 @@ async function compare(
                 totalPixels: width * height,
                 changedFraction: changedPixels / (width * height),
                 meanAbsoluteChannelError: absoluteError / (width * height * 3),
-                referenceSize: { width: b.naturalWidth, height: b.naturalHeight },
-                actualSize: { width: a.naturalWidth, height: a.naturalHeight },
+                referenceSize: {
+                    width: b.naturalWidth,
+                    height: b.naturalHeight,
+                },
+                actualSize: {
+                    width: a.naturalWidth,
+                    height: a.naturalHeight,
+                },
             };
         },
         {
@@ -214,11 +241,18 @@ async function compare(
     };
 }
 
-await mkdir(output, { recursive: true });
-await mkdir(compareOutput, { recursive: true });
+await mkdir(output, {
+    recursive: true,
+});
+await mkdir(compareOutput, {
+    recursive: true,
+});
 
 const server = await ensureEditorServer(baseUrl);
-const browser = await chromium.launch({ headless: true, args: launchArgs });
+const browser = await chromium.launch({
+    headless: true,
+    args: launchArgs,
+});
 const results: unknown[] = [];
 
 try {
@@ -271,7 +305,9 @@ try {
 
                 return {
                     dpr: devicePixelRatio,
-                    fonts: [...document.fonts].map(font => ({
+                    fonts: [
+                        ...document.fonts,
+                    ].map(font => ({
                         family: font.family,
                         status: font.status,
                     })),
@@ -294,7 +330,10 @@ try {
             }
 
             const actualFile = resolve(output, `${scene.id}.png`);
-            await page.screenshot({ path: actualFile, fullPage: false });
+            await page.screenshot({
+                path: actualFile,
+                fullPage: false,
+            });
 
             if (errors.length > 0) {
                 process.exitCode = 1;
@@ -317,13 +356,20 @@ try {
                         await page.mouse.click(point.x, point.y);
                         await page.keyboard.press('F2');
                         await page
-                            .getByRole('textbox', { name: 'Field name' })
-                            .waitFor({ state: 'visible' });
+                            .getByRole('textbox', {
+                                name: 'Field name',
+                            })
+                            .waitFor({
+                                state: 'visible',
+                            });
                         await page.keyboard.press('Control+A');
                         await page.keyboard.type('net_weight');
                         await ready(page);
                         cropFile = resolve(output, `${scene.id}-renaming.png`);
-                        await page.screenshot({ path: cropFile, fullPage: false });
+                        await page.screenshot({
+                            path: cropFile,
+                            fullPage: false,
+                        });
                         await page.keyboard.press('Escape');
                     }
 
@@ -341,10 +387,15 @@ try {
                         );
                         await page.mouse.move(from.x, from.y);
                         await page.mouse.down();
-                        await page.mouse.move(to.x, to.y, { steps: 12 });
+                        await page.mouse.move(to.x, to.y, {
+                            steps: 12,
+                        });
                         await ready(page);
                         cropFile = resolve(output, `${scene.id}-reordering.png`);
-                        await page.screenshot({ path: cropFile, fullPage: false });
+                        await page.screenshot({
+                            path: cropFile,
+                            fullPage: false,
+                        });
                         await page.keyboard.press('Escape');
                         await page.mouse.up();
                     }
@@ -409,7 +460,11 @@ try {
             {
                 browser: browser.version(),
                 node: process.version,
-                os: { platform: platform(), release: release(), cpu: cpus()[0]?.model },
+                os: {
+                    platform: platform(),
+                    release: release(),
+                    cpu: cpus()[0]?.model,
+                },
                 launchArgs,
                 results,
             },

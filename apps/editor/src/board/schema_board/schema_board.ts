@@ -53,7 +53,13 @@ export function createSchemaBoard(options: SchemaBoardOptions): SchemaBoard {
     };
     let sourceModel = model;
     const arrangedPositions = new Map<string, Point>();
-    let viewport = normalizeViewport(options.viewport ?? { x: 0, y: 0, zoom: 1 });
+    let viewport = normalizeViewport(
+        options.viewport ?? {
+            x: 0,
+            y: 0,
+            zoom: 1,
+        }
+    );
     let destroyed = false;
     const renderer = createBoardRenderer({
         container,
@@ -165,7 +171,10 @@ export function createSchemaBoard(options: SchemaBoardOptions): SchemaBoard {
                         .cards.some(card => card.blockId === zoomOrBlockId);
 
                     if (exists) {
-                        setViewport({ ...viewport, zoom: 1 });
+                        setViewport({
+                            ...viewport,
+                            zoom: 1,
+                        });
                         const card = renderer
                             .getGeometry()
                             .cards.find(card => card.blockId === zoomOrBlockId)!;
@@ -203,7 +212,12 @@ export function createSchemaBoard(options: SchemaBoardOptions): SchemaBoard {
                 ...sourceModel,
                 version: sourceModel.version + 1,
                 cards: sourceModel.cards.map(card =>
-                    card.pinned ? card : { ...card, position: undefined }
+                    card.pinned
+                        ? card
+                        : {
+                              ...card,
+                              position: undefined,
+                          }
                 ),
             };
             renderer.setModel(model);

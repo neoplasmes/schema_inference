@@ -56,7 +56,9 @@ export function initialView(model: BoardModel): EditorView {
         expanded: new Map(),
         variants: new Map(),
         branches: new Map(),
-        connections: [...model.connections],
+        connections: [
+            ...model.connections,
+        ],
     };
 }
 
@@ -103,33 +105,48 @@ export function projectDocument(
 ): BoardModel {
     const windows = document.projectedCollections();
     const rowTemplates = new Map(
-        template.cards.flatMap(card => card.rows.map(row => [row.memberId, row] as const))
+        template.cards.flatMap(card =>
+            card.rows.map(
+                row =>
+                    [
+                        row.memberId,
+                        row,
+                    ] as const
+            )
+        )
     );
     const cards: BoardCard[] = [];
-    const definitions: { template?: BoardCard; branch: BranchView }[] =
-        template.cards.map(card => ({
-            template: card,
-            branch: {
-                blockId: card.blockId,
-                rootNodeId: card.nodeId,
-                title: card.title,
-                collectionIds: [
-                    `${card.collectionId}/attributes`,
-                    card.collectionId ?? `members-${card.blockId}`,
-                ],
-            },
-        }));
+    const definitions: {
+        template?: BoardCard;
+        branch: BranchView;
+    }[] = template.cards.map(card => ({
+        template: card,
+        branch: {
+            blockId: card.blockId,
+            rootNodeId: card.nodeId,
+            title: card.title,
+            collectionIds: [
+                `${card.collectionId}/attributes`,
+                card.collectionId ?? `members-${card.blockId}`,
+            ],
+        },
+    }));
 
     for (const branch of view.branches.values()) {
         if (
             !definitions.some(definition => definition.branch.blockId === branch.blockId)
         ) {
-            definitions.push({ branch });
+            definitions.push({
+                branch,
+            });
         }
     }
 
     const branchesByNode = new Map(
-        definitions.map(definition => [definition.branch.rootNodeId, definition.branch])
+        definitions.map(definition => [
+            definition.branch.rootNodeId,
+            definition.branch,
+        ])
     );
 
     for (const definition of definitions) {

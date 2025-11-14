@@ -69,7 +69,12 @@ export class SceneGeometry {
     rebuild(model: BoardModel, lod: BoardLod): void {
         this.model = model;
         this.lod = lod;
-        this.models = new Map(this.model.cards.map(card => [card.blockId, card]));
+        this.models = new Map(
+            this.model.cards.map(card => [
+                card.blockId,
+                card,
+            ])
+        );
         this.headerSelections.clear();
 
         for (const card of this.model.cards) {
@@ -79,10 +84,16 @@ export class SceneGeometry {
             });
         }
         this.order = new Map(
-            this.model.cards.map((card, index) => [card.blockId, index])
+            this.model.cards.map((card, index) => [
+                card.blockId,
+                index,
+            ])
         );
         this.connections = new Map(
-            this.model.connections.map(connection => [connection.id, connection])
+            this.model.connections.map(connection => [
+                connection.id,
+                connection,
+            ])
         );
         const visibleRows = new Map(
             this.model.cards.map(card => [
@@ -126,7 +137,10 @@ export class SceneGeometry {
         }
 
         for (const connection of this.model.connections) {
-            for (const blockId of [connection.sourceBlockId, connection.targetBlockId]) {
+            for (const blockId of [
+                connection.sourceBlockId,
+                connection.targetBlockId,
+            ]) {
                 let ids = this.adjacency.get(blockId);
 
                 if (!ids) {
@@ -173,7 +187,9 @@ export class SceneGeometry {
             }
         }
 
-        this.hidden.set(card.blockId, [...outside]);
+        this.hidden.set(card.blockId, [
+            ...outside,
+        ]);
         const geometry = createCardGeometry(
             card,
             this.previews.get(card.blockId) ?? this.layout.get(card.blockId)!,
@@ -252,11 +268,15 @@ export class SceneGeometry {
 
     getGeometry(): BoardGeometry {
         if (this.geometryDirty) {
-            const allCards = [...this.cards.values()];
+            const allCards = [
+                ...this.cards.values(),
+            ];
             this.snapshot = {
                 version: this.model.version,
                 cards: allCards,
-                connections: [...this.edges.values()],
+                connections: [
+                    ...this.edges.values(),
+                ],
                 bounds: aggregateBounds(allCards),
             };
             this.geometryDirty = false;
@@ -266,7 +286,11 @@ export class SceneGeometry {
     }
     hitTest(point: Point): BoardHit | null {
         const candidates = this.cardIndex
-            .query({ ...point, width: 0, height: 0 })
+            .query({
+                ...point,
+                width: 0,
+                height: 0,
+            })
             .map(entry => entry.geometry)
             .sort((a, b) => this.order.get(a.blockId)! - this.order.get(b.blockId)!);
 

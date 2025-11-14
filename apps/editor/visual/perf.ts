@@ -5,8 +5,16 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ensureEditorServer } from './server';
 
-type Frame = { time: number; cpuSubmitMs: number; drawCalls: number };
-type Resource = { created: number; deleted: number; live: number };
+type Frame = {
+    time: number;
+    cpuSubmitMs: number;
+    drawCalls: number;
+};
+type Resource = {
+    created: number;
+    deleted: number;
+    live: number;
+};
 type Probe = {
     frames: Frame[];
     resources: Record<string, Resource>;
@@ -18,8 +26,17 @@ type Probe = {
 type Diagnostic = {
     scene: string;
     ready: boolean;
-    model: { cards: { rows: unknown[] }[]; connections: unknown[] };
-    viewport: { x: number; y: number; zoom: number };
+    model: {
+        cards: {
+            rows: unknown[];
+        }[];
+        connections: unknown[];
+    };
+    viewport: {
+        x: number;
+        y: number;
+        zoom: number;
+    };
     stats: {
         renderedFrames: number;
         visibleCards: number;
@@ -35,7 +52,9 @@ type SummaryState = Pick<Diagnostic, 'scene' | 'ready' | 'viewport' | 'stats'> &
 };
 type BrowserWindow = Window & {
     __editorPerf: Probe;
-    __editorPlayground: { read(): Diagnostic };
+    __editorPlayground: {
+        read(): Diagnostic;
+    };
 };
 
 const directory = dirname(fileURLToPath(import.meta.url));
@@ -44,8 +63,15 @@ const baseUrl = process.env.EDITOR_URL ?? 'http://127.0.0.1:3010';
 const scenes =
     process.argv.slice(2).length > 0
         ? process.argv.slice(2)
-        : ['stress', 'dense', 'paged'];
-const launchArgs = ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'];
+        : [
+              'stress',
+              'dense',
+              'paged',
+          ];
+const launchArgs = [
+    '--use-gl=swiftshader',
+    '--enable-unsafe-swiftshader',
+];
 
 function distribution(values: number[]): {
     count: number;
@@ -53,7 +79,9 @@ function distribution(values: number[]): {
     p95: number | null;
     maximum: number | null;
 } {
-    const sorted = [...values].sort((a, b) => a - b);
+    const sorted = [
+        ...values,
+    ].sort((a, b) => a - b);
     const percentile = (fraction: number) =>
         sorted.length
             ? sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * fraction) - 1)]
@@ -119,7 +147,10 @@ function installProbe(): void {
             }
         });
 
-    for (const event of ['pointermove', 'wheel']) {
+    for (const event of [
+        'pointermove',
+        'wheel',
+    ]) {
         window.addEventListener(
             event,
             () => {
@@ -127,7 +158,10 @@ function installProbe(): void {
                 probe.inputTimes.push(time);
                 probe.pendingInput ??= time;
             },
-            { capture: true, passive: true }
+            {
+                capture: true,
+                passive: true,
+            }
         );
     }
 
@@ -177,7 +211,11 @@ function installProbe(): void {
             const originalCreate = methods[create];
             const originalDelete = methods[remove];
             const live = new WeakSet<object>();
-            const count = (probe.resources[kind] ??= { created: 0, deleted: 0, live: 0 });
+            const count = (probe.resources[kind] ??= {
+                created: 0,
+                deleted: 0,
+                live: 0,
+            });
             methods[create] = function (...arguments_: unknown[]) {
                 const resource = originalCreate.apply(this, arguments_);
 
@@ -246,7 +284,9 @@ async function gesture(page: Page, kind: 'pan' | 'zoom', steps = 80): Promise<vo
     if (kind === 'zoom') {
         await page.keyboard.down('Control');
     } else {
-        await page.mouse.down({ button: 'middle' });
+        await page.mouse.down({
+            button: 'middle',
+        });
     }
 
     try {
@@ -262,7 +302,9 @@ async function gesture(page: Page, kind: 'pan' | 'zoom', steps = 80): Promise<vo
         if (kind === 'zoom') {
             await page.keyboard.up('Control');
         } else {
-            await page.mouse.up({ button: 'middle' });
+            await page.mouse.up({
+                button: 'middle',
+            });
         }
     }
 
@@ -319,14 +361,22 @@ async function continuousGesture(
                 requestAnimationFrame(tick);
             });
         },
-        { kind, steps }
+        {
+            kind,
+            steps,
+        }
     );
     await page.waitForTimeout(300);
 }
 
-await mkdir(output, { recursive: true });
+await mkdir(output, {
+    recursive: true,
+});
 const server = await ensureEditorServer(baseUrl);
-const browser = await chromium.launch({ headless: true, args: launchArgs });
+const browser = await chromium.launch({
+    headless: true,
+    args: launchArgs,
+});
 const results: unknown[] = [];
 
 try {
@@ -336,7 +386,10 @@ try {
 
     for (const scene of scenes) {
         const context = await browser.newContext({
-            viewport: { width: 1440, height: 900 },
+            viewport: {
+                width: 1440,
+                height: 900,
+            },
             deviceScaleFactor: 2,
             reducedMotion: 'reduce',
         });
@@ -357,7 +410,9 @@ try {
                 return value?.ready && value.stats.renderedFrames > 0;
             },
             null,
-            { timeout: 60000 }
+            {
+                timeout: 60000,
+            }
         );
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(600);
@@ -379,10 +434,16 @@ try {
 
             return {
                 dpr: devicePixelRatio,
-                viewport: { width: innerWidth, height: innerHeight },
+                viewport: {
+                    width: innerWidth,
+                    height: innerHeight,
+                },
                 userAgent: navigator.userAgent,
                 hardwareConcurrency: navigator.hardwareConcurrency,
-                canvas: { width: canvas.width, height: canvas.height },
+                canvas: {
+                    width: canvas.width,
+                    height: canvas.height,
+                },
                 graphics:
                     gl && extension
                         ? {
@@ -410,7 +471,10 @@ try {
             'trusted Playwright',
             'synthetic continuous DOM',
         ] as const) {
-            for (const kind of ['pan', 'zoom'] as const) {
+            for (const kind of [
+                'pan',
+                'zoom',
+            ] as const) {
                 await reset(page);
                 const before = await state(page);
 
@@ -468,7 +532,9 @@ try {
 
         const memoryAfter = await session.send('Runtime.getHeapUsage');
         await session.send('Profiler.enable');
-        await session.send('Profiler.setSamplingInterval', { interval: 1000 });
+        await session.send('Profiler.setSamplingInterval', {
+            interval: 1000,
+        });
         await session.send('Profiler.start');
         await gesture(page, 'pan', 50);
         const { profile } = await session.send('Profiler.stop');
@@ -507,9 +573,18 @@ try {
         );
         await writeFile(
             resolve(output, `${scene}.partial.json`),
-            JSON.stringify({ complete: true, resultFile: `${scene}.json` }, null, 2)
+            JSON.stringify(
+                {
+                    complete: true,
+                    resultFile: `${scene}.json`,
+                },
+                null,
+                2
+            )
         );
-        await page.screenshot({ path: resolve(output, `${scene}.png`) });
+        await page.screenshot({
+            path: resolve(output, `${scene}.png`),
+        });
         console.log(
             JSON.stringify({
                 scene,

@@ -52,7 +52,11 @@ export function createKeyboardController(
                   : 0;
 
         if (dx || dy) {
-            setViewport({ ...viewport, x: viewport.x + dx, y: viewport.y + dy });
+            setViewport({
+                ...viewport,
+                x: viewport.x + dx,
+                y: viewport.y + dy,
+            });
             emit('viewportChange', getViewport());
         }
     }
@@ -144,7 +148,10 @@ export function createKeyboardController(
         const targets = model.cards
             .filter(card => visibleCards.has(card.blockId))
             .flatMap(card => [
-                { blockId: card.blockId, memberId: null } as BoardSelection,
+                {
+                    blockId: card.blockId,
+                    memberId: null,
+                } as BoardSelection,
                 ...(card.collapsed ? [] : card.rows).map(row => ({
                     blockId: card.blockId,
                     memberId: row.memberId,
@@ -186,5 +193,8 @@ export function createKeyboardController(
         }
     }
 
-    return { keyDown, keyUp };
+    return {
+        keyDown,
+        keyUp,
+    };
 }

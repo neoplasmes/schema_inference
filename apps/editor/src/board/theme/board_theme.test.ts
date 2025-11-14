@@ -6,10 +6,20 @@ import { resolveTheme, themeRadius } from './board_theme';
 describe('instance theme', () => {
     it('merges partial categories without mutating generated defaults or another board', () => {
         const custom = resolveTheme({
-            color: { accent: tokens.color.danger },
-            font: { sans: 'Arial' },
-            radius: { 'radius-md': 16 },
-            text: { body: { fontWeight: '600' } },
+            color: {
+                accent: tokens.color.danger,
+            },
+            font: {
+                sans: 'Arial',
+            },
+            radius: {
+                'radius-md': 16,
+            },
+            text: {
+                body: {
+                    fontWeight: '600',
+                },
+            },
         });
         const standard = resolveTheme();
 

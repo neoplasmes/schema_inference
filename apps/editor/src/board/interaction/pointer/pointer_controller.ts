@@ -20,7 +20,9 @@ export function createPointerController(
     selection: SelectionController,
     rename: RenameController,
     viewport: ViewportController,
-    previous: { cursor: string }
+    previous: {
+        cursor: string;
+    }
 ) {
     const { container, renderer, emit, getModel, getViewport } = options;
     const { setHover, activate } = selection;
@@ -50,7 +52,9 @@ export function createPointerController(
     function cancel() {
         const active = gestures.gesture;
         const activePinch = gestures.pinch;
-        const captured = [...gestures.pointers.keys()];
+        const captured = [
+            ...gestures.pointers.keys(),
+        ];
         clearPreview();
         gestures.gesture = null;
         gestures.pinch = null;
@@ -80,7 +84,9 @@ export function createPointerController(
         event.preventDefault();
         flushWheel();
         rename.close();
-        container.focus({ preventScroll: true });
+        container.focus({
+            preventScroll: true,
+        });
         container.style.outline = '';
         const point = local(event);
         gestures.pointers.set(event.pointerId, point);
@@ -89,7 +95,9 @@ export function createPointerController(
         if (gestures.pointers.size === 2) {
             clearPreview();
             gestures.gesture = null;
-            const points = [...gestures.pointers.values()];
+            const points = [
+                ...gestures.pointers.values(),
+            ];
             gestures.pinch = {
                 viewport: getViewport(),
                 center: midpoint(points),
@@ -107,7 +115,11 @@ export function createPointerController(
         const geometry =
             hit?.kind === 'header'
                 ? renderer
-                      .queryCards({ ...world(point), width: 0.01, height: 0.01 })
+                      .queryCards({
+                          ...world(point),
+                          width: 0.01,
+                          height: 0.01,
+                      })
                       .find(card => card.blockId === hit.blockId)
                 : null;
         const pan = !hit || event.button === 1 || gestures.spacePressed;
@@ -124,7 +136,10 @@ export function createPointerController(
                     ? 'member'
                     : 'press',
             origin: geometry
-                ? { x: geometry.bounds.x, y: geometry.bounds.y }
+                ? {
+                      x: geometry.bounds.x,
+                      y: geometry.bounds.y,
+                  }
                 : world(point),
             moved: false,
             blockedBlocks: null,
@@ -139,7 +154,9 @@ export function createPointerController(
         }
 
         if (gestures.pinch) {
-            const points = [...gestures.pointers.values()];
+            const points = [
+                ...gestures.pointers.values(),
+            ];
 
             if (points.length < 2) {
                 return;
@@ -215,7 +232,10 @@ export function createPointerController(
                               blockId: move.targetBlockId,
                               memberId: move.beforeMemberId,
                           }
-                        : { kind: 'header', blockId: move.targetBlockId }
+                        : {
+                              kind: 'header',
+                              blockId: move.targetBlockId,
+                          }
                     : null
             );
         }
@@ -230,7 +250,10 @@ export function createPointerController(
 
         if (gestures.pinch) {
             gestures.pinch = null;
-            const captured = [...gestures.pointers.keys(), event.pointerId];
+            const captured = [
+                ...gestures.pointers.keys(),
+                event.pointerId,
+            ];
             gestures.pointers.clear();
 
             for (const pointerId of captured) {

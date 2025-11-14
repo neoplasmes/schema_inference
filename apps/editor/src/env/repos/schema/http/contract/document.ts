@@ -15,7 +15,11 @@ export function parseSnapshot(value: unknown): Snapshot {
         throw new ContractViolationError('Expected a schema snapshot.');
     }
 
-    return { resource: 'schema', id: string(data.id), revision: string(data.revision) };
+    return {
+        resource: 'schema',
+        id: string(data.id),
+        revision: string(data.revision),
+    };
 }
 
 export function parseManifest(value: unknown): SchemaDocument {
@@ -30,12 +34,18 @@ export function parseManifest(value: unknown): SchemaDocument {
     let parsedProfile: SchemaProfile;
 
     if (profile.syntax === 'xml' && profile.dialect === 'xsd-1.0') {
-        parsedProfile = { syntax: 'xml', dialect: 'xsd-1.0' };
+        parsedProfile = {
+            syntax: 'xml',
+            dialect: 'xsd-1.0',
+        };
     } else if (
         (profile.syntax === 'json' || profile.syntax === 'yaml') &&
         profile.dialect === 'json-schema-2020-12'
     ) {
-        parsedProfile = { syntax: profile.syntax, dialect: 'json-schema-2020-12' };
+        parsedProfile = {
+            syntax: profile.syntax,
+            dialect: 'json-schema-2020-12',
+        };
     } else {
         throw new ContractViolationError('Unsupported schema profile.');
     }
@@ -51,7 +61,10 @@ export function parseManifest(value: unknown): SchemaDocument {
 export function parseCollection(value: unknown): Collection {
     const data = object(value);
 
-    return { id: string(data.id), totalItems: count(data.totalItems) };
+    return {
+        id: string(data.id),
+        totalItems: count(data.totalItems),
+    };
 }
 
 export function parseName(value: unknown): ExpandedName {

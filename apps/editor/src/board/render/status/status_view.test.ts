@@ -10,7 +10,11 @@ const state = vi.hoisted(() => ({
 
 vi.mock('../../text', () => ({
     RetainedLabel: class {
-        view = { visible: true, removeFromParent: state.remove, destroy: state.destroy };
+        view = {
+            visible: true,
+            removeFromParent: state.remove,
+            destroy: state.destroy,
+        };
         update = state.update;
         constructor() {
             state.constructed();
@@ -23,7 +27,9 @@ import { BoardStatusView } from './status_view';
 beforeEach(() => vi.clearAllMocks());
 
 function setup() {
-    const metrics = { width: () => 180 } as unknown as LabelMetrics;
+    const metrics = {
+        width: () => 180,
+    } as unknown as LabelMetrics;
 
     return new BoardStatusView(metrics, 2);
 }
@@ -33,15 +39,26 @@ it('retains one screen-space label across loading, empty and failure updates and
     status.update('loading', 0, 800, 600);
     expect(status.view.visible).toBe(true);
     expect(state.update).toHaveBeenLastCalledWith(
-        expect.objectContaining({ text: 'Loading schema...', x: 310, y: 300 })
+        expect.objectContaining({
+            text: 'Loading schema...',
+            x: 310,
+            y: 300,
+        })
     );
     status.update('empty', 0, 1000, 800);
     expect(state.update).toHaveBeenLastCalledWith(
-        expect.objectContaining({ text: 'No schema fields are loaded', x: 410, y: 400 })
+        expect.objectContaining({
+            text: 'No schema fields are loaded',
+            x: 410,
+            y: 400,
+        })
     );
     status.update('failed', 0, 1000, 800);
     expect(state.update).toHaveBeenLastCalledWith(
-        expect.objectContaining({ text: 'Schema could not load', ink: 'danger' })
+        expect.objectContaining({
+            text: 'Schema could not load',
+            ink: 'danger',
+        })
     );
     expect(state.constructed).toHaveBeenCalledTimes(1);
     status.update('loading', 1, 1000, 800);

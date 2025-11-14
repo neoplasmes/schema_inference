@@ -30,7 +30,10 @@ export type PlaygroundScene = Readonly<{
     id: SceneId;
     title?: string;
     referenceFile: string | null;
-    viewport: Readonly<{ width: number; height: number }>;
+    viewport: Readonly<{
+        width: number;
+        height: number;
+    }>;
     board: BoardModel;
     camera: BoardViewport;
     shell: 'evidence' | 'builder' | 'none';
@@ -39,7 +42,12 @@ export type PlaygroundScene = Readonly<{
         id: string;
         board: BoardModel;
         camera: BoardViewport;
-        containerRect: Readonly<{ x: number; y: number; width: number; height: number }>;
+        containerRect: Readonly<{
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        }>;
     }>[];
 }>;
 
@@ -75,7 +83,10 @@ function card(
         nodeId: `node-${blockId}`,
         collectionId: `members-${blockId}`,
         title,
-        position: { x, y },
+        position: {
+            x,
+            y,
+        },
         width,
         pinned: true,
         collapsed: false,
@@ -109,7 +120,13 @@ function edge(
 }
 
 const paymentVariants = [
-    { variantId: 'card', scopeId: 'orders/payment', title: 'Card', count: 10, total: 15 },
+    {
+        variantId: 'card',
+        scopeId: 'orders/payment',
+        title: 'Card',
+        count: 10,
+        total: 15,
+    },
     {
         variantId: 'invoice',
         scopeId: 'orders/payment',
@@ -123,7 +140,10 @@ function main(): BoardModel {
     return {
         version: 1,
         state: 'ready',
-        selection: { blockId: 'order', memberId: 'payment' },
+        selection: {
+            blockId: 'order',
+            memberId: 'payment',
+        },
         cards: [
             card(
                 'address-definition',
@@ -131,8 +151,14 @@ function main(): BoardModel {
                 120,
                 430,
                 238,
-                [row('street', 'street'), row('city', 'city'), row('zip', 'zip')],
-                { subtitle: 'definition' }
+                [
+                    row('street', 'street'),
+                    row('city', 'city'),
+                    row('zip', 'zip'),
+                ],
+                {
+                    subtitle: 'definition',
+                }
             ),
             card('catalog', 'catalog', 1060, 600, 238, [
                 row('catalog-sku', 'sku'),
@@ -145,7 +171,9 @@ function main(): BoardModel {
                 110,
                 248,
                 [
-                    row('id', 'id', 'string', { icon: 'attribute' }),
+                    row('id', 'id', 'string', {
+                        icon: 'attribute',
+                    }),
                     row('customer', 'customer', 'complex', {
                         expandable: true,
                         expanded: true,
@@ -159,17 +187,28 @@ function main(): BoardModel {
                         expandable: true,
                         expanded: true,
                     }),
-                    row('delivery', 'delivery', 'date', { occurrenceLabel: '0..1' }),
+                    row('delivery', 'delivery', 'date', {
+                        occurrenceLabel: '0..1',
+                    }),
                 ],
-                { subtitle: 'sequence' }
+                {
+                    subtitle: 'sequence',
+                }
             ),
             card('customer', 'customer', 620, 90, 238, [
                 row('name', 'name'),
-                row('email', 'email', 'string', { nameAlias: '+ e-mail' }),
-                row('phone', 'phone', 'string', { occurrenceLabel: '0..1' }),
+                row('email', 'email', 'string', {
+                    nameAlias: '+ e-mail',
+                }),
+                row('phone', 'phone', 'string', {
+                    occurrenceLabel: '0..1',
+                }),
                 row('address', 'address', 'complex', {
                     expandable: true,
-                    branch: { totalItems: 6, state: 'notRequested' },
+                    branch: {
+                        totalItems: 6,
+                        state: 'notRequested',
+                    },
                 }),
             ]),
             card(
@@ -182,9 +221,15 @@ function main(): BoardModel {
                     row('amount', 'amount', 'decimal'),
                     row('currency', 'currency'),
                     row('number', 'number'),
-                    row('holder', 'holder', 'string', { occurrenceLabel: '0..1' }),
+                    row('holder', 'holder', 'string', {
+                        occurrenceLabel: '0..1',
+                    }),
                 ],
-                { suggested: true, variants: paymentVariants, activeVariantId: 'card' }
+                {
+                    suggested: true,
+                    variants: paymentVariants,
+                    activeVariantId: 'card',
+                }
             ),
             card(
                 'item',
@@ -210,7 +255,9 @@ function main(): BoardModel {
         ],
         connections: [
             edge('order', 'customer', 'customer'),
-            edge('order', 'payment', 'payment', { state: 'selected' }),
+            edge('order', 'payment', 'payment', {
+                state: 'selected',
+            }),
             edge('order', 'items', 'item'),
         ],
     };
@@ -220,7 +267,10 @@ function variants(): BoardModel {
     return {
         version: 1,
         state: 'ready',
-        selection: { blockId: 'payment', memberId: null },
+        selection: {
+            blockId: 'payment',
+            memberId: null,
+        },
         diagnosticLod: 'detailed',
         cards: [
             card(
@@ -232,12 +282,16 @@ function variants(): BoardModel {
                 [
                     row('amount', 'amount', 'decimal'),
                     row('currency', 'currency'),
-                    row('number', 'number', 'string', { change: 'removed' }),
+                    row('number', 'number', 'string', {
+                        change: 'removed',
+                    }),
                     row('holder', 'holder', 'string', {
                         change: 'removed',
                         occurrenceLabel: '0..1',
                     }),
-                    row('inn', 'inn', 'string', { change: 'added' }),
+                    row('inn', 'inn', 'string', {
+                        change: 'added',
+                    }),
                     row('bank', 'bank', 'complex', {
                         change: 'added',
                         expandable: true,
@@ -267,7 +321,10 @@ function variants(): BoardModel {
                 560,
                 372,
                 220,
-                [row('bank-name', 'name'), row('account', 'account')],
+                [
+                    row('bank-name', 'name'),
+                    row('account', 'account'),
+                ],
                 {
                     subtitle: 'Preview',
                     metrics: {
@@ -280,7 +337,11 @@ function variants(): BoardModel {
                 }
             ),
         ],
-        connections: [edge('payment', 'bank', 'bank', { kind: 'preview' })],
+        connections: [
+            edge('payment', 'bank', 'bank', {
+                kind: 'preview',
+            }),
+        ],
     };
 }
 
@@ -326,14 +387,19 @@ function anatomy(): BoardModel {
             icon: 'reference',
             typeEmphasis: true,
         }),
-        row('spelling', 'email', 'string', { nameAlias: '+ e-mail' }),
+        row('spelling', 'email', 'string', {
+            nameAlias: '+ e-mail',
+        }),
     ];
 
     return {
         version: 1,
         state: 'ready',
         diagnosticLod: 'detailed',
-        selection: { blockId: 'state-selected', memberId: 'selected' },
+        selection: {
+            blockId: 'state-selected',
+            memberId: 'selected',
+        },
         cards: [
             card(
                 'product',
@@ -346,14 +412,20 @@ function anatomy(): BoardModel {
                         icon: 'attribute',
                         occurrenceLabel: '1',
                     }),
-                    row('title', 'title', 'string', { occurrenceLabel: '1' }),
+                    row('title', 'title', 'string', {
+                        occurrenceLabel: '1',
+                    }),
                     row('price', 'price', 'complex', {
                         expandable: true,
                         expanded: true,
                         occurrenceLabel: '1',
                     }),
-                    row('weight', 'weight', 'decimal', { occurrenceLabel: '0..1' }),
-                    row('tags', 'tags', 'string', { occurrenceLabel: '0..∞' }),
+                    row('weight', 'weight', 'decimal', {
+                        occurrenceLabel: '0..1',
+                    }),
+                    row('tags', 'tags', 'string', {
+                        occurrenceLabel: '0..∞',
+                    }),
                     row('attrs-outside-window', 'attrs', 'complex', {
                         expandable: true,
                         expanded: true,
@@ -393,11 +465,17 @@ function anatomy(): BoardModel {
                     880,
                     95 + index * 67,
                     280,
-                    [stateRow],
+                    [
+                        stateRow,
+                    ],
                     {
                         display: 'summary',
                         subtitle: stateRow.typeLabel,
-                        metrics: { row: 28, rowGlyphs: false, occurrenceColumn: false },
+                        metrics: {
+                            row: 28,
+                            rowGlyphs: false,
+                            occurrenceColumn: false,
+                        },
                     }
                 )
             ),
@@ -417,7 +495,13 @@ function anatomy(): BoardModel {
                     row('renaming-original', 'title'),
                     row('renaming-title', 'net_weight', 'decimal'),
                 ],
-                { display: 'summary', metrics: { row: 34, rowGlyphs: false } }
+                {
+                    display: 'summary',
+                    metrics: {
+                        row: 34,
+                        rowGlyphs: false,
+                    },
+                }
             ),
             card(
                 'reordering',
@@ -430,7 +514,13 @@ function anatomy(): BoardModel {
                     row('reorder-title', 'title'),
                     row('reorder-weight', 'weight', 'decimal'),
                 ],
-                { display: 'summary', metrics: { row: 32.6666666667, rowGlyphs: false } }
+                {
+                    display: 'summary',
+                    metrics: {
+                        row: 32.6666666667,
+                        rowGlyphs: false,
+                    },
+                }
             ),
         ],
         connections: [
@@ -441,12 +531,19 @@ function anatomy(): BoardModel {
 }
 
 function loading(): BoardModel {
-    const x = [48, 429.328125, 810.65625];
+    const x = [
+        48,
+        429.328125,
+        810.65625,
+    ];
 
     return {
         version: 1,
         state: 'ready',
-        selection: { blockId: 'loading-parent', memberId: 'address-child' },
+        selection: {
+            blockId: 'loading-parent',
+            memberId: 'address-child',
+        },
         cards: [
             card(
                 'not-requested',
@@ -457,10 +554,16 @@ function loading(): BoardModel {
                 [
                     row('unrequested-address', 'address', 'complex', {
                         expandable: true,
-                        branch: { totalItems: 6, state: 'notRequested' },
+                        branch: {
+                            totalItems: 6,
+                            state: 'notRequested',
+                        },
                     }),
                 ],
-                { display: 'summary', subtitle: 'complex' }
+                {
+                    display: 'summary',
+                    subtitle: 'complex',
+                }
             ),
             card(
                 'loading-parent',
@@ -474,7 +577,10 @@ function loading(): BoardModel {
                         expanded: true,
                     }),
                 ],
-                { display: 'summary', subtitle: 'complex' }
+                {
+                    display: 'summary',
+                    subtitle: 'complex',
+                }
             ),
             card('loading', 'address', 625.328125, 235.328125, 120, [], {
                 rowWindow: {
@@ -490,7 +596,10 @@ function loading(): BoardModel {
                 x[2],
                 165.328125,
                 238,
-                [row('partial-sku', 'sku'), row('partial-title', 'title')],
+                [
+                    row('partial-sku', 'sku'),
+                    row('partial-title', 'title'),
+                ],
                 {
                     rowWindow: {
                         firstMemberId: 'partial-sku',
@@ -521,15 +630,25 @@ function loading(): BoardModel {
                     },
                 }
             ),
-            card('failed', 'product', x[1], 470.65625, 238, [row('failed-sku', 'sku')], {
-                rowWindow: {
-                    firstMemberId: 'failed-sku',
-                    totalItems: 412,
-                    state: 'failed',
-                    hasMore: true,
-                    error: "Page 2 didn't load",
-                },
-            }),
+            card(
+                'failed',
+                'product',
+                x[1],
+                470.65625,
+                238,
+                [
+                    row('failed-sku', 'sku'),
+                ],
+                {
+                    rowWindow: {
+                        firstMemberId: 'failed-sku',
+                        totalItems: 412,
+                        state: 'failed',
+                        hasMore: true,
+                        error: "Page 2 didn't load",
+                    },
+                }
+            ),
             card('empty', 'extensions', x[2], 479.65625, 238, []),
             card('unknown', 'customer', x[0], 815.984375, 238, [], {
                 display: 'summary',
@@ -541,8 +660,12 @@ function loading(): BoardModel {
                 x[1],
                 815.984375,
                 168,
-                [row('category-ref', 'children', '↻')],
-                { display: 'summary' }
+                [
+                    row('category-ref', 'children', '↻'),
+                ],
+                {
+                    display: 'summary',
+                }
             ),
             card(
                 'recursive-definition',
@@ -550,12 +673,21 @@ function loading(): BoardModel {
                 625.328125,
                 819.984375,
                 127.296875,
-                [row('category-link', 'Category', 'go to')],
-                { display: 'summary', metrics: { row: 20 } }
+                [
+                    row('category-link', 'Category', 'go to'),
+                ],
+                {
+                    display: 'summary',
+                    metrics: {
+                        row: 20,
+                    },
+                }
             ),
         ],
         connections: [
-            edge('loading-parent', 'address-child', 'loading', { state: 'unloaded' }),
+            edge('loading-parent', 'address-child', 'loading', {
+                state: 'unloaded',
+            }),
             edge('recursive', 'category-ref', 'recursive-definition', {
                 kind: 'reference',
             }),
@@ -567,7 +699,10 @@ function builder(): BoardModel {
     return {
         version: 1,
         state: 'ready',
-        selection: { blockId: 'item', memberId: 'price' },
+        selection: {
+            blockId: 'item',
+            memberId: 'price',
+        },
         cards: [
             card(
                 'price-list',
@@ -576,15 +711,21 @@ function builder(): BoardModel {
                 120,
                 258,
                 [
-                    row('currency', 'currency', 'string', { icon: 'attribute' }),
-                    row('valid-from', 'validFrom', 'date', { icon: 'attribute' }),
+                    row('currency', 'currency', 'string', {
+                        icon: 'attribute',
+                    }),
+                    row('valid-from', 'validFrom', 'date', {
+                        icon: 'attribute',
+                    }),
                     row('item-member', 'item', 'complex', {
                         occurrenceLabel: '1..∞',
                         expandable: true,
                         expanded: true,
                     }),
                 ],
-                { subtitle: 'sequence' }
+                {
+                    subtitle: 'sequence',
+                }
             ),
             card(
                 'item',
@@ -598,10 +739,14 @@ function builder(): BoardModel {
                     row('price', 'price', 'decimal'),
                     row('discount', 'discount', 'choice · 1 option'),
                 ],
-                { subtitle: 'sequence' }
+                {
+                    subtitle: 'sequence',
+                }
             ),
         ],
-        connections: [edge('price-list', 'item-member', 'item')],
+        connections: [
+            edge('price-list', 'item-member', 'item'),
+        ],
     };
 }
 
@@ -621,19 +766,32 @@ function lod(kind: 'overview' | 'working' | 'detailed'): BoardModel {
                     420,
                     [
                         row('name', 'name', 'string', {
-                            observation: { count: 15, total: 15 },
+                            observation: {
+                                count: 15,
+                                total: 15,
+                            },
                         }),
                         row('email', 'email', 'string', {
-                            observation: { count: 14, total: 15 },
+                            observation: {
+                                count: 14,
+                                total: 15,
+                            },
                             nameAlias: '+ e-mail 3',
                         }),
                         row('phone', 'phone', 'string', {
                             occurrenceLabel: '0..1',
-                            observation: { count: 6, total: 15 },
+                            observation: {
+                                count: 6,
+                                total: 15,
+                            },
                             warning: 'phone has two value types\nstring 4 · integer 2',
                         }),
                     ],
-                    { subtitle: '1 note', subtitleEmphasis: true, note: '+ Add element' }
+                    {
+                        subtitle: '1 note',
+                        subtitleEmphasis: true,
+                        note: '+ Add element',
+                    }
                 ),
             ],
             connections: [],
@@ -641,13 +799,24 @@ function lod(kind: 'overview' | 'working' | 'detailed'): BoardModel {
     }
 
     const overview = kind === 'overview';
-    const origin = overview ? { x: 68, y: 196 } : { x: 572, y: 136 };
+    const origin = overview
+        ? {
+              x: 68,
+              y: 196,
+          }
+        : {
+              x: 572,
+              y: 136,
+          };
     const childrenX = overview ? 268 : 812;
 
     return {
         version: 1,
         state: 'ready',
-        selection: { blockId: 'order', memberId: 'payment' },
+        selection: {
+            blockId: 'order',
+            memberId: 'payment',
+        },
         diagnosticLod: kind,
         cards: [
             card('order', 'order', origin.x, origin.y, overview ? 100 : 180, [
@@ -656,14 +825,26 @@ function lod(kind: 'overview' | 'working' | 'detailed'): BoardModel {
                     expandable: true,
                     expanded: true,
                 }),
-                row('payment', 'payment', 'choice', { expandable: true, expanded: true }),
+                row('payment', 'payment', 'choice', {
+                    expandable: true,
+                    expanded: true,
+                }),
                 row('items', 'items', 'complex'),
-                ...(overview ? [row('delivery', 'delivery', 'date')] : []),
+                ...(overview
+                    ? [
+                          row('delivery', 'delivery', 'date'),
+                      ]
+                    : []),
             ]),
             card('customer', 'customer', childrenX, 140, overview ? 90 : 160, [
                 row('name', 'name'),
                 row('email', 'email'),
-                ...(overview ? [row('phone', 'phone'), row('address', 'address')] : []),
+                ...(overview
+                    ? [
+                          row('phone', 'phone'),
+                          row('address', 'address'),
+                      ]
+                    : []),
             ]),
             card(
                 'payment',
@@ -671,8 +852,15 @@ function lod(kind: 'overview' | 'working' | 'detailed'): BoardModel {
                 childrenX,
                 overview ? 260 : 290,
                 overview ? 90 : 160,
-                [row('amount', 'amount', 'decimal'), row('number', 'number')],
-                overview ? { subtitle: '2 variants' } : {}
+                [
+                    row('amount', 'amount', 'decimal'),
+                    row('number', 'number'),
+                ],
+                overview
+                    ? {
+                          subtitle: '2 variants',
+                      }
+                    : {}
             ),
             ...(overview
                 ? [
@@ -687,12 +875,20 @@ function lod(kind: 'overview' | 'working' | 'detailed'): BoardModel {
         ],
         connections: [
             edge('order', 'customer', 'customer'),
-            edge('order', 'payment', 'payment', { state: 'selected' }),
+            edge('order', 'payment', 'payment', {
+                state: 'selected',
+            }),
             ...(overview
                 ? [
-                      edge('order', 'items', 'items', { id: 'items-branch-one' }),
-                      edge('order', 'items', 'items', { id: 'items-branch-two' }),
-                      edge('order', 'items', 'items', { id: 'items-branch-three' }),
+                      edge('order', 'items', 'items', {
+                          id: 'items-branch-one',
+                      }),
+                      edge('order', 'items', 'items', {
+                          id: 'items-branch-two',
+                      }),
+                      edge('order', 'items', 'items', {
+                          id: 'items-branch-three',
+                      }),
                       edge('items', 'catalog-reference', 'catalog', {
                           kind: 'reference',
                       }),
@@ -715,13 +911,20 @@ function workload(
     for (let index = 0; index < count; index += 1) {
         const id = `workload-${index}`;
         const rowCount = kind === 'dense' ? 18 : kind === 'paged' ? 50 : 8;
-        const rows = Array.from({ length: rowCount }, (_, rowIndex) =>
-            row(
-                `${id}-member-${rowIndex}`,
-                rowIndex % 2 === 0 ? `Поле ${rowIndex}` : `field_${rowIndex}`,
-                rowIndex % 3 === 0 ? 'integer' : 'string',
-                { expandable: rowIndex === 0, expanded: rowIndex === 0 }
-            )
+        const rows = Array.from(
+            {
+                length: rowCount,
+            },
+            (_, rowIndex) =>
+                row(
+                    `${id}-member-${rowIndex}`,
+                    rowIndex % 2 === 0 ? `Поле ${rowIndex}` : `field_${rowIndex}`,
+                    rowIndex % 3 === 0 ? 'integer' : 'string',
+                    {
+                        expandable: rowIndex === 0,
+                        expanded: rowIndex === 0,
+                    }
+                )
         );
         const x =
             kind === 'dense'
@@ -773,13 +976,22 @@ function workload(
                     `workload-${source}`,
                     `workload-${source}-member-0`,
                     `workload-${target}`,
-                    { id: `stress-edge-${index}`, kind: 'reference' }
+                    {
+                        id: `stress-edge-${index}`,
+                        kind: 'reference',
+                    }
                 )
             );
         }
     }
 
-    return { version: 1, state: 'ready', selection: null, cards, connections };
+    return {
+        version: 1,
+        state: 'ready',
+        selection: null,
+        cards,
+        connections,
+    };
 }
 
 export function getScene(id: string | null): PlaygroundScene {
@@ -837,9 +1049,16 @@ export function getScene(id: string | null): PlaygroundScene {
         id: sceneId,
         title: sceneId === 'builder' ? 'Price list' : 'Orders',
         referenceFile: reference?.file ?? null,
-        viewport: reference?.viewport ?? { width: 1440, height: 900 },
+        viewport: reference?.viewport ?? {
+            width: 1440,
+            height: 900,
+        },
         board,
-        camera: { x: 0, y: 0, zoom: sceneId === 'dense' ? 0.4 : 1 },
+        camera: {
+            x: 0,
+            y: 0,
+            zoom: sceneId === 'dense' ? 0.4 : 1,
+        },
         shell:
             sceneId === 'main' || sceneId === 'variants'
                 ? 'evidence'
@@ -851,8 +1070,18 @@ export function getScene(id: string | null): PlaygroundScene {
                 ? [
                       {
                           name: 'editor',
-                          actual: { x: 0, y: 0, width: 1560, height: 640 },
-                          reference: { x: 0, y: 0, width: 1560, height: 640 },
+                          actual: {
+                              x: 0,
+                              y: 0,
+                              width: 1560,
+                              height: 640,
+                          },
+                          reference: {
+                              x: 0,
+                              y: 0,
+                              width: 1560,
+                              height: 640,
+                          },
                       },
                       ...references['lod-overview'].crops,
                       ...references['lod-working'].crops,
@@ -861,19 +1090,27 @@ export function getScene(id: string | null): PlaygroundScene {
                 : (reference?.crops ?? []),
         ...(sceneId === 'lod'
             ? {
-                  panels: (['overview', 'working', 'detailed'] as const).map(
-                      (kind, index) => ({
-                          id: kind,
-                          board: lod(kind),
-                          camera: { x: -(48 + index * 504), y: -96, zoom: 1 },
-                          containerRect: {
-                              x: 48 + index * 504,
-                              y: 96,
-                              width: 456,
-                              height: 460,
-                          },
-                      })
-                  ),
+                  panels: (
+                      [
+                          'overview',
+                          'working',
+                          'detailed',
+                      ] as const
+                  ).map((kind, index) => ({
+                      id: kind,
+                      board: lod(kind),
+                      camera: {
+                          x: -(48 + index * 504),
+                          y: -96,
+                          zoom: 1,
+                      },
+                      containerRect: {
+                          x: 48 + index * 504,
+                          y: 96,
+                          width: 456,
+                          height: 460,
+                      },
+                  })),
               }
             : {}),
     };

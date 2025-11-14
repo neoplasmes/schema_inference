@@ -3,7 +3,10 @@ import type { Query } from '../../contracts';
 import type { EntityRef } from '../../../core/entities';
 import type { ReadOptions, SchemaRepository } from '../../ports/repos/schema';
 
-export type ReadSchemaChangeInput = { schemaId: string; changeId: string };
+export type ReadSchemaChangeInput = {
+    schemaId: string;
+    changeId: string;
+};
 
 export class ReadSchemaChangeQuery
     implements Query<ReadSchemaChangeInput, ChangeReceipt>
@@ -17,6 +20,8 @@ export class ReadSchemaChangeQuery
     }
 
     reads(input: { schemaId: string }): readonly EntityRef[] {
-        return [`schema.document:${input.schemaId}`];
+        return [
+            `schema.document:${input.schemaId}`,
+        ];
     }
 }

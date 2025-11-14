@@ -6,7 +6,10 @@ export type ColorName = keyof typeof tokens.color;
 export function paint(
     name: ColorName,
     theme: Pick<ResolvedBoardTheme, 'color'> = tokens
-): { color: number; alpha: number } {
+): {
+    color: number;
+    alpha: number;
+} {
     const hex = theme.color[name].slice(1);
 
     return {

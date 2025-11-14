@@ -64,7 +64,9 @@ export function useEditorSave(props: EditorProps, state: EditorSessionState) {
                         schemaId: target.document.manifest.snapshot.id,
                         changeId: receipt.id,
                     },
-                    { signal: poll.signal }
+                    {
+                        signal: poll.signal,
+                    }
                 );
 
                 if (
@@ -147,5 +149,7 @@ export function useEditorSave(props: EditorProps, state: EditorSessionState) {
         }
     }
 
-    return { save };
+    return {
+        save,
+    };
 }

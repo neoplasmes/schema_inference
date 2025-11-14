@@ -17,7 +17,12 @@ export class FixtureSchemaRepository implements SchemaRepository {
     constructor(private readonly fixture: FixtureData) {}
 
     async open(
-        _resource: Extract<EditorResource, { kind: 'schema' }>,
+        _resource: Extract<
+            EditorResource,
+            {
+                kind: 'schema';
+            }
+        >,
         options?: ReadOptions
     ): Promise<SchemaDocument> {
         options?.signal?.throwIfAborted();
@@ -51,7 +56,10 @@ export class FixtureSchemaRepository implements SchemaRepository {
                 return {
                     id: nodeId,
                     kind: 'xmlElement',
-                    name: { namespaceUri: null, localName: 'field' },
+                    name: {
+                        namespaceUri: null,
+                        localName: 'field',
+                    },
                     contentNodeId: `${nodeId}/scalar`,
                     nillable: false,
                 };
@@ -77,7 +85,10 @@ export class FixtureSchemaRepository implements SchemaRepository {
         }
 
         if (cursor === null) {
-            return { ...page, snapshot };
+            return {
+                ...page,
+                snapshot,
+            };
         }
 
         const offset = Number(cursor);

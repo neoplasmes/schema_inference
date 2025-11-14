@@ -28,13 +28,21 @@ type State = {
 
 const output = resolve(dirname(fileURLToPath(import.meta.url)), 'actual/browser');
 const base = process.env.EDITOR_URL ?? 'http://127.0.0.1:3010';
-await mkdir(output, { recursive: true });
+await mkdir(output, {
+    recursive: true,
+});
 const browser = await chromium.launch({
     headless: true,
-    args: ['--use-gl=swiftshader', '--enable-unsafe-swiftshader'],
+    args: [
+        '--use-gl=swiftshader',
+        '--enable-unsafe-swiftshader',
+    ],
 });
 const context = await browser.newContext({
-    viewport: { width: 1440, height: 900 },
+    viewport: {
+        width: 1440,
+        height: 900,
+    },
     deviceScaleFactor: 2,
 });
 await context.addInitScript('globalThis.__name = (value) => value;');
@@ -44,7 +52,11 @@ const requested = process.argv.slice(2);
 function state(page: Page): Promise<State> {
     return page.evaluate(() =>
         (
-            window as unknown as { __editorPlayground: { read(): State } }
+            window as unknown as {
+                __editorPlayground: {
+                    read(): State;
+                };
+            }
         ).__editorPlayground.read()
     );
 }
@@ -52,7 +64,11 @@ function state(page: Page): Promise<State> {
 async function settled(page: Page): Promise<void> {
     await page.waitForFunction(() => {
         const value = (
-            window as unknown as { __editorPlayground?: { read(): State } }
+            window as unknown as {
+                __editorPlayground?: {
+                    read(): State;
+                };
+            }
         ).__editorPlayground?.read();
 
         return value?.ready && value.stats.renderedFrames > 0;
@@ -95,17 +111,31 @@ async function scenario(
             consoleErrors.push(message.text());
         }
     });
-    await context.tracing.start({ screenshots: true, snapshots: true, sources: true });
+    await context.tracing.start({
+        screenshots: true,
+        snapshots: true,
+        sources: true,
+    });
     let evidence: unknown;
 
     try {
         evidence = await action(page);
         expect(errors.filter(error => !expectedError?.test(error))).toEqual([]);
-        await page.screenshot({ path: resolve(output, `${name}.png`) });
-        results.push({ name, passed: true, evidence, errors, consoleErrors });
+        await page.screenshot({
+            path: resolve(output, `${name}.png`),
+        });
+        results.push({
+            name,
+            passed: true,
+            evidence,
+            errors,
+            consoleErrors,
+        });
         console.log(`PASS ${name}`);
     } catch (error) {
-        await page.screenshot({ path: resolve(output, `${name}-failure.png`) });
+        await page.screenshot({
+            path: resolve(output, `${name}-failure.png`),
+        });
         results.push({
             name,
             passed: false,
@@ -118,7 +148,9 @@ async function scenario(
         process.exitCode = 1;
         console.error(`FAIL ${name}: ${String(error)}`);
     } finally {
-        await context.tracing.stop({ path: resolve(output, `${name}-trace.zip`) });
+        await context.tracing.stop({
+            path: resolve(output, `${name}-trace.zip`),
+        });
         await page.close();
     }
 }
@@ -127,15 +159,34 @@ await scenario('selection-rename-history', async page => {
     await open(page);
     const before = await state(page);
     const order = before.geometry.cards.find(card => card.blockId === 'order')!;
-    expect(order.bounds).toEqual({ x: 300, y: 110, width: 248, height: 182 });
-    expect(order.rows[0].bounds).toEqual({ x: 304, y: 148, width: 240, height: 28 });
+    expect(order.bounds).toEqual({
+        x: 300,
+        y: 110,
+        width: 248,
+        height: 182,
+    });
+    expect(order.rows[0].bounds).toEqual({
+        x: 304,
+        y: 148,
+        width: 240,
+        height: 28,
+    });
     await page.mouse.click(360, 162);
     await expect
         .poll(async () => (await state(page)).model.selection)
-        .toEqual({ blockId: 'order', memberId: 'id' });
-    await expect(page.getByRole('treeitem', { selected: true })).toHaveCount(1);
+        .toEqual({
+            blockId: 'order',
+            memberId: 'id',
+        });
+    await expect(
+        page.getByRole('treeitem', {
+            selected: true,
+        })
+    ).toHaveCount(1);
     await page.keyboard.press('F2');
-    const input = page.getByRole('textbox', { name: 'Field name' });
+    const input = page.getByRole('textbox', {
+        name: 'Field name',
+    });
     await expect(input).toBeFocused();
     await page.keyboard.press('Control+A');
     await page.keyboard.type('orderId');
@@ -144,9 +195,19 @@ await scenario('selection-rename-history', async page => {
         .poll(async () => rowName(await state(page), 'order', 'id'))
         .toBe('orderId');
     expect((await state(page)).document.operations).toHaveLength(1);
-    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await page
+        .getByRole('button', {
+            name: 'Undo',
+            exact: true,
+        })
+        .click();
     await expect.poll(async () => rowName(await state(page), 'order', 'id')).toBe('id');
-    await page.getByRole('button', { name: 'Redo', exact: true }).click();
+    await page
+        .getByRole('button', {
+            name: 'Redo',
+            exact: true,
+        })
+        .click();
     await expect
         .poll(async () => rowName(await state(page), 'order', 'id'))
         .toBe('orderId');
@@ -159,18 +220,27 @@ await scenario('selection-rename-history', async page => {
     expect(rowName(await state(page), 'order', 'id')).toBe('orderId');
     expect((await state(page)).document.operations).toHaveLength(3);
 
-    return { initialGeometry: order, finalDocument: (await state(page)).document };
+    return {
+        initialGeometry: order,
+        finalDocument: (await state(page)).document,
+    };
 });
 
 await scenario('camera-pan-cursor-zoom', async page => {
     await open(page);
     await page.mouse.move(970, 720);
     await page.mouse.down();
-    await page.mouse.move(1010, 750, { steps: 8 });
+    await page.mouse.move(1010, 750, {
+        steps: 8,
+    });
     await page.mouse.up();
     await expect
         .poll(async () => (await state(page)).viewport)
-        .toEqual({ x: 40, y: 30, zoom: 1 });
+        .toEqual({
+            x: 40,
+            y: 30,
+            zoom: 1,
+        });
     const before = (await state(page)).viewport;
     await page.mouse.move(940, 700);
     await page.keyboard.down('Control');
@@ -182,7 +252,10 @@ await scenario('camera-pan-cursor-zoom', async page => {
     expect((700 - after.y) / after.zoom).toBeCloseTo((700 - before.y) / before.zoom, 5);
     expect((await state(page)).document.operations).toHaveLength(0);
 
-    return { before, after };
+    return {
+        before,
+        after,
+    };
 });
 
 await scenario('keyboard-unicode-input-composition-guard', async page => {
@@ -194,15 +267,21 @@ await scenario('keyboard-unicode-input-composition-guard', async page => {
         .toBe('customer');
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('F2');
-    const input = page.getByRole('textbox', { name: 'Field name' });
+    const input = page.getByRole('textbox', {
+        name: 'Field name',
+    });
     await expect(input).toBeFocused();
     await page.keyboard.press('Control+A');
     await page.keyboard.insertText('поле');
-    await input.dispatchEvent('compositionstart', { data: 'поле' });
+    await input.dispatchEvent('compositionstart', {
+        data: 'поле',
+    });
     await page.keyboard.press('Enter');
     await expect(input).toBeVisible();
     expect((await state(page)).document.operations).toHaveLength(0);
-    await input.dispatchEvent('compositionend', { data: 'поле' });
+    await input.dispatchEvent('compositionend', {
+        data: 'поле',
+    });
     await page.keyboard.press('Enter');
     await expect.poll(async () => rowName(await state(page), 'order', 'id')).toBe('поле');
     expect((await state(page)).document.operations).toHaveLength(1);
@@ -217,33 +296,73 @@ await scenario('keyboard-unicode-input-composition-guard', async page => {
 await scenario('synthetic-touch-pinch-and-cancel', async page => {
     await open(page);
     const cdp = await context.newCDPSession(page);
-    await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true });
+    await cdp.send('Emulation.setTouchEmulationEnabled', {
+        enabled: true,
+    });
     await cdp.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
-        touchPoints: [{ x: 970, y: 720, id: 1 }],
+        touchPoints: [
+            {
+                x: 970,
+                y: 720,
+                id: 1,
+            },
+        ],
     });
     await cdp.send('Input.dispatchTouchEvent', {
         type: 'touchMove',
-        touchPoints: [{ x: 1010, y: 750, id: 1 }],
+        touchPoints: [
+            {
+                x: 1010,
+                y: 750,
+                id: 1,
+            },
+        ],
     });
     await expect.poll(async () => (await state(page)).viewport.x).toBe(40);
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
-    expect((await state(page)).viewport).toEqual({ x: 0, y: 0, zoom: 1 });
+    await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchCancel',
+        touchPoints: [],
+    });
+    expect((await state(page)).viewport).toEqual({
+        x: 0,
+        y: 0,
+        zoom: 1,
+    });
     await cdp.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
         touchPoints: [
-            { x: 940, y: 720, id: 1 },
-            { x: 1040, y: 720, id: 2 },
+            {
+                x: 940,
+                y: 720,
+                id: 1,
+            },
+            {
+                x: 1040,
+                y: 720,
+                id: 2,
+            },
         ],
     });
     await cdp.send('Input.dispatchTouchEvent', {
         type: 'touchMove',
         touchPoints: [
-            { x: 920, y: 700, id: 1 },
-            { x: 1060, y: 740, id: 2 },
+            {
+                x: 920,
+                y: 700,
+                id: 1,
+            },
+            {
+                x: 1060,
+                y: 740,
+                id: 2,
+            },
         ],
     });
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchEnd',
+        touchPoints: [],
+    });
     await expect.poll(async () => (await state(page)).viewport.zoom).toBeGreaterThan(1.4);
     expect((await state(page)).document.operations).toHaveLength(0);
 
@@ -366,7 +485,9 @@ await scenario('retained-edge-layers-during-small-pan', async page => {
     const before = await state(page);
     expect(before.stats.edgeGraphics).toBe(3);
     await page.mouse.down();
-    await page.mouse.move(978, 726, { steps: 4 });
+    await page.mouse.move(978, 726, {
+        steps: 4,
+    });
     await page.mouse.up();
     await page.evaluate(
         () =>
@@ -380,14 +501,19 @@ await scenario('retained-edge-layers-during-small-pan', async page => {
     expect(after.stats.edgeLayerRedraws).toBe(before.stats.edgeLayerRedraws);
     expect(after.document.operations).toHaveLength(0);
 
-    return { before: before.stats, after: after.stats };
+    return {
+        before: before.stats,
+        after: after.stats,
+    };
 });
 
 await scenario('card-drag-cancel-edges', async page => {
     await open(page);
     await page.mouse.move(400, 130);
     await page.mouse.down();
-    await page.mouse.move(440, 180, { steps: 10 });
+    await page.mouse.move(440, 180, {
+        steps: 10,
+    });
     await page.mouse.up();
     await expect
         .poll(
@@ -403,33 +529,52 @@ await scenario('card-drag-cancel-edges', async page => {
     expect(
         moved.geometry.connections.find(edge => edge.id === 'order/customer/customer')
             ?.source
-    ).toEqual({ x: 588, y: 240 });
+    ).toEqual({
+        x: 588,
+        y: 240,
+    });
     expect(moved.document.operations).toHaveLength(0);
     await page.mouse.move(440, 180);
     await page.mouse.down();
-    await page.mouse.move(480, 230, { steps: 8 });
+    await page.mouse.move(480, 230, {
+        steps: 8,
+    });
     await page.keyboard.press('Escape');
     await page.mouse.up();
     expect(
         (await state(page)).geometry.cards.find(card => card.blockId === 'order')?.bounds
-    ).toEqual({ x: 340, y: 160, width: 248, height: 182 });
+    ).toEqual({
+        x: 340,
+        y: 160,
+        width: 248,
+        height: 182,
+    });
     expect((await state(page)).document.operations).toHaveLength(0);
 
-    return { movedGeometry: moved.geometry };
+    return {
+        movedGeometry: moved.geometry,
+    };
 });
 
 await scenario('member-transfer-undo', async page => {
     await open(page);
     await page.mouse.move(365, 274);
     await page.mouse.down();
-    await page.mouse.move(700, 132, { steps: 12 });
+    await page.mouse.move(700, 132, {
+        steps: 12,
+    });
     await page.mouse.up();
     await expect
         .poll(async () => rowName(await state(page), 'customer', 'delivery'))
         .toBe('delivery');
     expect(rowName(await state(page), 'order', 'delivery')).toBeUndefined();
     expect((await state(page)).document.operations).toHaveLength(1);
-    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await page
+        .getByRole('button', {
+            name: 'Undo',
+            exact: true,
+        })
+        .click();
     await expect
         .poll(async () => rowName(await state(page), 'order', 'delivery'))
         .toBe('delivery');
@@ -442,7 +587,9 @@ await scenario('member-reorder-anchored-edge', async page => {
     await open(page);
     await page.mouse.move(365, 274);
     await page.mouse.down();
-    await page.mouse.move(365, 178, { steps: 12 });
+    await page.mouse.move(365, 178, {
+        steps: 12,
+    });
     await page.mouse.up();
     await expect
         .poll(async () =>
@@ -450,12 +597,21 @@ await scenario('member-reorder-anchored-edge', async page => {
                 .find(card => card.blockId === 'order')
                 ?.rows.map(row => row.memberId)
         )
-        .toEqual(['id', 'delivery', 'customer', 'payment', 'items']);
+        .toEqual([
+            'id',
+            'delivery',
+            'customer',
+            'payment',
+            'items',
+        ]);
     const next = await state(page);
     expect(
         next.geometry.connections.find(edge => edge.id === 'order/customer/customer')
             ?.source
-    ).toEqual({ x: 548, y: 218 });
+    ).toEqual({
+        x: 548,
+        y: 218,
+    });
     expect(next.document.operations).toHaveLength(1);
 
     return next.geometry.connections;
@@ -478,7 +634,12 @@ await scenario('collapse-reopen-view-isolation', async page => {
     expect(
         (await state(page)).geometry.cards.find(card => card.blockId === 'customer')
             ?.bounds
-    ).toEqual({ x: 620, y: 90, width: 238, height: 154 });
+    ).toEqual({
+        x: 620,
+        y: 90,
+        width: 238,
+        height: 154,
+    });
     expect((await state(page)).document.operations).toHaveLength(0);
 
     return (await state(page)).document;
@@ -519,7 +680,11 @@ await scenario('pagination-preserves-edited-field', async page => {
     await open(page);
     await page.mouse.click(700, 592);
     await page.keyboard.press('F2');
-    await expect(page.getByRole('textbox', { name: 'Field name' })).toBeFocused();
+    await expect(
+        page.getByRole('textbox', {
+            name: 'Field name',
+        })
+    ).toBeFocused();
     await page.keyboard.press('Control+A');
     await page.keyboard.type('productName');
     await page.keyboard.press('Enter');
@@ -549,7 +714,9 @@ await scenario('host-federation-live-canvas', async page => {
     await settled(page);
     expect(await page.locator('.schema-editor canvas').count()).toBe(1);
     expect((await state(page)).model.cards.length).toBeGreaterThan(0);
-    await page.screenshot({ path: resolve(output, 'host-main.png') });
+    await page.screenshot({
+        path: resolve(output, 'host-main.png'),
+    });
     await page.screenshot({
         path: resolve(output, 'host-main-cards.png'),
         clip: references.main.crops.find(crop => crop.name === 'cards')!.actual,
@@ -560,13 +727,21 @@ await scenario('host-federation-live-canvas', async page => {
         .toBe('id');
 
     const evidence = await page.evaluate(() => {
-        type Share = { loaded: boolean; lib: unknown; from: string };
+        type Share = {
+            loaded: boolean;
+            lib: unknown;
+            from: string;
+        };
         const instances = (
             window as unknown as {
                 __FEDERATION__: {
                     __INSTANCES__: {
                         name: string;
-                        shareScopeMap: { default: { react: Record<string, Share> } };
+                        shareScopeMap: {
+                            default: {
+                                react: Record<string, Share>;
+                            };
+                        };
                     }[];
                 };
             }
@@ -577,7 +752,9 @@ await scenario('host-federation-live-canvas', async page => {
             .shareScopeMap.default.react['19.2.0'];
 
         return {
-            canvas: [...document.querySelectorAll('canvas')].map(canvas => ({
+            canvas: [
+                ...document.querySelectorAll('canvas'),
+            ].map(canvas => ({
                 width: canvas.width,
                 height: canvas.height,
                 rect: canvas.getBoundingClientRect().toJSON(),
@@ -607,8 +784,15 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
         headers: Record<string, string>;
         body: unknown;
     }[] = [];
-    const writes: { clientMutationId: string; operations: unknown[] }[] = [];
-    const snapshot = { resource: 'schema', id: 'http-orders', revision: 's1' };
+    const writes: {
+        clientMutationId: string;
+        operations: unknown[];
+    }[] = [];
+    const snapshot = {
+        resource: 'schema',
+        id: 'http-orders',
+        revision: 's1',
+    };
     const member = (id: string, name: string) => ({
         member: {
             id,
@@ -648,7 +832,10 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
                 snapshot,
                 title: 'HTTP Orders',
                 rootNodeId: 'root',
-                profile: { syntax: 'json', dialect: 'json-schema-2020-12' },
+                profile: {
+                    syntax: 'json',
+                    dialect: 'json-schema-2020-12',
+                },
             });
         }
 
@@ -656,7 +843,10 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
             return json({
                 id: 'root',
                 kind: 'object',
-                properties: { id: 'fields', totalItems: 2 },
+                properties: {
+                    id: 'fields',
+                    totalItems: 2,
+                },
                 additionalProperties: false,
             });
         }
@@ -668,8 +858,13 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
                 collectionId: 'fields',
                 scopeId: null,
                 items: url.searchParams.has('cursor')
-                    ? [member('name', 'name'), member('second', 'second')]
-                    : [member('name', 'name')],
+                    ? [
+                          member('name', 'name'),
+                          member('second', 'second'),
+                      ]
+                    : [
+                          member('name', 'name'),
+                      ],
                 totalItems: 2,
                 nextCursor: url.searchParams.has('cursor') ? null : 'page-two',
             });
@@ -683,7 +878,12 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
             writes.push(body);
 
             if (writes.length === 1) {
-                return json({ error: 'invalid-field' }, 422);
+                return json(
+                    {
+                        error: 'invalid-field',
+                    },
+                    422
+                );
             }
 
             return json(
@@ -702,15 +902,27 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
                 id: 'change-two',
                 clientMutationId: writes.at(-1)!.clientMutationId,
                 status: 'applied',
-                result: { revision: 's2' },
+                result: {
+                    revision: 's2',
+                },
             });
         }
 
-        return json({ error: 'unexpected-path' }, 404);
+        return json(
+            {
+                error: 'unexpected-path',
+            },
+            404
+        );
     });
     await page.goto('http://localhost:3000/edit?schemaId=http-orders&revision=s1');
     await settled(page);
-    await page.getByRole('button', { name: 'Arrange', exact: true }).click();
+    await page
+        .getByRole('button', {
+            name: 'Arrange',
+            exact: true,
+        })
+        .click();
     await page.evaluate(
         () =>
             new Promise<void>(done =>
@@ -728,7 +940,11 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
                 value.viewport.y
         );
         await page.keyboard.press('F2');
-        await expect(page.getByRole('textbox', { name: 'Field name' })).toBeFocused();
+        await expect(
+            page.getByRole('textbox', {
+                name: 'Field name',
+            })
+        ).toBeFocused();
         await page.keyboard.press('Control+A');
     };
     await clickMember();
@@ -749,13 +965,23 @@ await scenario('http-adapter-pages-save-rejection-retry', async page => {
         .poll(async () => (await state(page)).model.cards[0]?.rows.length)
         .toBe(2);
     expect(rowName(await state(page), 'root', 'name')).toBe('invalidName');
-    await page.getByRole('button', { name: 'Save schema', exact: true }).click();
+    await page
+        .getByRole('button', {
+            name: 'Save schema',
+            exact: true,
+        })
+        .click();
     await expect(page.getByRole('status')).toContainText('rejected');
     expect(rowName(await state(page), 'root', 'name')).toBe('invalidName');
     await clickMember();
     await page.keyboard.type('correctedName');
     await page.keyboard.press('Enter');
-    await page.getByRole('button', { name: 'Save schema', exact: true }).click();
+    await page
+        .getByRole('button', {
+            name: 'Save schema',
+            exact: true,
+        })
+        .click();
     await expect.poll(async () => (await state(page)).document.revision).toBe('s2');
     expect(rowName(await state(page), 'root', 'name')).toBe('correctedName');
     expect(writes).toHaveLength(2);
@@ -791,17 +1017,26 @@ await scenario('public-mount-isolation-update-dispose', async page => {
                         mount(
                             element: HTMLElement,
                             props: unknown
-                        ): { update(props: unknown): void; unmount(): void };
+                        ): {
+                            update(props: unknown): void;
+                            unmount(): void;
+                        };
                     }
                 >;
             };
             __mountTest?: {
-                handles: { update(props: unknown): void; unmount(): void }[];
+                handles: {
+                    update(props: unknown): void;
+                    unmount(): void;
+                }[];
                 nodes: HTMLElement[];
             };
         };
         const { mount } = (await root.schema_editor.get('./mount'))();
-        const nodes = [0, 1].map(index => {
+        const nodes = [
+            0,
+            1,
+        ].map(index => {
             const element = document.createElement('div');
             element.dataset.mountTest = String(index);
             Object.assign(element.style, {
@@ -826,13 +1061,16 @@ await scenario('public-mount-isolation-update-dispose', async page => {
                 apiBaseUrl: 'fixture://standalone',
             })
         );
-        root.__mountTest = { handles, nodes };
+        root.__mountTest = {
+            handles,
+            nodes,
+        };
     });
     await expect(page.locator('[data-mount-test] canvas')).toHaveCount(2);
     await page.waitForFunction(() =>
-        [...document.querySelectorAll('[data-mount-test] canvas')].every(
-            canvas => (canvas as HTMLCanvasElement).width > 0
-        )
+        [
+            ...document.querySelectorAll('[data-mount-test] canvas'),
+        ].every(canvas => (canvas as HTMLCanvasElement).width > 0)
     );
     await page.evaluate(() => document.fonts.ready);
     await page.evaluate(
@@ -856,12 +1094,19 @@ await scenario('public-mount-isolation-update-dispose', async page => {
         const state = (
             window as unknown as {
                 __mountTest: {
-                    handles: { update(props: unknown): void; unmount(): void }[];
+                    handles: {
+                        update(props: unknown): void;
+                        unmount(): void;
+                    }[];
                 };
             }
         ).__mountTest;
         state.handles[0].update({
-            resource: { kind: 'schema', schemaId: 'replacement', revision: 'fixture-2' },
+            resource: {
+                kind: 'schema',
+                schemaId: 'replacement',
+                revision: 'fixture-2',
+            },
             apiBaseUrl: 'fixture://standalone',
         });
     });
@@ -872,10 +1117,18 @@ await scenario('public-mount-isolation-update-dispose', async page => {
     await page.evaluate(() => {
         (
             window as unknown as {
-                __mountTest: { handles: { update(props: unknown): void }[] };
+                __mountTest: {
+                    handles: {
+                        update(props: unknown): void;
+                    }[];
+                };
             }
         ).__mountTest.handles[0].update({
-            resource: { kind: 'schema', schemaId: 'instance-0', revision: 'fixture-1' },
+            resource: {
+                kind: 'schema',
+                schemaId: 'instance-0',
+                revision: 'fixture-1',
+            },
             apiBaseUrl: 'fixture://standalone',
         });
     });
@@ -888,11 +1141,21 @@ await scenario('public-mount-isolation-update-dispose', async page => {
             schema_editor: {
                 get(name: string): Promise<
                     () => {
-                        mount(element: HTMLElement, props: unknown): { unmount(): void };
+                        mount(
+                            element: HTMLElement,
+                            props: unknown
+                        ): {
+                            unmount(): void;
+                        };
                     }
                 >;
             };
-            __mountTest: { handles: { unmount(): void }[]; nodes: HTMLElement[] };
+            __mountTest: {
+                handles: {
+                    unmount(): void;
+                }[];
+                nodes: HTMLElement[];
+            };
         };
         root.__mountTest.handles.forEach(handle => {
             handle.unmount();
@@ -906,7 +1169,10 @@ await scenario('public-mount-isolation-update-dispose', async page => {
 
         for (let index = 0; index < 10; index += 1) {
             const handle = mount(root.__mountTest.nodes[0], {
-                resource: { kind: 'schema', schemaId: `dispose-${index}` },
+                resource: {
+                    kind: 'schema',
+                    schemaId: `dispose-${index}`,
+                },
                 apiBaseUrl: 'fixture://standalone',
             });
             handle.unmount();
@@ -919,7 +1185,10 @@ await scenario('public-mount-isolation-update-dispose', async page => {
             ).length,
         };
     });
-    expect(result).toEqual({ remainingCanvas: 0, nativeInputs: 0 });
+    expect(result).toEqual({
+        remainingCanvas: 0,
+        nativeInputs: 0,
+    });
 
     return result;
 });
@@ -930,18 +1199,29 @@ await scenario(
         await page.route('**/remoteEntry.js', route => route.abort('failed'));
         await page.goto('http://localhost:3000/edit?demo=1');
         await expect(
-            page.getByRole('heading', { name: 'Editor could not load' })
+            page.getByRole('heading', {
+                name: 'Editor could not load',
+            })
         ).toBeVisible();
         await expect(
             page.locator('iframe#webpack-dev-server-client-overlay')
         ).toHaveCount(0);
-        await page.screenshot({ path: resolve(output, 'remote-unavailable.png') });
+        await page.screenshot({
+            path: resolve(output, 'remote-unavailable.png'),
+        });
         await page.unroute('**/remoteEntry.js');
-        await page.getByRole('button', { name: 'Try again' }).click();
+        await page
+            .getByRole('button', {
+                name: 'Try again',
+            })
+            .click();
         await settled(page);
         expect((await state(page)).model.cards).toHaveLength(6);
 
-        return { recovered: true, visibleCards: (await state(page)).stats };
+        return {
+            recovered: true,
+            visibleCards: (await state(page)).stats,
+        };
     },
     /Failed to load script resources|RUNTIME-008/
 );
@@ -956,19 +1236,30 @@ await scenario('public-mount-during-font-loading', async page => {
     const font = await readFile('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf');
     await page.route('**/verifier-slow-font.ttf', async route => {
         await held;
-        await route.fulfill({ status: 200, contentType: 'font/ttf', body: font });
+        await route.fulfill({
+            status: 200,
+            contentType: 'font/ttf',
+            body: font,
+        });
     });
     await page.evaluate(async () => {
         const root = window as unknown as {
             schema_editor: {
                 get(name: string): Promise<
                     () => {
-                        mount(node: HTMLElement, props: unknown): { unmount(): void };
+                        mount(
+                            node: HTMLElement,
+                            props: unknown
+                        ): {
+                            unmount(): void;
+                        };
                     }
                 >;
             };
             __fontTest?: {
-                handle: { unmount(): void };
+                handle: {
+                    unmount(): void;
+                };
                 node: HTMLElement;
                 label: HTMLElement;
             };
@@ -985,12 +1276,19 @@ await scenario('public-mount-during-font-loading', async page => {
         void document.fonts.load('16px "Verifier Slow Font"');
         const node = document.createElement('div');
         node.dataset.fontMount = 'true';
-        Object.assign(node.style, { position: 'fixed', inset: '0', zIndex: '10' });
+        Object.assign(node.style, {
+            position: 'fixed',
+            inset: '0',
+            zIndex: '10',
+        });
         document.body.append(node);
         const { mount } = (await root.schema_editor.get('./mount'))();
         root.__fontTest = {
             handle: mount(node, {
-                resource: { kind: 'schema', schemaId: 'font-pending' },
+                resource: {
+                    kind: 'schema',
+                    schemaId: 'font-pending',
+                },
                 apiBaseUrl: 'fixture://standalone',
             }),
             node,
@@ -1011,7 +1309,13 @@ await scenario('public-mount-during-font-loading', async page => {
     expect(await page.locator('[data-font-mount] canvas').count()).toBe(0);
     await page.evaluate(() => {
         const test = (
-            window as unknown as { __fontTest: { handle: { unmount(): void } } }
+            window as unknown as {
+                __fontTest: {
+                    handle: {
+                        unmount(): void;
+                    };
+                };
+            }
         ).__fontTest;
         test.handle.unmount();
         test.handle.unmount();
@@ -1027,19 +1331,28 @@ await scenario('public-mount-during-font-loading', async page => {
     expect(await page.locator('[data-font-mount] canvas').count()).toBe(0);
     expect(await page.locator('[data-font-mount] [data-board-rename]').count()).toBe(0);
 
-    return { disposedBeforeFontReady: true, resurrectedCanvas: false };
+    return {
+        disposedBeforeFontReady: true,
+        resurrectedCanvas: false,
+    };
 });
 
 await scenario('http-api-unavailable-error', async page => {
     await page.route('**/api/v2/**', route =>
-        route.fulfill({ status: 404, contentType: 'application/json', body: '{}' })
+        route.fulfill({
+            status: 404,
+            contentType: 'application/json',
+            body: '{}',
+        })
     );
     await page.goto('http://localhost:3000/edit?schemaId=absent&revision=s1');
     await expect(page.getByRole('alert')).toContainText('requires API v2');
     expect((await state(page)).ready).toBe(false);
     expect((await state(page)).model.cards).toHaveLength(0);
 
-    return { alert: await page.getByRole('alert').innerText() };
+    return {
+        alert: await page.getByRole('alert').innerText(),
+    };
 });
 
 await scenario('host-style-isolation-public-mount', async page => {
@@ -1047,11 +1360,20 @@ await scenario('host-style-isolation-public-mount', async page => {
     await page.evaluate(() => document.fonts.ready);
     const styles = async () =>
         page.evaluate(() =>
-            ['body', '.App', 'h1', 'button', 'a'].map(selector => {
+            [
+                'body',
+                '.App',
+                'h1',
+                'button',
+                'a',
+            ].map(selector => {
                 const element = document.querySelector(selector);
 
                 if (!element) {
-                    return { selector, missing: true };
+                    return {
+                        selector,
+                        missing: true,
+                    };
                 }
 
                 const computed = getComputedStyle(element);
@@ -1072,20 +1394,34 @@ await scenario('host-style-isolation-public-mount', async page => {
     const beforeImage = await page.screenshot({
         path: resolve(output, 'host-before-mount.png'),
     });
-    await page.addScriptTag({ url: 'http://localhost:3010/remoteEntry.js' });
+    await page.addScriptTag({
+        url: 'http://localhost:3010/remoteEntry.js',
+    });
     await page.evaluate(async () => {
-        type Handle = { unmount(): void };
+        type Handle = {
+            unmount(): void;
+        };
         const root = window as unknown as {
             __FEDERATION__: {
-                __INSTANCES__: { name: string; shareScopeMap: { default: unknown } }[];
+                __INSTANCES__: {
+                    name: string;
+                    shareScopeMap: {
+                        default: unknown;
+                    };
+                }[];
             };
             schema_editor: {
                 init(scope: unknown): Promise<void>;
-                get(
-                    name: string
-                ): Promise<() => { mount(element: HTMLElement, props: unknown): Handle }>;
+                get(name: string): Promise<
+                    () => {
+                        mount(element: HTMLElement, props: unknown): Handle;
+                    }
+                >;
             };
-            __styleTest?: { handle: Handle; node: HTMLElement };
+            __styleTest?: {
+                handle: Handle;
+                node: HTMLElement;
+            };
         };
         const host = root.__FEDERATION__.__INSTANCES__.find(
             instance => instance.name === 'schema_host'
@@ -1093,13 +1429,23 @@ await scenario('host-style-isolation-public-mount', async page => {
         await root.schema_editor.init(host.shareScopeMap.default);
         const { mount } = (await root.schema_editor.get('./mount'))();
         const node = document.createElement('div');
-        Object.assign(node.style, { position: 'fixed', inset: '0', zIndex: '10' });
+        Object.assign(node.style, {
+            position: 'fixed',
+            inset: '0',
+            zIndex: '10',
+        });
         document.body.append(node);
         const handle = mount(node, {
-            resource: { kind: 'schema', schemaId: 'styles' },
+            resource: {
+                kind: 'schema',
+                schemaId: 'styles',
+            },
             apiBaseUrl: 'fixture://standalone',
         });
-        root.__styleTest = { handle, node };
+        root.__styleTest = {
+            handle,
+            node,
+        };
     });
     await settled(page);
     const during = await styles();
@@ -1107,7 +1453,12 @@ await scenario('host-style-isolation-public-mount', async page => {
     await page.evaluate(() => {
         const test = (
             window as unknown as {
-                __styleTest: { handle: { unmount(): void }; node: HTMLElement };
+                __styleTest: {
+                    handle: {
+                        unmount(): void;
+                    };
+                    node: HTMLElement;
+                };
             }
         ).__styleTest;
         test.handle.unmount();
@@ -1120,14 +1471,23 @@ await scenario('host-style-isolation-public-mount', async page => {
     });
     expect(afterImage.equals(beforeImage)).toBe(true);
 
-    return { before, during, after, screenshotIdentical: true };
+    return {
+        before,
+        during,
+        after,
+        screenshotIdentical: true,
+    };
 });
 
 await context.close();
 await writeFile(
     resolve(output, 'results.json'),
     JSON.stringify(
-        { browser: browser.version(), node: process.version, results },
+        {
+            browser: browser.version(),
+            node: process.version,
+            results,
+        },
         (_key, value) => (typeof value === 'function' ? '[function]' : value),
         2
     )

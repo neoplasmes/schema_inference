@@ -1,1 +1,3 @@
-export type ReadOptions = Readonly<{ signal?: AbortSignal }>;
+export type ReadOptions = Readonly<{
+    signal?: AbortSignal;
+}>;

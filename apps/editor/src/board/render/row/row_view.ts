@@ -76,7 +76,11 @@ export class RowView extends LabelGroup {
                 bold: true,
             });
         } else if (hovered) {
-            for (const offset of [-4, 0, 4]) {
+            for (const offset of [
+                -4,
+                0,
+                4,
+            ]) {
                 g.circle(13, center + offset, 0.8).fill(this.paint('label-tertiary'));
             }
         } else if (
@@ -85,11 +89,7 @@ export class RowView extends LabelGroup {
         ) {
             this.label('glyph', {
                 text:
-                    row.icon === 'attribute'
-                        ? '@'
-                        : row.icon === 'reference'
-                          ? '↗'
-                          : '◇',
+                    row.icon === 'attribute' ? '@' : row.icon === 'reference' ? '↗' : '◇',
                 x: 10,
                 y: center,
                 role: 'mono',

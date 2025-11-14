@@ -35,7 +35,10 @@ export function zoomAt(
     anchor: Point
 ): BoardViewport {
     const world = screenToWorld(anchor, viewport);
-    const next = normalizeViewport({ ...viewport, zoom });
+    const next = normalizeViewport({
+        ...viewport,
+        zoom,
+    });
 
     return {
         x: anchor.x - world.x * next.zoom,
@@ -55,7 +58,11 @@ export function fitBounds(
         (width - padding * 2) / Math.max(bounds.width, 1),
         (height - padding * 2) / Math.max(bounds.height, 1)
     );
-    const normalized = normalizeViewport({ x: 0, y: 0, zoom });
+    const normalized = normalizeViewport({
+        x: 0,
+        y: 0,
+        zoom,
+    });
 
     return {
         x: (width - bounds.width * normalized.zoom) / 2 - bounds.x * normalized.zoom,
@@ -70,7 +77,13 @@ export function visibleBounds(
     height: number,
     margin = 120
 ): Rectangle {
-    const topLeft = screenToWorld({ x: -margin, y: -margin }, viewport);
+    const topLeft = screenToWorld(
+        {
+            x: -margin,
+            y: -margin,
+        },
+        viewport
+    );
 
     return {
         ...topLeft,

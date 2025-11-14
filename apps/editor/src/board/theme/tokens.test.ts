@@ -11,7 +11,11 @@ describe('generated design tokens', () => {
             'accent-ink-hover',
             'danger',
         ]);
-        const surfaceNames = new Set(['surface-canvas', 'canvas-shade', 'glass-scrim']);
+        const surfaceNames = new Set([
+            'surface-canvas',
+            'canvas-shade',
+            'glass-scrim',
+        ]);
 
         for (const [name, value] of Object.entries(tokens.color)) {
             if (accentNames.has(name)) {

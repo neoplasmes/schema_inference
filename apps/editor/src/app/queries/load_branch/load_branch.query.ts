@@ -14,7 +14,10 @@ export type LoadedBranch = Readonly<{
     pages: readonly MemberPage[];
 }>;
 
-export type LoadBranchInput = { snapshot: Snapshot; nodeId: string };
+export type LoadBranchInput = {
+    snapshot: Snapshot;
+    nodeId: string;
+};
 
 /** Opens a bounded chain of XML/content wrappers, without fetching member subtrees. */
 export class LoadBranchQuery implements Query<LoadBranchInput, LoadedBranch> {
@@ -65,10 +68,17 @@ export class LoadBranchQuery implements Query<LoadBranchInput, LoadedBranch> {
                         : null;
         }
 
-        return { rootNodeId: input.nodeId, title: title || 'document', nodes, pages };
+        return {
+            rootNodeId: input.nodeId,
+            title: title || 'document',
+            nodes,
+            pages,
+        };
     }
 
     reads(input: LoadBranchInput): readonly EntityRef[] {
-        return [`schema.snapshot:${input.snapshot.id}/${input.snapshot.revision}`];
+        return [
+            `schema.snapshot:${input.snapshot.id}/${input.snapshot.revision}`,
+        ];
     }
 }

@@ -34,7 +34,9 @@ type PlaygroundDiagnostic = {
 
 declare global {
     interface Window {
-        __editorPlayground?: { read(): PlaygroundDiagnostic };
+        __editorPlayground?: {
+            read(): PlaygroundDiagnostic;
+        };
     }
 }
 
@@ -68,10 +70,17 @@ export function usePlaygroundDiagnostics(
         viewport: scene.camera,
         geometry: null,
         stats: emptyStats,
-        document: { operations: [], revision: null, canUndo: false, canRedo: false },
+        document: {
+            operations: [],
+            revision: null,
+            canUndo: false,
+            canRedo: false,
+        },
     }));
     diagnostic.current = () => {
-        const panelResults = [...panels.current.entries()].map(([id, panel]) => ({
+        const panelResults = [
+            ...panels.current.entries(),
+        ].map(([id, panel]) => ({
             id,
             ready: panel.ready,
             model: panel.model,
@@ -112,12 +121,18 @@ export function usePlaygroundDiagnostics(
                 canUndo: controller.canUndo,
                 canRedo: controller.canRedo,
             },
-            ...(hasPanels ? { panels: panelResults } : {}),
+            ...(hasPanels
+                ? {
+                      panels: panelResults,
+                  }
+                : {}),
         });
     };
 
     useEffect(() => {
-        const handle = { read: () => diagnostic.current() };
+        const handle = {
+            read: () => diagnostic.current(),
+        };
         window.__editorPlayground = handle;
 
         return () => {
@@ -127,5 +142,7 @@ export function usePlaygroundDiagnostics(
         };
     }, []);
 
-    return { reportPanel };
+    return {
+        reportPanel,
+    };
 }

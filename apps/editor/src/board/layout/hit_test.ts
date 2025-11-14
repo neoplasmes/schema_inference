@@ -23,7 +23,10 @@ export function hitTestCards(
         }
 
         if (contains(card.bounds, point.x, point.y)) {
-            return { kind: 'header', blockId: card.blockId };
+            return {
+                kind: 'header',
+                blockId: card.blockId,
+            };
         }
     }
 

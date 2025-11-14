@@ -63,7 +63,11 @@ export function createViewportController(
         } else {
             const point = world(local(event));
             const card = renderer
-                .queryCards({ ...point, width: 0, height: 0 })
+                .queryCards({
+                    ...point,
+                    width: 0,
+                    height: 0,
+                })
                 .find(card => {
                     const rows = card.rowViewport?.bounds;
 

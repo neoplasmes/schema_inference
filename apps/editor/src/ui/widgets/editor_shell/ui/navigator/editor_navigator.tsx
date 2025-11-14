@@ -11,13 +11,34 @@ type NavigatorProps = Pick<EditorShellProps, 'model' | 'onSelect' | 'onExpand'> 
 };
 
 const palette = [
-    ['<>', 'Element'],
-    ['@', 'Attribute'],
-    ['1,2', 'Sequence'],
-    ['1|2', 'Choice'],
-    ['{ }', 'All'],
-    ['#', 'Definition'],
-    ['↗', 'Reference'],
+    [
+        '<>',
+        'Element',
+    ],
+    [
+        '@',
+        'Attribute',
+    ],
+    [
+        '1,2',
+        'Sequence',
+    ],
+    [
+        '1|2',
+        'Choice',
+    ],
+    [
+        '{ }',
+        'All',
+    ],
+    [
+        '#',
+        'Definition',
+    ],
+    [
+        '↗',
+        'Reference',
+    ],
 ] as const;
 
 export function EditorNavigator(props: NavigatorProps): React.JSX.Element {
@@ -60,8 +81,15 @@ export function EditorNavigator(props: NavigatorProps): React.JSX.Element {
                         props.model.selection?.blockId === card.blockId &&
                         props.model.selection.memberId === null
                     }
-                    style={{ paddingLeft: 10 + depth * 16 }}
-                    onClick={() => choose({ blockId: card.blockId, memberId: null })}
+                    style={{
+                        paddingLeft: 10 + depth * 16,
+                    }}
+                    onClick={() =>
+                        choose({
+                            blockId: card.blockId,
+                            memberId: null,
+                        })
+                    }
                     onKeyDown={event => {
                         if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
                             event.preventDefault();
@@ -117,7 +145,9 @@ export function EditorNavigator(props: NavigatorProps): React.JSX.Element {
                                                 : undefined
                                         }
                                         className={styles.treeItem}
-                                        style={{ paddingLeft: 26 + depth * 16 }}
+                                        style={{
+                                            paddingLeft: 26 + depth * 16,
+                                        }}
                                         onClick={() =>
                                             choose({
                                                 blockId: card.blockId,
@@ -161,7 +191,9 @@ export function EditorNavigator(props: NavigatorProps): React.JSX.Element {
                                     >
                                         <span
                                             className={styles.treeGuide}
-                                            style={{ left: 17 + depth * 16 }}
+                                            style={{
+                                                left: 17 + depth * 16,
+                                            }}
                                         />
                                         <NodeIcon attribute={row.icon === 'attribute'} />
                                         <span>{row.name}</span>

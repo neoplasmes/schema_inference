@@ -10,8 +10,18 @@ export type BoardModelDiff = Readonly<{
 }>;
 
 export function diffBoardModels(previous: BoardModel, next: BoardModel): BoardModelDiff {
-    const oldCards = new Map(previous.cards.map(card => [card.blockId, card]));
-    const oldConnections = new Map(previous.connections.map(edge => [edge.id, edge]));
+    const oldCards = new Map(
+        previous.cards.map(card => [
+            card.blockId,
+            card,
+        ])
+    );
+    const oldConnections = new Map(
+        previous.connections.map(edge => [
+            edge.id,
+            edge,
+        ])
+    );
     const addedCards: string[] = [];
     const changedCards: string[] = [];
     const changedConnections: string[] = [];
@@ -41,9 +51,13 @@ export function diffBoardModels(previous: BoardModel, next: BoardModel): BoardMo
     return {
         addedCards,
         changedCards,
-        removedCards: [...oldCards.keys()],
+        removedCards: [
+            ...oldCards.keys(),
+        ],
         changedConnections,
-        removedConnections: [...oldConnections.keys()],
+        removedConnections: [
+            ...oldConnections.keys(),
+        ],
         selectionChanged:
             previous.selection?.blockId !== next.selection?.blockId ||
             previous.selection?.memberId !== next.selection?.memberId,

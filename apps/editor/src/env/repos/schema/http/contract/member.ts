@@ -23,7 +23,12 @@ export function parseMemberSummary(value: unknown): MemberSummary {
             };
             break;
         case 'option':
-            parsed = { id, valueNodeId, kind: 'option', title: string(member.title) };
+            parsed = {
+                id,
+                valueNodeId,
+                kind: 'option',
+                title: string(member.title),
+            };
             break;
         case 'xmlAttribute':
             parsed = {

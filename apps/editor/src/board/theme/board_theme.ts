@@ -25,17 +25,34 @@ export type ResolvedBoardTheme = {
 };
 
 export function resolveTheme(theme: BoardTheme = {}): ResolvedBoardTheme {
-    const text = { ...tokens.text } as ResolvedBoardTheme['text'];
+    const text = {
+        ...tokens.text,
+    } as ResolvedBoardTheme['text'];
 
     for (const key of Object.keys(text) as (keyof typeof text)[]) {
-        text[key] = { ...text[key], ...theme.text?.[key] };
+        text[key] = {
+            ...text[key],
+            ...theme.text?.[key],
+        };
     }
 
     return {
-        color: { ...tokens.color, ...theme.color },
-        font: { ...tokens.font, ...theme.font },
-        radius: { ...tokens.radius, ...theme.radius },
-        shadow: { ...tokens.shadow, ...theme.shadow },
+        color: {
+            ...tokens.color,
+            ...theme.color,
+        },
+        font: {
+            ...tokens.font,
+            ...theme.font,
+        },
+        radius: {
+            ...tokens.radius,
+            ...theme.radius,
+        },
+        shadow: {
+            ...tokens.shadow,
+            ...theme.shadow,
+        },
         text,
     };
 }

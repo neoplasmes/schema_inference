@@ -40,7 +40,12 @@ export class CardView {
         const metrics = cardMetrics(card, lod);
 
         if (this.previousCard !== card) {
-            this.rowModels = new Map(card.rows.map(row => [row.memberId, row]));
+            this.rowModels = new Map(
+                card.rows.map(row => [
+                    row.memberId,
+                    row,
+                ])
+            );
             this.previousCard = card;
         }
 
@@ -48,10 +53,18 @@ export class CardView {
             selection?.blockId === card.blockId && selection.memberId === null;
         const hoveredHeader = hover?.blockId === card.blockId && hover.memberId === null;
         const firstMemberId = geometry.rows[0]?.memberId;
-        const firstHighlighted = [selection, hover].some(
-            item => item?.blockId === card.blockId && item.memberId === firstMemberId
-        );
-        const chromeSignature = `${geometry.bounds.width}:${geometry.bounds.height}:${lod}:${selectedHeader}:${hoveredHeader}:${firstHighlighted}:${geometry.rowViewport?.firstIndex}:${geometry.rowViewport?.endIndex}:${JSON.stringify(geometry.branches?.map(branch => [branch.memberId, branch.bounds.y - geometry.bounds.y, branch.totalItems, branch.state]))}`;
+        const firstHighlighted = [
+            selection,
+            hover,
+        ].some(item => item?.blockId === card.blockId && item.memberId === firstMemberId);
+        const chromeSignature = `${geometry.bounds.width}:${geometry.bounds.height}:${lod}:${selectedHeader}:${hoveredHeader}:${firstHighlighted}:${geometry.rowViewport?.firstIndex}:${geometry.rowViewport?.endIndex}:${JSON.stringify(
+            geometry.branches?.map(branch => [
+                branch.memberId,
+                branch.bounds.y - geometry.bounds.y,
+                branch.totalItems,
+                branch.state,
+            ])
+        )}`;
         const chromeContent =
             this.previousChromeCard === card
                 ? this.chromeContent
@@ -95,7 +108,10 @@ export class CardView {
             highlighted.add(0);
         }
 
-        for (const item of [selection, hover]) {
+        for (const item of [
+            selection,
+            hover,
+        ]) {
             if (item?.blockId === card.blockId && item.memberId !== null) {
                 const index = geometry.rows.findIndex(
                     row => row.memberId === item.memberId
@@ -175,7 +191,9 @@ export class CardView {
     }
 
     destroy(): void {
-        this.root.destroy({ children: true });
+        this.root.destroy({
+            children: true,
+        });
         this.rowViews.clear();
     }
 }

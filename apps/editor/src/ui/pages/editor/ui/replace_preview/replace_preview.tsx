@@ -2,14 +2,46 @@ import { useState, type KeyboardEvent } from 'react';
 import styles from './ReplacePreview.module.css';
 
 const changes = [
-    ['+', 'order/payment/inn', 'string · 1'],
-    ['+', 'order/payment/bank', 'complex · 9 nested'],
-    ['+', 'order/payment/bank/name', 'string · 1'],
-    ['+', 'order/payment/bank/account', 'string · 1'],
-    ['+', 'order/payment/bic', 'string · 0..1'],
-    ['−', 'order/payment/number', 'Card field'],
-    ['−', 'order/payment/holder', 'Card field'],
-    ['~', 'origin of payment', 'suggested Card → observed Invoice'],
+    [
+        '+',
+        'order/payment/inn',
+        'string · 1',
+    ],
+    [
+        '+',
+        'order/payment/bank',
+        'complex · 9 nested',
+    ],
+    [
+        '+',
+        'order/payment/bank/name',
+        'string · 1',
+    ],
+    [
+        '+',
+        'order/payment/bank/account',
+        'string · 1',
+    ],
+    [
+        '+',
+        'order/payment/bic',
+        'string · 0..1',
+    ],
+    [
+        '−',
+        'order/payment/number',
+        'Card field',
+    ],
+    [
+        '−',
+        'order/payment/holder',
+        'Card field',
+    ],
+    [
+        '~',
+        'origin of payment',
+        'suggested Card → observed Invoice',
+    ],
 ] as const;
 
 export default function ReplacePreview({
@@ -59,10 +91,22 @@ export default function ReplacePreview({
                 </div>
                 <div className={styles.metrics}>
                     {[
-                        ['12', 'nodes added'],
-                        ['2', 'nodes removed'],
-                        ['2', 'example edits affected'],
-                        ['0', 'broken references'],
+                        [
+                            '12',
+                            'nodes added',
+                        ],
+                        [
+                            '2',
+                            'nodes removed',
+                        ],
+                        [
+                            '2',
+                            'example edits affected',
+                        ],
+                        [
+                            '0',
+                            'broken references',
+                        ],
                     ].map(([count, label]) => (
                         <div key={label}>
                             <strong>{count}</strong>

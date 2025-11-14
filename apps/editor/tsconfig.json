@@ -1,7 +1,11 @@
 {
     "compilerOptions": {
         "target": "ES2022",
-        "lib": ["ES2023", "DOM", "DOM.Iterable"],
+        "lib": [
+            "ES2023",
+            "DOM",
+            "DOM.Iterable"
+        ],
         "module": "ESNext",
         "moduleResolution": "bundler",
         "jsx": "react-jsx",
@@ -13,7 +17,15 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
         "noEmit": true,
-        "types": ["node"]
+        "types": [
+            "node"
+        ]
     },
-    "include": ["src", "scripts", "webpack.config.ts", "playground", "visual"]
+    "include": [
+        "src",
+        "scripts",
+        "webpack.config.ts",
+        "playground",
+        "visual"
+    ]
 }

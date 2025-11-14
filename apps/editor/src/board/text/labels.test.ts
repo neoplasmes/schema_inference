@@ -1,6 +1,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
 
-vi.mock('pixi.js', () => ({ Text: class {}, TextStyle: class {} }));
+vi.mock('pixi.js', () => ({
+    Text: class {},
+    TextStyle: class {},
+}));
 
 import { LabelMetrics } from './labels';
 import { resolveTheme } from '../theme';
@@ -14,7 +17,11 @@ it('measures and truncates each font style independently in its bounded cache', 
             width: context.font.startsWith('italic ') ? 20 : 10,
         })),
     };
-    vi.stubGlobal('document', { createElement: () => ({ getContext: () => context }) });
+    vi.stubGlobal('document', {
+        createElement: () => ({
+            getContext: () => context,
+        }),
+    });
     const metrics = new LabelMetrics(resolveTheme());
 
     expect(metrics.width('sample', 'body')).toBe(10);

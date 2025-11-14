@@ -11,18 +11,25 @@ function check(entries: Record<string, string>) {
 }
 
 describe('source architecture', () => {
-    it.each(['core', 'env', 'shared', 'app', 'main'])(
-        'forbids an index at the %s layer root',
-        layer => {
-            expect(check({ [`${layer}/index.ts`]: 'export {};' })).toEqual([
-                {
-                    file: `${layer}/index.ts`,
-                    rule: 'layer-entry',
-                    detail: 'Architecture layers must not expose index.ts.',
-                },
-            ]);
-        }
-    );
+    it.each([
+        'core',
+        'env',
+        'shared',
+        'app',
+        'main',
+    ])('forbids an index at the %s layer root', layer => {
+        expect(
+            check({
+                [`${layer}/index.ts`]: 'export {};',
+            })
+        ).toEqual([
+            {
+                file: `${layer}/index.ts`,
+                rule: 'layer-entry',
+                detail: 'Architecture layers must not expose index.ts.',
+            },
+        ]);
+    });
 
     it('requires package entries without requiring entries at layer roots', () => {
         expect(
@@ -37,19 +44,24 @@ describe('source architecture', () => {
         ).toEqual([]);
     });
 
-    it.each(['../main', '../main/index', '../main/index.ts'])(
-        'rejects importing a whole layer through %s',
-        specifier => {
-            expect(
-                check({
-                    'expose/index.ts': `export { Editor } from '${specifier}';`,
-                }).map(item => item.rule)
-            ).toEqual(['layer-import']);
-        }
-    );
+    it.each([
+        '../main',
+        '../main/index',
+        '../main/index.ts',
+    ])('rejects importing a whole layer through %s', specifier => {
+        expect(
+            check({
+                'expose/index.ts': `export { Editor } from '${specifier}';`,
+            }).map(item => item.rule)
+        ).toEqual([
+            'layer-import',
+        ]);
+    });
 
     it('requires a public entry for every nested package', () => {
-        const violations = check({ 'board/render/card/card.ts': 'export class Card {}' });
+        const violations = check({
+            'board/render/card/card.ts': 'export class Card {}',
+        });
 
         expect(
             violations.filter(item => item.rule === 'public-entry').map(item => item.file)

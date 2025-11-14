@@ -15,15 +15,26 @@ export function fixtureDocument(
         revision: 'fixture-1',
     },
     title = 'Orders'
-): { document: EditorDocument; fixture: FixtureData } {
+): {
+    document: EditorDocument;
+    fixture: FixtureData;
+} {
     const document = new EditorDocument({
         snapshot,
         title,
-        profile: { syntax: 'xml', dialect: 'xsd-1.0' },
+        profile: {
+            syntax: 'xml',
+            dialect: 'xsd-1.0',
+        },
         rootNodeId: model.cards[0]?.nodeId ?? 'empty',
     });
     const pages = new Map<string, MemberPage>();
-    const cardsById = new Map(model.cards.map(card => [card.blockId, card]));
+    const cardsById = new Map(
+        model.cards.map(card => [
+            card.blockId,
+            card,
+        ])
+    );
     const targets = new Map(
         model.connections.map(edge => [
             `${edge.sourceBlockId}/${edge.sourceMemberId}`,
@@ -50,7 +61,10 @@ export function fixtureDocument(
                         : {
                               id: valueNodeId,
                               kind: 'xmlElement',
-                              name: { namespaceUri: null, localName: row.name },
+                              name: {
+                                  namespaceUri: null,
+                                  localName: row.name,
+                              },
                               contentNodeId: `${valueNodeId}/value`,
                               nillable: false,
                           }
@@ -69,7 +83,10 @@ export function fixtureDocument(
                         ? {
                               id: row.memberId,
                               kind: 'xmlAttribute',
-                              name: { namespaceUri: null, localName: row.name },
+                              name: {
+                                  namespaceUri: null,
+                                  localName: row.name,
+                              },
                               required: row.occurrenceLabel !== '0..1',
                               valueNodeId,
                           }
@@ -102,14 +119,20 @@ export function fixtureDocument(
             {
                 id: card.nodeId,
                 kind: 'xmlElement',
-                name: { namespaceUri: null, localName: card.title },
+                name: {
+                    namespaceUri: null,
+                    localName: card.title,
+                },
                 contentNodeId: complexId,
                 nillable: false,
             },
             {
                 id: complexId,
                 kind: 'xmlComplex',
-                attributes: { id: attributeId, totalItems: attributes.length },
+                attributes: {
+                    id: attributeId,
+                    totalItems: attributes.length,
+                },
                 particleNodeId: groupId,
                 mixed: false,
             },
@@ -117,7 +140,10 @@ export function fixtureDocument(
                 id: groupId,
                 kind: 'xmlGroup',
                 compositor: 'sequence',
-                particles: { id: collectionId, totalItems: totalParticles },
+                particles: {
+                    id: collectionId,
+                    totalItems: totalParticles,
+                },
             },
         ];
 
@@ -126,8 +152,16 @@ export function fixtureDocument(
         }
 
         for (const [id, rows, total] of [
-            [attributeId, attributes, attributes.length],
-            [collectionId, particles, totalParticles],
+            [
+                attributeId,
+                attributes,
+                attributes.length,
+            ],
+            [
+                collectionId,
+                particles,
+                totalParticles,
+            ],
         ] as const) {
             const page: MemberPage = {
                 snapshot: document.manifest.snapshot,
@@ -155,6 +189,10 @@ export function fixtureDocument(
 
     return {
         document,
-        fixture: { manifest: document.manifest, nodes: document.nodes, pages },
+        fixture: {
+            manifest: document.manifest,
+            nodes: document.nodes,
+            pages,
+        },
     };
 }

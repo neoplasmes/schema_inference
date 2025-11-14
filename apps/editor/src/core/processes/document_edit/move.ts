@@ -36,7 +36,9 @@ export function createMoveEdit(
         throw new DocumentEditError('The destination field is not loaded.');
     }
 
-    const owner = [...state.nodes.values()].find(node =>
+    const owner = [
+        ...state.nodes.values(),
+    ].find(node =>
         nodeCollections(node).some(collection => collection.id === targetCollectionId)
     );
     const allowed =
@@ -68,7 +70,12 @@ export function createMoveEdit(
     }
 
     return {
-        forward: { kind: 'moveMember', memberId, targetCollectionId, beforeMemberId },
+        forward: {
+            kind: 'moveMember',
+            memberId,
+            targetCollectionId,
+            beforeMemberId,
+        },
         inverse: {
             kind: 'moveMember',
             memberId,

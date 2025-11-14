@@ -15,7 +15,10 @@ describe('board model update ownership', () => {
         const next = {
             ...previous,
             version: 2,
-            selection: { blockId: 'a', memberId: 'member' },
+            selection: {
+                blockId: 'a',
+                memberId: 'member',
+            },
         };
 
         expect(diffBoardModels(previous, next)).toEqual({
@@ -33,11 +36,23 @@ describe('board model update ownership', () => {
         const second = createBoardEvents();
         const handler = vi.fn();
         const unsubscribe = first.on('rename', handler);
-        first.emit('rename', { blockId: 'a', memberId: 'one', name: 'Поле' });
-        second.emit('rename', { blockId: 'b', memberId: 'one', name: 'other' });
+        first.emit('rename', {
+            blockId: 'a',
+            memberId: 'one',
+            name: 'Поле',
+        });
+        second.emit('rename', {
+            blockId: 'b',
+            memberId: 'one',
+            name: 'other',
+        });
         unsubscribe();
         unsubscribe();
-        first.emit('rename', { blockId: 'a', memberId: 'one', name: 'later' });
+        first.emit('rename', {
+            blockId: 'a',
+            memberId: 'one',
+            name: 'later',
+        });
 
         expect(handler).toHaveBeenCalledExactlyOnceWith({
             blockId: 'a',

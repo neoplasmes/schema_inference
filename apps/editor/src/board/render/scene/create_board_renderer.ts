@@ -19,7 +19,11 @@ const EMPTY_MODEL: BoardModel = {
 export function createBoardRenderer(options: BoardRendererOptions): BoardRenderer {
     const lifecycle = new SceneLifecycle(options);
     let model = EMPTY_MODEL;
-    let viewport: BoardViewport = { x: 0, y: 0, zoom: 1 };
+    let viewport: BoardViewport = {
+        x: 0,
+        y: 0,
+        zoom: 1,
+    };
     let hover: BoardSelection | null = null;
     let destroyed = false;
     let resources: SceneResources | null = null;
@@ -29,7 +33,12 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
     let textResolution = lifecycle.resolution;
     let zoomTimer: ReturnType<typeof setTimeout> | null = null;
     let statusDirty = true;
-    const bounds = { x: 0, y: 0, width: 0, height: 0 };
+    const bounds = {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+    };
     const geometry = new SceneGeometry(
         (text, role, bold) => resources!.metrics.width(text, role, bold),
         invalidate
@@ -200,7 +209,9 @@ export function createBoardRenderer(options: BoardRendererOptions): BoardRendere
             drag?.setDropTarget(next);
             invalidate();
         },
-        getStats: () => ({ ...stats }),
+        getStats: () => ({
+            ...stats,
+        }),
         invalidate,
         destroy(): void {
             if (destroyed) {

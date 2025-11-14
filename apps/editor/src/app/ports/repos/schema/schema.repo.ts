@@ -9,7 +9,11 @@ import type {
 } from '../../../../core/entities/schema';
 
 export type EditorResource =
-    | Readonly<{ kind: 'schema'; schemaId: string; revision?: string }>
+    | Readonly<{
+          kind: 'schema';
+          schemaId: string;
+          revision?: string;
+      }>
     | Readonly<{
           kind: 'analysis';
           analysisId: string;
@@ -17,8 +21,15 @@ export type EditorResource =
           rootAlternativeId?: string;
       }>;
 
-export type CreateDraftInput = Extract<EditorResource, { kind: 'analysis' }> &
-    Readonly<{ idempotencyKey: string }>;
+export type CreateDraftInput = Extract<
+    EditorResource,
+    {
+        kind: 'analysis';
+    }
+> &
+    Readonly<{
+        idempotencyKey: string;
+    }>;
 
 export type MemberPage = Readonly<{
     snapshot: Snapshot;
@@ -39,12 +50,15 @@ export type ChangeReceipt = Readonly<{
 
 export interface SchemaRepository {
     open(
-        resource: Extract<EditorResource, { kind: 'schema' }>,
+        resource: Extract<
+            EditorResource,
+            {
+                kind: 'schema';
+            }
+        >,
         options?: ReadOptions
     ): Promise<SchemaDocument>;
-    createFromAnalysis(
-        resource: CreateDraftInput
-    ): Promise<SchemaDocument>;
+    createFromAnalysis(resource: CreateDraftInput): Promise<SchemaDocument>;
     readNode(
         snapshot: Snapshot,
         nodeId: string,

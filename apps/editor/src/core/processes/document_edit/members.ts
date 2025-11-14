@@ -8,7 +8,10 @@ export function findMember<T extends MemberCollection>(
         const row = window.items.find(item => item.member.id === memberId);
 
         if (row) {
-            return { window, row };
+            return {
+                window,
+                row,
+            };
         }
     }
 

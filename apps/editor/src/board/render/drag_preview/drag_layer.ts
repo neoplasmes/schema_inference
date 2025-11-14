@@ -57,7 +57,10 @@ export class DragLayer {
                 this.overlay
                     .moveTo(region.bounds.x + 10, region.bounds.y)
                     .lineTo(region.bounds.x + region.bounds.width - 10, region.bounds.y)
-                    .stroke({ ...paint('accent', this.theme), width: 2 / viewport.zoom });
+                    .stroke({
+                        ...paint('accent', this.theme),
+                        width: 2 / viewport.zoom,
+                    });
             }
         }
 

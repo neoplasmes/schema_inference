@@ -4,8 +4,14 @@ export type Snapshot = Readonly<{
     revision: string;
 }>;
 
-export type ExpandedName = Readonly<{ namespaceUri: string | null; localName: string }>;
-export type Collection = Readonly<{ id: string; totalItems: number }>;
+export type ExpandedName = Readonly<{
+    namespaceUri: string | null;
+    localName: string;
+}>;
+export type Collection = Readonly<{
+    id: string;
+    totalItems: number;
+}>;
 export type ScalarType =
     | 'string'
     | 'integer'
@@ -16,10 +22,18 @@ export type ScalarType =
     | 'date'
     | 'datetime';
 export type SchemaProfile =
-    | Readonly<{ syntax: 'xml'; dialect: 'xsd-1.0' }>
-    | Readonly<{ syntax: 'json' | 'yaml'; dialect: 'json-schema-2020-12' }>;
+    | Readonly<{
+          syntax: 'xml';
+          dialect: 'xsd-1.0';
+      }>
+    | Readonly<{
+          syntax: 'json' | 'yaml';
+          dialect: 'json-schema-2020-12';
+      }>;
 
-export type SchemaNode = Readonly<{ id: string }> &
+export type SchemaNode = Readonly<{
+    id: string;
+}> &
     (
         | Readonly<{
               kind: 'scalar';
@@ -37,8 +51,15 @@ export type SchemaNode = Readonly<{ id: string }> &
               minItems: number;
               maxItems: number | null;
           }>
-        | Readonly<{ kind: 'union'; mode: 'anyOf' | 'oneOf'; options: Collection }>
-        | Readonly<{ kind: 'ref'; definitionId: string }>
+        | Readonly<{
+              kind: 'union';
+              mode: 'anyOf' | 'oneOf';
+              options: Collection;
+          }>
+        | Readonly<{
+              kind: 'ref';
+              definitionId: string;
+          }>
         | Readonly<{
               kind: 'xmlElement';
               name: ExpandedName;
@@ -67,7 +88,12 @@ export type SchemaMember =
           required: boolean;
           valueNodeId: string;
       }>
-    | Readonly<{ id: string; kind: 'option'; title: string; valueNodeId: string }>
+    | Readonly<{
+          id: string;
+          kind: 'option';
+          title: string;
+          valueNodeId: string;
+      }>
     | Readonly<{
           id: string;
           kind: 'xmlAttribute';
@@ -91,7 +117,10 @@ export type NodeSummary = Readonly<{
     descendantCount: number | null;
 }>;
 
-export type MemberSummary = Readonly<{ member: SchemaMember; valueSummary: NodeSummary }>;
+export type MemberSummary = Readonly<{
+    member: SchemaMember;
+    valueSummary: NodeSummary;
+}>;
 
 export type SchemaDocument = Readonly<{
     snapshot: Snapshot;
@@ -101,10 +130,17 @@ export type SchemaDocument = Readonly<{
 }>;
 
 export type DocumentOperation =
-    | Readonly<{ kind: 'renameProperty'; memberId: string; name: string }>
+    | Readonly<{
+          kind: 'renameProperty';
+          memberId: string;
+          name: string;
+      }>
     | Readonly<{
           kind: 'renameXmlName';
-          target: Readonly<{ kind: 'node' | 'member'; id: string }>;
+          target: Readonly<{
+              kind: 'node' | 'member';
+              id: string;
+          }>;
           name: ExpandedName;
       }>
     | Readonly<{
@@ -117,13 +153,21 @@ export type DocumentOperation =
 export function nodeCollections(node: SchemaNode): readonly Collection[] {
     switch (node.kind) {
         case 'object':
-            return [node.properties];
+            return [
+                node.properties,
+            ];
         case 'union':
-            return [node.options];
+            return [
+                node.options,
+            ];
         case 'xmlComplex':
-            return [node.attributes];
+            return [
+                node.attributes,
+            ];
         case 'xmlGroup':
-            return [node.particles];
+            return [
+                node.particles,
+            ];
         default:
             return [];
     }
