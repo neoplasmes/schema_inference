@@ -2,16 +2,15 @@
     "name": "third-course-reimagined",
     "private": true,
     "type": "module",
-    "packageManager": "pnpm@10.18.3",
+    "engines": {
+        "node": "22.20.0"
+    },
     "scripts": {
         "prepare": "lefthook install"
     },
     "devDependencies": {
         "@biomejs/biome": "2.2.6",
-        "lefthook": "1.13.6",
-        "prettier": "3.6.2"
+        "lefthook": "1.13.6"
     },
-    "engines": {
-        "node": "22.20.0"
-    }
+    "packageManager": "pnpm@10.18.3"
 }
