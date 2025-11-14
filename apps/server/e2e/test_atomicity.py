@@ -1,4 +1,4 @@
-from e2e.backend.flows import (
+from flows import (
     analyze,
     create_draft,
     editable_member,

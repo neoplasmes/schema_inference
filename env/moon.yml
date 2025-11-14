@@ -19,6 +19,34 @@ tasks:
     options:
       runFromWorkspaceRoot: true
 
+  lint-python:
+    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker
+    inputs:
+      - '@group(src)'
+      - /apps/server/pyproject.toml
+    options:
+      runFromWorkspaceRoot: true
+
+  lint-fix-python:
+    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker
+    inputs:
+      - '@group(src)'
+      - /apps/server/pyproject.toml
+    options:
+      cache: false
+      runInCI: false
+      runFromWorkspaceRoot: true
+
+  fmt:
+    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker
+    inputs:
+      - '@group(src)'
+      - /apps/server/pyproject.toml
+    options:
+      cache: false
+      runInCI: false
+      runFromWorkspaceRoot: true
+
   compose-up:
     command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml up -d --wait --wait-timeout 120
     deps:

@@ -12,8 +12,11 @@ fileGroups:
   test-int:
     - tests/integration/**/*.py
     - tests/conftest.py
+  test-e2e:
+    - e2e/**/*.py
+    - tests/support/**/*.py
   database:
-    - /e2e/backend/**/*.py
+    - tests/support/**/*.py
     - /env/local/docker-compose.database.yaml
     - /env/pgbouncer/*.{ini,txt}
   generator:
@@ -22,23 +25,30 @@ fileGroups:
 
 tasks:
   lint:
-    command: uv run --no-sync ruff check src tests
+    command: uv run --no-sync ruff check src tests e2e
+    inputs:
+      - '@group(test-e2e)'
     options:
       mergeArgs: replace
 
   lint-fix:
-    command: uv run --no-sync ruff check --fix src tests
+    command: uv run --no-sync ruff check --fix src tests e2e
+    inputs:
+      - '@group(test-e2e)'
     options:
       mergeArgs: replace
 
   fmt:
-    command: uv run --no-sync ruff format src tests
+    command: uv run --no-sync ruff format src tests e2e
+    inputs:
+      - '@group(test-e2e)'
     options:
       mergeArgs: replace
 
   typecheck:
     inputs:
       - '@group(database)'
+      - '@group(test-e2e)'
       - '@group(generator)'
 
   test-unit:
@@ -64,6 +74,18 @@ tasks:
       - '@group(cfg)'
       - '@group(database)'
       - '@group(generator)'
+    options:
+      cache: false
+
+  test-e2e:
+    command: uv run --no-sync pytest e2e
+    deps:
+      - image
+    inputs:
+      - '@group(src)'
+      - '@group(test-e2e)'
+      - '@group(cfg)'
+      - '@group(database)'
     options:
       cache: false
 
@@ -99,6 +121,12 @@ tasks:
 
   start:
     command: uv run --no-sync python -m main
+    preset: server
+
+  start-e2e:
+    command: uv run --no-sync python -m support.serve
+    env:
+      PYTHONPATH: tests
     preset: server
 
   setup-wordnet:

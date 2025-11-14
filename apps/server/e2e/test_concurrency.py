@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from e2e.backend.flows import (
+from flows import (
     analyze,
     create_draft,
     draft_body,

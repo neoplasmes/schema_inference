@@ -5,7 +5,6 @@ projects:
   entity-cache: packages/entity-cache
   server: apps/server
   env: env
-  backend-e2e: e2e/backend
 
 versionConstraint: '1.41.5'
 
