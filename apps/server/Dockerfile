@@ -7,7 +7,7 @@ ENV MOON_TOOLCHAIN_FORCE_GLOBALS=true \
     UV_NO_PROGRESS=1
 
 WORKDIR /workspace
-COPY infrastructure/docker/install_tools.py /tmp/install_tools.py
+COPY env/docker/install_tools.py /tmp/install_tools.py
 RUN python /tmp/install_tools.py "$TARGETARCH"
 
 COPY . .

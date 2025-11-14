@@ -2,7 +2,7 @@ services:
   server:
     image: schema-workspace-api:development
     build:
-      context: .
+      context: ../..
       dockerfile: apps/server/Dockerfile
     environment:
       APP_ENV: production

@@ -54,7 +54,7 @@ if (target === 'server:start') {
 }
 if (target === process.env.DEV_TEST_FAIL) {
     setTimeout(() => process.exit(23), 200);
-} else if (target === 'infrastructure:compose-up-database' && process.env.DEV_TEST_HOLD_DATABASE !== 'true') {
+} else if (target === 'env:compose-up-database' && process.env.DEV_TEST_HOLD_DATABASE !== 'true') {
     process.exit(0);
 } else {
     setInterval(() => {}, 1000);
@@ -169,7 +169,7 @@ describe('development launcher', () => {
             ])
         ).toBe(0);
         expect((await fixture.invocations()).map(item => item.target)).toEqual([
-            'infrastructure:compose-up-database',
+            'env:compose-up-database',
         ]);
     });
 
@@ -180,7 +180,7 @@ describe('development launcher', () => {
             .toContain('backend-http');
         await delay(150);
         expect((await fixture.invocations()).map(item => item.target)).toEqual([
-            'infrastructure:compose-up-database',
+            'env:compose-up-database',
             'server:start',
             'backend-http',
         ]);
@@ -233,7 +233,7 @@ describe('development launcher', () => {
     });
 
     it.each([
-        'infrastructure:compose-up-database',
+        'env:compose-up-database',
         'server:start',
     ])('fails without launching the frontend when %s exits', async target => {
         const fixture = await startFixture([], target);
