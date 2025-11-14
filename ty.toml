@@ -18,7 +18,7 @@ python = ".venv"
 # For this monorepo, include both src directories and the root for integration/unit test imports.
 root = [
     "apps/server/src",
-    "packages/documents_generator/src",
+    "tools/documents-generator/src",
     "apps/server/tests",
 ]
 
@@ -29,7 +29,7 @@ root = [
 include = [
     "apps/server/src",
     "apps/server/tests",
-    "packages/documents_generator/src",
+    "tools/documents-generator/src",
 ]
 
 # Additional exclusions: auxiliary files and build output.

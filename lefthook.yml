@@ -21,7 +21,7 @@ pre-commit:
 
     - name: ruff
       glob: '*.py'
-      run: moon run server:fmt documents-generator:fmt backend-e2e:fmt --affected --status staged
+      run: moon run server:fmt root:fmt-generator backend-e2e:fmt --affected --status staged
       stage_fixed: true
 
     - name: lint and typecheck

@@ -1,7 +1,7 @@
 language: python
 type: application
 dependsOn:
-  - documents-generator
+  - root
 
 fileGroups:
   src:
@@ -17,8 +17,8 @@ fileGroups:
     - /env/local/docker-compose.database.yaml
     - /env/pgbouncer/*.{ini,txt}
   generator:
-    - /packages/documents_generator/src/**/*.py
-    - /packages/documents_generator/pyproject.toml
+    - /tools/documents-generator/src/**/*.py
+    - /tools/documents-generator/pyproject.toml
 
 tasks:
   lint:
@@ -91,8 +91,8 @@ tasks:
       - Dockerfile
       - /.dockerignore
       - /env/docker/*.py
-      - /packages/documents_generator/src/**/*.py
-      - /packages/documents_generator/pyproject.toml
+      - /tools/documents-generator/src/**/*.py
+      - /tools/documents-generator/pyproject.toml
     options:
       runFromWorkspaceRoot: true
       cache: false

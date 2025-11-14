@@ -102,7 +102,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "docker", specifier = "==7.1.0" },
-    { name = "documents-generator", editable = "packages/documents_generator" },
+    { name = "documents-generator", editable = "tools/documents-generator" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "testcontainers", specifier = "==4.13.2" },
 ]
@@ -233,7 +233,7 @@ wheels = [
 [[package]]
 name = "documents-generator"
 version = "0.1.0"
-source = { editable = "packages/documents_generator" }
+source = { editable = "tools/documents-generator" }
 dependencies = [
     { name = "pyyaml" },
 ]
