@@ -1,11 +1,11 @@
-import type { CreateDraftCommand } from '../../app/commands/create_draft';
-import type { SaveSchemaCommand } from '../../app/commands/save_schema';
+import type { CreateDraftCommand } from '../../app/commands/createDraft';
+import type { SaveSchemaCommand } from '../../app/commands/saveSchema';
 import type { FixtureData } from '../../app/ports/repos/schema';
-import type { LoadBranchQuery } from '../../app/queries/load_branch';
-import type { OpenSchemaQuery } from '../../app/queries/open_schema';
-import type { ReadSchemaChangeQuery } from '../../app/queries/read_schema_change';
-import type { ReadSchemaMembersQuery } from '../../app/queries/read_schema_members';
-import type { ReadSchemaNodeQuery } from '../../app/queries/read_schema_node';
+import type { LoadBranchQuery } from '../../app/queries/loadBranch';
+import type { OpenSchemaQuery } from '../../app/queries/openSchema';
+import type { ReadSchemaChangeQuery } from '../../app/queries/readSchemaChange';
+import type { ReadSchemaMembersQuery } from '../../app/queries/readSchemaMembers';
+import type { ReadSchemaNodeQuery } from '../../app/queries/readSchemaNode';
 
 export type EditorDependencies = Readonly<{
     openSchema: Pick<OpenSchemaQuery, 'execute'>;

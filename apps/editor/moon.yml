@@ -61,7 +61,7 @@ tasks:
       - editor:lint-architecture
 
   build-tokens:
-    command: pnpm exec tsx scripts/sync-tokens.ts
+    command: pnpm exec tsx scripts/syncTokens.ts
     options:
       cache: false
       runInCI: false
@@ -84,8 +84,8 @@ tasks:
       mergeArgs: replace
 
   lint-architecture:
-    command: pnpm exec tsx scripts/check-architecture.ts
+    command: pnpm exec tsx scripts/checkArchitecture.ts
     inputs:
       - src/**/*.{ts,tsx}
-      - scripts/check-architecture.ts
+      - scripts/checkArchitecture.ts
       - scripts/architecture/**/*.ts

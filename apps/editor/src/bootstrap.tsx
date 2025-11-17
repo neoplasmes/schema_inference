@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { StandaloneEditor } from './standalone';
-import { Editor } from './main/editor';
+import { Editor } from './main/Editor';
 
 const root = document.getElementById('root');
 

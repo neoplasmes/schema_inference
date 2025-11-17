@@ -1,1 +1,1 @@
-export { createEditorDependencies } from './create_editor_dependencies';
+export { createEditorDependencies } from './createEditorDependencies';

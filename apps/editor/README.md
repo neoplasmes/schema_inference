@@ -134,7 +134,7 @@ A card renders a local window of at most ten loaded rows. Wheel input over those
 
 LOD means level of detail. Zoom is clamped to 0.12..3: overview below 0.35, working from 0.35 through 1.2, detailed above 1.2. Overview hides row text. Standard card header/row heights are 34/28 px; illustrative anatomy/detail fixtures use explicit metrics described in ADR 0002.
 
-Tokens are generated with `pnpm --dir apps/editor sync-tokens`. CSS variables are scoped to `.schema-editor`; component styles use CSS Modules. The source design package is not copied into the repository. See `docs/editor/VISUAL_REVIEW.md`, `PERF.md` and `STATUS.md` for measured evidence and remaining product work.
+Tokens are generated with `moon run editor:build-tokens`. CSS variables are scoped to `.schema-editor`; component styles use CSS Modules. The source design package is not copied into the repository. See `docs/editor/VISUAL_REVIEW.md`, `PERF.md` and `STATUS.md` for measured evidence and remaining product work.
 
 ## Source packages
 

@@ -2,7 +2,7 @@ import type {
     CollectionWindow,
     EditorDocument,
 } from '../../../../../app/editor/document';
-import type { LoadedBranch } from '../../../../../app/queries/load_branch';
+import type { LoadedBranch } from '../../../../../app/queries/loadBranch';
 import type {
     BoardCard,
     BoardConnection,

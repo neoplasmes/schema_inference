@@ -1,4 +1,4 @@
-import { ContractViolationError } from './contract_violation.error';
+import { ContractViolationError } from './contractViolation.error';
 import type { SchemaNode } from '../../../../../core/entities/schema';
 import { object, string, nullableString, count, boolean } from './value';
 import { parseCollection, parseName } from './document';

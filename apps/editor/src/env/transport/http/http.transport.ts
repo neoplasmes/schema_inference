@@ -1,4 +1,4 @@
-import { HttpResponseError } from './http_response.error';
+import { HttpResponseError } from './httpResponse.error';
 
 export class HttpTransport {
     private readonly base: string;

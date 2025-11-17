@@ -1,1 +1,1 @@
-export { CachedSchemaRepository } from './schema_pages';
+export { CachedSchemaRepository } from './schemaPages';

@@ -1,0 +1,1 @@
+export { VariantComparison } from './VariantComparison';

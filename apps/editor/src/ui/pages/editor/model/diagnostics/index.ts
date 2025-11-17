@@ -1,2 +1,2 @@
-export { usePlaygroundDiagnostics } from './use_playground_diagnostics';
-export type { PanelDiagnostic } from './use_playground_diagnostics';
+export { usePlaygroundDiagnostics } from './usePlaygroundDiagnostics';
+export type { PanelDiagnostic } from './usePlaygroundDiagnostics';

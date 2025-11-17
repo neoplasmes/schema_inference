@@ -1,1 +1,1 @@
-export { CardChrome } from './card_chrome';
+export { CardChrome } from './cardChrome';

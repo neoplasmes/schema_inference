@@ -1,5 +1,5 @@
 import type { ChangeReceipt } from '../../../../../app/ports/repos/schema';
-import { ContractViolationError } from './contract_violation.error';
+import { ContractViolationError } from './contractViolation.error';
 import { object, string } from './value';
 
 export function parseReceipt(value: unknown): ChangeReceipt {

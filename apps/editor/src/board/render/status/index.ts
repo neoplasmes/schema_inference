@@ -1,1 +1,1 @@
-export { BoardStatusView } from './status_view';
+export { BoardStatusView } from './statusView';

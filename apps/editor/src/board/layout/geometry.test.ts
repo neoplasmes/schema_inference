@@ -7,11 +7,11 @@ import {
     connectionGeometry,
     createCardGeometry,
     hiddenSourceMembers,
-} from './card_geometry';
-import { layoutCards } from './tree_layout';
-import { intersects, SpatialIndex } from './spatial_index';
-import { hitTestCards } from './hit_test';
-import { showSeparator } from './row_states';
+} from './cardGeometry';
+import { layoutCards } from './treeLayout';
+import { intersects, SpatialIndex } from './spatialIndex';
+import { hitTestCards } from './hitTest';
+import { showSeparator } from './rowStates';
 import { screenToWorld, worldToScreen } from '../viewport';
 
 function card(

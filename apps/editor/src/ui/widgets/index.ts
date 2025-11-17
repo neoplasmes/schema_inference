@@ -1,2 +1,2 @@
-export { EditorShell } from './editor_shell';
-export type { EditorShellProps } from './editor_shell';
+export { EditorShell } from './EditorShell';
+export type { EditorShellProps } from './EditorShell';

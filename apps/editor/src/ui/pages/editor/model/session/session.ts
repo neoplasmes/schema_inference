@@ -1,4 +1,4 @@
-import type { LoadedBranch } from '../../../../../app/queries/load_branch';
+import type { LoadedBranch } from '../../../../../app/queries/loadBranch';
 import { branchView } from '../../lib/projection';
 import type { EditorDocument } from '../../../../../app/editor/document';
 import type { BoardModel } from '../../../../../board';

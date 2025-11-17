@@ -1,1 +1,1 @@
-export { EditorApplication } from './application';
+export { EditorApplication } from './EditorApplication';

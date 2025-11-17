@@ -1,5 +1,5 @@
 import type { EntityRef } from '../../core/entities';
-import type { ReadOptions } from './read_options';
+import type { ReadOptions } from './readOptions';
 
 export interface Query<Input, Output> {
     readonly name: string;

@@ -1,1 +1,1 @@
-export { RowView } from './row_view';
+export { RowView } from './rowView';
