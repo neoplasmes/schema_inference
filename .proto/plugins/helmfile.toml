@@ -1,0 +1,26 @@
+name = "helmfile"
+type = "cli"
+
+[platform.linux]
+download-file = "helmfile_{version}_linux_{arch}.tar.gz"
+checksum-file = "helmfile_{version}_checksums.txt"
+
+[platform.macos]
+download-file = "helmfile_{version}_darwin_{arch}.tar.gz"
+checksum-file = "helmfile_{version}_checksums.txt"
+
+[platform.windows]
+download-file = "helmfile_{version}_windows_{arch}.tar.gz"
+checksum-file = "helmfile_{version}_checksums.txt"
+
+[install]
+checksum-url = "https://github.com/helmfile/helmfile/releases/download/v{version}/{checksum_file}"
+download-url = "https://github.com/helmfile/helmfile/releases/download/v{version}/{download_file}"
+unpack = true
+
+[install.arch]
+aarch64 = "arm64"
+x86_64 = "amd64"
+
+[resolve]
+git-url = "https://github.com/helmfile/helmfile"
