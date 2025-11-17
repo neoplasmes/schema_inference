@@ -17,7 +17,7 @@ from app.use_cases.read_workspace import ReadWorkspace
 from app.use_cases.run_analysis import RunAnalysis
 from app.use_cases.start_analysis import StartAnalysis
 from app.use_cases.upload_documents import UploadDocuments
-from env.config import Settings, load_settings
+from env.config import Settings, build_log_config, load_settings
 from env.repos.session import InMemorySessionRepository
 from env.tools.analysis_jobs import ThreadedAnalysisJobs
 from env.tools.document_reader import StrategyDocumentReaderTool
@@ -135,6 +135,7 @@ def start() -> None:
         host=settings.host,
         port=settings.port,
         reload=settings.is_development,
+        log_config=build_log_config(settings.environment),
     )
 
 

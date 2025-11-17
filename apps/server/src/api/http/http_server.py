@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
+from api.http.metrics import expose_metrics
 from api.http.root import create_root_router
 from api.http.schema import create_schema_router
 from api.jobs import SessionCleanupJob
@@ -74,4 +75,6 @@ def create_http_server(
     server.include_router(
         create_schema_socket(process_documents, cleanup_job, cleanup_session)
     )
+    expose_metrics(server)
+
     return server
