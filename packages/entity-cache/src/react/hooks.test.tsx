@@ -2,10 +2,10 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { CacheProvider } from './cache_provider';
-import { createCacheRuntime } from './cache_runtime';
-import { useRead } from './use_read';
-import { useCommand } from './use_command';
+import { CacheProvider } from './CacheProvider';
+import { createCacheRuntime } from './cacheRuntime';
+import { useRead } from './useRead';
+import { useCommand } from './useCommand';
 
 let container: HTMLDivElement;
 let root: Root;
