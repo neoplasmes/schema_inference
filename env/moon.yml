@@ -8,14 +8,18 @@ fileGroups:
     - local/docker-compose.client.yaml
     - pgbouncer/pgbouncer.ini
     - pgbouncer/userlist.txt
+  k8s:
+    - k8s/**/*
   src:
     - docker/*.py
 
 tasks:
   lint:
-    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet
+    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null
+    platform: system
     inputs:
       - '@group(cfg)'
+      - '@group(k8s)'
     options:
       runFromWorkspaceRoot: true
 
@@ -96,3 +100,34 @@ tasks:
     inputs:
       - '@group(cfg)'
     options: *compose-options
+
+  cluster-up:
+    command: k3d cluster create --config env/k8s/k3d.config.yaml
+    platform: system
+    options: &cluster-options
+      cache: false
+      runInCI: false
+      runFromWorkspaceRoot: true
+      mutex: workspace-cluster
+
+  cluster-down:
+    command: k3d cluster delete schema-workspace
+    platform: system
+    options: *cluster-options
+
+  deploy:
+    script: >-
+      k3d image import -c schema-workspace schema-workspace-api:development schema-workspace-client:development schema-workspace-editor:development &&
+      kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app | kubectl --context k3d-schema-workspace apply -f - &&
+      kubectl --context k3d-schema-workspace -n schema-workspace rollout restart deployment/server deployment/client deployment/editor &&
+      kubectl --context k3d-schema-workspace -n schema-workspace rollout status deployment --timeout 300s
+    platform: system
+    deps:
+      - client:image
+      - editor:image
+      - server:image
+    inputs:
+      - '@group(cfg)'
+      - '@group(k8s)'
+    options: *cluster-options
+

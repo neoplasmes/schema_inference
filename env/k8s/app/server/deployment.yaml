@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: server
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: server
+          image: schema-workspace-api:development
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: server
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database
+                  key: DATABASE_URL
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            periodSeconds: 2
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /api/v2/schemas
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: uploads
+              mountPath: /data/uploads
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads
+        - name: tmp
+          emptyDir: {}

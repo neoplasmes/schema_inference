@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: schema-workspace
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: schema-workspace
+
+resources:
+  - namespace.yaml
+  - database
+  - server
+  - editor
+  - client
+  - gateway

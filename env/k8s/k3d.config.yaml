@@ -1,0 +1,25 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: schema-workspace
+servers: 1
+agents: 1
+image: rancher/k3s:v1.34.1-k3s1
+
+ports:
+  - port: 127.0.0.1:8080:80
+    nodeFilters:
+      - loadbalancer
+
+options:
+  k3d:
+    wait: true
+    timeout: 120s
+  k3s:
+    extraArgs:
+      - arg: --disable=traefik
+        nodeFilters:
+          - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true

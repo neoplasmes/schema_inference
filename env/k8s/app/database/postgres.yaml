@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18.0-bookworm@sha256:75c02fa190e6f2c2038d94190b5e26c3eb645ef2a4024a985b32324204d91b33
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_INITDB_ARGS
+              value: --auth-host=scram-sha-256
+          envFrom:
+            - secretRef:
+                name: database
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, workspace, -d, workspace]
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 2Gi
