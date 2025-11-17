@@ -34,4 +34,38 @@ describe('workspace runtime configuration', () => {
 
         await expect(loadRuntimeConfiguration()).rejects.toThrow();
     });
+
+    it('passes the browser telemetry collector through when the deployment provides one', async () => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () =>
+                Response.json({
+                    mode: 'api',
+                    apiBaseUrl: '',
+                    telemetryUrl: '/collect',
+                })
+            )
+        );
+
+        expect(await loadRuntimeConfiguration()).toEqual({
+            mode: 'api',
+            apiBaseUrl: '',
+            telemetryUrl: '/collect',
+        });
+    });
+
+    it('rejects an empty telemetry collector', async () => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(async () =>
+                Response.json({
+                    mode: 'api',
+                    apiBaseUrl: '',
+                    telemetryUrl: '',
+                })
+            )
+        );
+
+        await expect(loadRuntimeConfiguration()).rejects.toThrow();
+    });
 });

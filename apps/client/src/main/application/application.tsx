@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CacheProvider, createCacheRuntime } from '../../env/cache';
+import { startFaroTelemetry } from '../../env/telemetry';
 import { Application } from '../../ui/Application';
 import { DependenciesContext, type Dependencies } from '../../ui/di';
 import { loadRuntimeConfiguration } from '../runtime';
@@ -25,6 +26,10 @@ function ConfiguredApplication(): React.JSX.Element {
         setError(false);
         void loadRuntimeConfiguration()
             .then(configuration => {
+                if (configuration.telemetryUrl) {
+                    startFaroTelemetry(configuration.telemetryUrl);
+                }
+
                 if (active) {
                     setDependencies(createDependencies(configuration, browserStorage()));
                 }
