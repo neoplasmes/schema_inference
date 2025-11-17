@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import type { CacheRuntime } from './cache_runtime';
+import type { CacheRuntime } from './cacheRuntime';
 
 const CacheContext = createContext<CacheRuntime | null>(null);
 

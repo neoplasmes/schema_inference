@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useCacheRuntime } from './cache_provider';
+import { useCacheRuntime } from './CacheProvider';
 import type { Query, ReadSettings } from './contracts';
 
 export function useRead<I, O>(

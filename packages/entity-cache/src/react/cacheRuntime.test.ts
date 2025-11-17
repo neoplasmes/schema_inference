@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QueryObserver } from '@tanstack/react-query';
-import { createCacheRuntime } from './cache_runtime';
+import { createCacheRuntime } from './cacheRuntime';
 
 function deferred<T>() {
     let resolve!: (value: T) => void;

@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useCacheRuntime } from './cache_provider';
+import { useCacheRuntime } from './CacheProvider';
 import type { Command, CommandOptions } from './contracts';
 
 export function useCommand<I, O>(
