@@ -44,5 +44,5 @@ export default defineConfig({
             ],
         },
     },
-    globalSetup: './scripts/setup-e2e.ts',
+    globalSetup: './scripts/setupE2e.ts',
 });

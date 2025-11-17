@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CacheProvider, createCacheRuntime } from '../../env/cache';
-import { Application } from '../../ui/application';
+import { Application } from '../../ui/Application';
 import { DependenciesContext, type Dependencies } from '../../ui/di';
 import { loadRuntimeConfiguration } from '../runtime';
 import { createDependencies } from '../dependencies';

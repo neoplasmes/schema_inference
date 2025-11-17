@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
-import { environment, finishAudit, observe, settleAudit, type Audit } from './api-audit';
-import { capture, expand, names, ready, recordJson, rename, state } from './api-editor';
+import { environment, finishAudit, observe, settleAudit, type Audit } from './apiAudit';
+import { capture, expand, names, ready, recordJson, rename, state } from './apiEditor';
 
 const audits = new WeakMap<TestInfo, Audit>();
 

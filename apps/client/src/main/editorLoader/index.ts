@@ -1,0 +1,1 @@
+export { loadEditor } from './editorLoader';

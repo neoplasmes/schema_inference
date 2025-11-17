@@ -39,11 +39,11 @@ tasks:
     preset: server
 
   build-types:
-    command: pnpm exec tsx scripts/consume-editor-types.ts --local
+    command: pnpm exec tsx scripts/consumeEditorTypes.ts --local
     deps:
       - editor:build
     inputs:
-      - scripts/consume-editor-types.ts
+      - scripts/consumeEditorTypes.ts
     outputs:
       - '@mf-types'
 
@@ -91,11 +91,11 @@ tasks:
       - client:lint-architecture
 
   lint-architecture:
-    command: pnpm exec tsx scripts/check-architecture.ts
+    command: pnpm exec tsx scripts/checkArchitecture.ts
     inputs:
       - src/**/*.{ts,tsx}
       - '@group(architecture)'
-      - scripts/check-architecture.ts
+      - scripts/checkArchitecture.ts
 
   setup:
     command: pnpm exec playwright install chromium
@@ -125,7 +125,7 @@ tasks:
       mutex: client-browser
 
   start-e2e:
-    command: pnpm exec tsx scripts/serve-e2e.ts
+    command: pnpm exec tsx scripts/serveE2e.ts
     preset: server
 
   test-e2e-api:
