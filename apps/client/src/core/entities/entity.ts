@@ -1,4 +1,4 @@
-import type { EntityRef } from './entity_ref';
+import type { EntityRef } from './entityRef';
 
 export interface Entity {
     readonly ref: EntityRef;

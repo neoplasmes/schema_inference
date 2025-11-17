@@ -1,15 +1,15 @@
-import { CreateAnalysis } from '../../app/commands/create_analysis';
-import { RecordSchemaSaved } from '../../app/commands/record_schema_saved';
-import { GetAnalysis } from '../../app/queries/get_analysis';
-import { GetSchema } from '../../app/queries/get_schema';
-import { ListSchemas } from '../../app/queries/list_schemas';
+import { CreateAnalysis } from '../../app/commands/createAnalysis';
+import { RecordSchemaSaved } from '../../app/commands/recordSchemaSaved';
+import { GetAnalysis } from '../../app/queries/getAnalysis';
+import { GetSchema } from '../../app/queries/getSchema';
+import { ListSchemas } from '../../app/queries/listSchemas';
 import { TransportAnalysisRepo } from '../../env/repos/analysis';
 import { TransportSchemaRepo } from '../../env/repos/schema';
 import { FetchHttpTransport, MockHttpTransport } from '../../env/transport';
 import type { Dependencies } from '../../ui/di';
-import { createMockEditorBackend } from '../mock_editor';
-import { MockWorkspaceBackend } from '../mock_workspace';
-import { loadEditor } from '../editor_loader';
+import { createMockEditorBackend } from '../mockEditor';
+import { MockWorkspaceBackend } from '../mockWorkspace';
+import { loadEditor } from '../editorLoader';
 import type { RuntimeConfiguration } from '../runtime';
 
 export function createDependencies(

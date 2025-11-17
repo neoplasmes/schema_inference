@@ -1,2 +1,2 @@
 export { WorkspacePage } from './workspace';
-export { RemoteEditorPage } from './remote_editor';
+export { RemoteEditorPage } from './remoteEditor';
