@@ -15,7 +15,7 @@ fileGroups:
 
 tasks:
   lint:
-    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null
+    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null
     platform: system
     inputs:
       - '@group(cfg)'
@@ -115,6 +115,13 @@ tasks:
     platform: system
     options: *cluster-options
 
+  deploy-monitoring:
+    script: helmfile -f env/k8s/helmfile.yaml sync && kubectl --context k3d-schema-workspace apply -k env/k8s/monitoring/dashboards
+    platform: system
+    inputs:
+      - '@group(k8s)'
+    options: *cluster-options
+
   deploy:
     script: >-
       k3d image import -c schema-workspace schema-workspace-api:development schema-workspace-client:development schema-workspace-editor:development &&
@@ -126,6 +133,7 @@ tasks:
       - client:image
       - editor:image
       - server:image
+      - env:deploy-monitoring
     inputs:
       - '@group(cfg)'
       - '@group(k8s)'

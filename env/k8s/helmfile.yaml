@@ -1,0 +1,35 @@
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+
+helmDefaults:
+  kubeContext: k3d-schema-workspace
+  createNamespace: true
+  wait: true
+  timeout: 900
+
+releases:
+  - name: kube-prometheus-stack
+    namespace: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    version: 78.3.2
+    values:
+      - monitoring/kube-prometheus-stack.values.yaml
+
+  - name: loki
+    namespace: monitoring
+    chart: grafana/loki
+    version: 6.43.0
+    values:
+      - monitoring/loki.values.yaml
+
+  - name: alloy
+    namespace: monitoring
+    chart: grafana/alloy
+    version: 1.3.1
+    needs:
+      - monitoring/loki
+    values:
+      - monitoring/alloy.values.yaml
