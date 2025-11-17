@@ -1,0 +1,99 @@
+fullnameOverride: alloy
+
+controller:
+  type: deployment
+  replicas: 1
+
+alloy:
+  extraPorts:
+    - name: faro
+      port: 12347
+      targetPort: 12347
+      protocol: TCP
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+  configMap:
+    content: |
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      discovery.relabel "pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label  = "namespace"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label  = "pod"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label  = "container"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          target_label  = "app"
+        }
+
+        rule {
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label  = "node"
+        }
+      }
+
+      loki.source.kubernetes "pods" {
+        targets    = discovery.relabel.pods.output
+        forward_to = [loki.process.pods.receiver]
+      }
+
+      loki.process "pods" {
+        stage.match {
+          selector = "{namespace=\"schema-workspace\", container=\"server\"}"
+
+          stage.json {
+            expressions = { level = "level" }
+          }
+
+          stage.labels {
+            values = { level = "" }
+          }
+        }
+
+        forward_to = [loki.write.default.receiver]
+      }
+
+      faro.receiver "browser" {
+        server {
+          listen_address       = "0.0.0.0"
+          listen_port          = 12347
+          cors_allowed_origins = ["http://localhost:8080"]
+        }
+
+        output {
+          logs = [loki.process.faro.receiver]
+        }
+      }
+
+      loki.process "faro" {
+        stage.static_labels {
+          values = { job = "faro", namespace = "schema-workspace", app = "browser" }
+        }
+
+        forward_to = [loki.write.default.receiver]
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push"
+        }
+      }
