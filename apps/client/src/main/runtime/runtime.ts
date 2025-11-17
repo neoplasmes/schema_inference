@@ -2,6 +2,7 @@ export interface RuntimeConfiguration {
     mode: 'mock' | 'api';
     apiBaseUrl: string;
     editorManifestUrl?: string;
+    telemetryUrl?: string;
 }
 
 export async function loadRuntimeConfiguration(): Promise<RuntimeConfiguration> {
@@ -23,7 +24,9 @@ export async function loadRuntimeConfiguration(): Promise<RuntimeConfiguration> 
         !('apiBaseUrl' in value) ||
         typeof value.apiBaseUrl !== 'string' ||
         ('editorManifestUrl' in value &&
-            (typeof value.editorManifestUrl !== 'string' || !value.editorManifestUrl))
+            (typeof value.editorManifestUrl !== 'string' || !value.editorManifestUrl)) ||
+        ('telemetryUrl' in value &&
+            (typeof value.telemetryUrl !== 'string' || !value.telemetryUrl))
     ) {
         throw new Error('The workspace configuration is invalid.');
     }
@@ -34,6 +37,11 @@ export async function loadRuntimeConfiguration(): Promise<RuntimeConfiguration> 
         ...('editorManifestUrl' in value
             ? {
                   editorManifestUrl: value.editorManifestUrl as string,
+              }
+            : {}),
+        ...('telemetryUrl' in value
+            ? {
+                  telemetryUrl: value.telemetryUrl as string,
               }
             : {}),
     };

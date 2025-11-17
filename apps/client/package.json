@@ -4,6 +4,7 @@
     "private": true,
     "type": "module",
     "dependencies": {
+        "@grafana/faro-web-sdk": "1.19.0",
         "react": "19.2.0",
         "react-dom": "19.2.0",
         "react-router": "7.9.4",
