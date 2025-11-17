@@ -4,6 +4,11 @@ python = "3.12.12"
 uv = "0.9.4"
 node = "22.20.0"
 pnpm = "10.18.3"
+k3d = "5.8.3"
+k9s = "0.50.15"
+kubectl = "1.34.1"
+helm = "3.19.0"
+helmfile = "1.1.7"
 
 [env]
 UV_PYTHON = "3.12.12"
@@ -13,3 +18,8 @@ auto-install = false
 
 [plugins.tools]
 python = "file://./.proto/plugins/python.toml"
+k3d = "file://./.proto/plugins/k3d.toml"
+k9s = "file://./.proto/plugins/k9s.toml"
+kubectl = "file://./.proto/plugins/kubectl.toml"
+helm = "file://./.proto/plugins/helm.toml"
+helmfile = "file://./.proto/plugins/helmfile.toml"

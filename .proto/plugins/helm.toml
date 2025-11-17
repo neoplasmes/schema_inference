@@ -1,0 +1,29 @@
+name = "helm"
+type = "cli"
+
+[platform.linux]
+archive-prefix = "linux-{arch}"
+download-file = "helm-v{version}-linux-{arch}.tar.gz"
+checksum-file = "helm-v{version}-linux-{arch}.tar.gz.sha256sum"
+
+[platform.macos]
+archive-prefix = "darwin-{arch}"
+download-file = "helm-v{version}-darwin-{arch}.tar.gz"
+checksum-file = "helm-v{version}-darwin-{arch}.tar.gz.sha256sum"
+
+[platform.windows]
+archive-prefix = "windows-{arch}"
+download-file = "helm-v{version}-windows-{arch}.zip"
+checksum-file = "helm-v{version}-windows-{arch}.zip.sha256sum"
+
+[install]
+checksum-url = "https://get.helm.sh/{checksum_file}"
+download-url = "https://get.helm.sh/{download_file}"
+unpack = true
+
+[install.arch]
+aarch64 = "arm64"
+x86_64 = "amd64"
+
+[resolve]
+git-url = "https://github.com/helm/helm"

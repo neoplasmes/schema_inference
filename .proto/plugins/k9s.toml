@@ -1,0 +1,32 @@
+name = "k9s"
+type = "cli"
+
+[install]
+download-url = "https://github.com/derailed/k9s/releases/download/v{version}/{download_file}"
+checksum-url = "https://github.com/derailed/k9s/releases/download/v{version}/{checksum_file}"
+
+[install.exes.k9s]
+exe-path = "k9s"
+primary = true
+
+[install.arch]
+x86_64 = "amd64"
+aarch64 = "arm64"
+
+[platform.linux]
+archs = ["x64", "arm64"]
+download-file = "k9s_Linux_{arch}.tar.gz"
+checksum-file = "checksums.sha256"
+
+[platform.macos]
+archs = ["x64", "arm64"]
+download-file = "k9s_Darwin_{arch}.tar.gz"
+checksum-file = "checksums.sha256"
+
+[platform.windows]
+archs = ["x64", "arm64"]
+download-file = "k9s_Windows_{arch}.zip"
+checksum-file = "checksums.sha256"
+
+[resolve]
+git-url = "https://github.com/derailed/k9s"

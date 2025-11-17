@@ -1,0 +1,23 @@
+name = "kubectl"
+type = "cli"
+
+[platform.linux]
+download-file = "linux/{arch}/kubectl"
+
+[platform.macos]
+download-file = "darwin/{arch}/kubectl"
+
+[platform.windows]
+download-file = "windows/{arch}/kubectl.exe"
+
+[install]
+download-url = "https://dl.k8s.io/release/v{version}/bin/{download_file}"
+unpack = false
+
+[install.arch]
+aarch64 = "arm64"
+x86_64 = "amd64"
+
+[resolve]
+git-url = "https://github.com/kubernetes/kubectl"
+git-tag-pattern = "^(?:v|kubernetes-)(.*)$"
