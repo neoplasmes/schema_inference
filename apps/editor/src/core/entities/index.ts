@@ -1,2 +1,2 @@
-export type { EntityName, EntityRef } from './entity_ref';
+export type { EntityName, EntityRef } from './entityRef';
 export * from './schema';

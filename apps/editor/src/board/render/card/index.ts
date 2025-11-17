@@ -1,2 +1,2 @@
-export { CardView } from './card_view';
-export { CardLayer } from './card_layer';
+export { CardView } from './cardView';
+export { CardLayer } from './cardLayer';

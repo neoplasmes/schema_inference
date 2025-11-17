@@ -1,1 +1,1 @@
-export type { EditorProps, EditorResource } from './editor_resource';
+export type { EditorProps, EditorResource } from './editorResource';

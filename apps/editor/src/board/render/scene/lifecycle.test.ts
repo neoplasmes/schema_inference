@@ -23,7 +23,7 @@ vi.mock('pixi.js', () => ({
     Texture: class {},
 }));
 
-import { createBoardRenderer } from './create_board_renderer';
+import { createBoardRenderer } from './createBoardRenderer';
 
 afterEach(() => {
     vi.unstubAllGlobals();

@@ -1,1 +1,1 @@
-export * from './document_edit';
+export * from './documentEdit';

@@ -1,1 +1,1 @@
-export { useEditorIntents } from './use_editor_intents';
+export { useEditorIntents } from './useEditorIntents';

@@ -1,2 +1,2 @@
-export { createPointerController } from './pointer_controller';
-export type { PointerController } from './pointer_controller';
+export { createPointerController } from './pointerController';
+export type { PointerController } from './pointerController';

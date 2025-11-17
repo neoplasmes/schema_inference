@@ -1,5 +1,5 @@
-export { createSchemaBoard } from './schema_board';
-export type { SchemaBoard, SchemaBoardOptions } from './schema_board';
+export { createSchemaBoard } from './schemaBoard';
+export type { SchemaBoard, SchemaBoardOptions } from './schemaBoard';
 export type {
     BoardEventHandler,
     BoardEventMap,

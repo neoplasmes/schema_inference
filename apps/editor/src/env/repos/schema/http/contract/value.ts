@@ -1,4 +1,4 @@
-import { ContractViolationError } from './contract_violation.error';
+import { ContractViolationError } from './contractViolation.error';
 
 type ObjectValue = Record<string, unknown>;
 

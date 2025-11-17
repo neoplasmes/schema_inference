@@ -1,1 +1,1 @@
-export { collectionForMember } from './collection_for_member';
+export { collectionForMember } from './collectionForMember';

@@ -3,4 +3,4 @@ export { parseSnapshot, parseManifest } from './document';
 export { parseNode } from './node';
 export { parseMemberSummary } from './member';
 export { parseReceipt } from './receipt';
-export { ContractViolationError } from './contract_violation.error';
+export { ContractViolationError } from './contractViolation.error';

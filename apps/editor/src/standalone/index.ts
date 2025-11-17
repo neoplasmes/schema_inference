@@ -1,1 +1,1 @@
-export { default as StandaloneEditor } from './standalone_editor';
+export { default as StandaloneEditor } from './StandaloneEditor';

@@ -1,1 +1,1 @@
-export { LabelGroup } from './label_group';
+export { LabelGroup } from './labelGroup';
