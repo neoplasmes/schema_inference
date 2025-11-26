@@ -38,11 +38,24 @@ tasks:
       runInCI: false
 
   lint:
-    command: uv run --no-sync ruff check src tests e2e
+    script: uv run --no-sync ruff check src tests e2e && uv run --no-sync python -m api.http.openapi --output openapi.yaml --check
+    env:
+      PYTHONPATH: $workspaceRoot
     inputs:
+      - '@group(src)'
       - '@group(test-e2e)'
+      - openapi.yaml
     options:
       mergeArgs: replace
+
+  build-openapi:
+    command: uv run --no-sync python -m api.http.openapi --output openapi.yaml
+    env:
+      PYTHONPATH: $workspaceRoot
+    inputs:
+      - '@group(src)'
+    outputs:
+      - openapi.yaml
 
   lint-fix:
     command: uv run --no-sync ruff check --fix src tests e2e

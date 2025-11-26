@@ -1,8 +1,15 @@
+from pathlib import Path
+
 import pytest
+import yaml
 from fastapi import FastAPI, Response, WebSocket
 from fastapi.testclient import TestClient
 
 from api.http.cache import CachePolicyMiddleware, cache_policy
+from api.http.openapi import build_openapi, render_openapi
+
+OPENAPI_FILE = Path(__file__).resolve().parents[3] / "openapi.yaml"
+NODES = "/api/v2/schemas/{identifier}/revisions/{revision}/nodes/{node_id}"
 
 
 def server() -> FastAPI:
@@ -122,3 +129,27 @@ def test_unsafe_methods_are_left_untouched():
 def test_websocket_is_untouched():
     with TestClient(server()).websocket_connect("/socket") as connection:
         assert connection.receive_json() == {"ok": True}
+
+
+def test_openapi_exposes_cache_policy_with_path_params():
+    document = build_openapi()
+    operation = document["paths"][NODES]["get"]
+
+    assert document["info"]["title"] == "Schema Workspace API"
+    assert operation["x-cache"] == {
+        "mode": "immutable",
+        "tags": ["schema:{identifier}"],
+        "pathParams": ["node_id"],
+    }
+
+
+def test_openapi_records_invalidations():
+    document = build_openapi()
+    operation = document["paths"]["/api/v2/schemas"]["post"]
+
+    assert operation["x-cache"] == {"mode": "bypass", "invalidates": ["schemas"]}
+
+
+def test_committed_openapi_is_up_to_date():
+    assert yaml.safe_load(OPENAPI_FILE.read_text()) == yaml.safe_load(render_openapi())
+    assert OPENAPI_FILE.read_text() == render_openapi()
