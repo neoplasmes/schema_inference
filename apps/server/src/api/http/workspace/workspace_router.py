@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Header, Query, Response
 
+from api.http.cache import cache_policy
 from api.http.workspace import manifest_links, node_links, receipt_links, resource_links
 from api.schemas.workspace import AnalysisInput, ChangesetInput, DraftInput
 from app.use_cases.apply_changeset import ApplyChangeset
@@ -22,7 +23,7 @@ def create_workspace_router(
 ) -> APIRouter:
     router = APIRouter(prefix="/api/v2", tags=["workspace"])
 
-    @router.get("")
+    @router.get("", openapi_extra=cache_policy("bypass"))
     def workspace():
         return {
             "_links": {
@@ -31,7 +32,7 @@ def create_workspace_router(
             }
         }
 
-    @router.post("/analyses", status_code=202)
+    @router.post("/analyses", status_code=202, openapi_extra=cache_policy("bypass"))
     def post_analysis(
         body: AnalysisInput, response: Response, idempotency_key: IdempotencyKey
     ):
@@ -40,22 +41,29 @@ def create_workspace_router(
 
         return resource_links("analysis", resource)
 
-    @router.get("/analyses/{identifier}")
+    @router.get("/analyses/{identifier}", openapi_extra=cache_policy("bypass"))
     def get_analysis(identifier: str):
         return resource_links("analysis", reads.resource("analysis", identifier))
 
-    @router.get("/analyses/{identifier}/revisions/{revision}/manifest")
+    @router.get(
+        "/analyses/{identifier}/revisions/{revision}/manifest",
+        openapi_extra=cache_policy("immutable", tags=["analysis:{identifier}"]),
+    )
     def get_analysis_manifest(identifier: str, revision: str, response: Response):
         manifest = reads.analysis_manifest(identifier, revision)
         response.headers["ETag"] = f'"{identifier}:{revision}"'
 
         return manifest_links(manifest)
 
-    @router.get("/schemas")
+    @router.get("/schemas", openapi_extra=cache_policy("revalidate", tags=["schemas"]))
     def get_schemas():
         return [resource_links("schema", item) for item in reads.schemas()]
 
-    @router.post("/schemas", status_code=201)
+    @router.post(
+        "/schemas",
+        status_code=201,
+        openapi_extra=cache_policy("bypass", invalidates=["schemas"]),
+    )
     def post_schema(
         body: DraftInput, response: Response, idempotency_key: IdempotencyKey
     ):
@@ -66,28 +74,38 @@ def create_workspace_router(
 
         return manifest_links(manifest)
 
-    @router.get("/schemas/{identifier}")
+    @router.get(
+        "/schemas/{identifier}",
+        openapi_extra=cache_policy("revalidate", tags=["schema:{identifier}"]),
+    )
     def get_schema(identifier: str, response: Response):
         resource = reads.resource("schema", identifier)
         response.headers["ETag"] = f'"{identifier}:{resource["revision"]}"'
 
         return resource_links("schema", resource)
 
-    @router.get("/schemas/{identifier}/revisions/{revision}/manifest")
+    @router.get(
+        "/schemas/{identifier}/revisions/{revision}/manifest",
+        openapi_extra=cache_policy("immutable", tags=["schema:{identifier}"]),
+    )
     def get_manifest(identifier: str, revision: str, response: Response):
         manifest = reads.manifest(identifier, revision)
         response.headers["ETag"] = f'"{identifier}:{revision}"'
 
         return manifest_links(manifest)
 
-    @router.get("/schemas/{identifier}/revisions/{revision}/nodes/{node_id:path}")
+    @router.get(
+        "/schemas/{identifier}/revisions/{revision}/nodes/{node_id:path}",
+        openapi_extra=cache_policy("immutable", tags=["schema:{identifier}"]),
+    )
     def get_node(identifier: str, revision: str, node_id: str):
         return node_links(
             reads.node(identifier, revision, node_id), identifier, revision
         )
 
     @router.get(
-        "/schemas/{identifier}/revisions/{revision}/collections/{collection_id:path}/items"
+        "/schemas/{identifier}/revisions/{revision}/collections/{collection_id:path}/items",
+        openapi_extra=cache_policy("immutable", tags=["schema:{identifier}"]),
     )
     def get_page(
         identifier: str,
@@ -98,7 +116,11 @@ def create_workspace_router(
     ):
         return reads.page(identifier, revision, collection_id, limit, cursor)
 
-    @router.post("/schemas/{identifier}/changesets", status_code=201)
+    @router.post(
+        "/schemas/{identifier}/changesets",
+        status_code=201,
+        openapi_extra=cache_policy("bypass", invalidates=["schema:{identifier}"]),
+    )
     def post_changeset(
         identifier: str,
         body: ChangesetInput,
@@ -113,7 +135,10 @@ def create_workspace_router(
 
         return receipt_links(receipt, identifier)
 
-    @router.get("/schemas/{identifier}/changesets/{mutation_id}")
+    @router.get(
+        "/schemas/{identifier}/changesets/{mutation_id}",
+        openapi_extra=cache_policy("ttl", ttl=86400, tags=["schema:{identifier}"]),
+    )
     def get_changeset(identifier: str, mutation_id: str):
         return receipt_links(reads.receipt(identifier, mutation_id), identifier)
 
