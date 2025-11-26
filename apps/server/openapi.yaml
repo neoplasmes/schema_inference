@@ -1,0 +1,737 @@
+openapi: 3.1.0
+info:
+  title: Schema Workspace API
+  version: 2.0.0
+paths:
+  /:
+    get:
+      summary: Root
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /schema/sessions:
+    post:
+      summary: Create Session
+      operationId: create_session_schema_sessions_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_create_session_schema_sessions_post'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionCreated'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /schema/xsd:
+    post:
+      summary: Create Xsd
+      operationId: create_xsd_schema_xsd_post
+      responses:
+        '200':
+          description: Successful Response
+  /api/v2:
+    get:
+      tags:
+      - workspace
+      summary: Workspace
+      operationId: workspace_api_v2_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-cache:
+        mode: bypass
+  /api/v2/analyses:
+    post:
+      tags:
+      - workspace
+      summary: Post Analysis
+      operationId: post_analysis_api_v2_analyses_post
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalysisInput'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
+  /api/v2/analyses/{identifier}:
+    get:
+      tags:
+      - workspace
+      summary: Get Analysis
+      operationId: get_analysis_api_v2_analyses__identifier__get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
+  /api/v2/analyses/{identifier}/revisions/{revision}/manifest:
+    get:
+      tags:
+      - workspace
+      summary: Get Analysis Manifest
+      operationId: get_analysis_manifest_api_v2_analyses__identifier__revisions__revision__manifest_get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: revision
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Revision
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: immutable
+        tags:
+        - analysis:{identifier}
+  /api/v2/schemas:
+    get:
+      tags:
+      - workspace
+      summary: Get Schemas
+      operationId: get_schemas_api_v2_schemas_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-cache:
+        mode: revalidate
+        tags:
+        - schemas
+    post:
+      tags:
+      - workspace
+      summary: Post Schema
+      operationId: post_schema_api_v2_schemas_post
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DraftInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
+        invalidates:
+        - schemas
+  /api/v2/schemas/{identifier}:
+    get:
+      tags:
+      - workspace
+      summary: Get Schema
+      operationId: get_schema_api_v2_schemas__identifier__get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: revalidate
+        tags:
+        - schema:{identifier}
+  /api/v2/schemas/{identifier}/revisions/{revision}/manifest:
+    get:
+      tags:
+      - workspace
+      summary: Get Manifest
+      operationId: get_manifest_api_v2_schemas__identifier__revisions__revision__manifest_get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: revision
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Revision
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: immutable
+        tags:
+        - schema:{identifier}
+  /api/v2/schemas/{identifier}/revisions/{revision}/nodes/{node_id}:
+    get:
+      tags:
+      - workspace
+      summary: Get Node
+      operationId: get_node_api_v2_schemas__identifier__revisions__revision__nodes__node_id__get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: revision
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Revision
+      - name: node_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Node Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: immutable
+        tags:
+        - schema:{identifier}
+        pathParams:
+        - node_id
+  /api/v2/schemas/{identifier}/revisions/{revision}/collections/{collection_id}/items:
+    get:
+      tags:
+      - workspace
+      summary: Get Page
+      operationId: get_page_api_v2_schemas__identifier__revisions__revision__collections__collection_id__items_get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: revision
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Revision
+      - name: collection_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Collection Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Cursor
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: immutable
+        tags:
+        - schema:{identifier}
+        pathParams:
+        - collection_id
+  /api/v2/schemas/{identifier}/changesets:
+    post:
+      tags:
+      - workspace
+      summary: Post Changeset
+      operationId: post_changeset_api_v2_schemas__identifier__changesets_post
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: if-match
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: If-Match
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangesetInput'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
+        invalidates:
+        - schema:{identifier}
+  /api/v2/schemas/{identifier}/changesets/{mutation_id}:
+    get:
+      tags:
+      - workspace
+      summary: Get Changeset
+      operationId: get_changeset_api_v2_schemas__identifier__changesets__mutation_id__get
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: mutation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Mutation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: ttl
+        ttl: 86400
+        tags:
+        - schema:{identifier}
+components:
+  schemas:
+    AnalysisInput:
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        documents:
+          items:
+            $ref: '#/components/schemas/SourceDocumentInput'
+          type: array
+          maxItems: 100
+          minItems: 1
+          title: Documents
+      additionalProperties: false
+      type: object
+      required:
+      - title
+      - documents
+      title: AnalysisInput
+    AnalysisSource:
+      properties:
+        kind:
+          type: string
+          const: analysis
+          title: Kind
+        analysisId:
+          type: string
+          title: Analysisid
+        revision:
+          type: string
+          title: Revision
+        seedId:
+          type: string
+          title: Seedid
+        rootAlternativeId:
+          type: string
+          title: Rootalternativeid
+      additionalProperties: false
+      type: object
+      required:
+      - kind
+      - analysisId
+      - revision
+      - seedId
+      - rootAlternativeId
+      title: AnalysisSource
+    Body_create_session_schema_sessions_post:
+      properties:
+        files:
+          items:
+            type: string
+            format: binary
+          type: array
+          title: Files
+      type: object
+      required:
+      - files
+      title: Body_create_session_schema_sessions_post
+    ChangesetInput:
+      properties:
+        clientMutationId:
+          type: string
+          maxLength: 200
+          minLength: 1
+          pattern: ^[a-zA-Z0-9_-]+$
+          title: Clientmutationid
+        baseRevision:
+          type: string
+          title: Baserevision
+        operations:
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/RenameProperty'
+            - $ref: '#/components/schemas/RenameXmlName'
+            - $ref: '#/components/schemas/MoveMember'
+            discriminator:
+              propertyName: kind
+              mapping:
+                moveMember: '#/components/schemas/MoveMember'
+                renameProperty: '#/components/schemas/RenameProperty'
+                renameXmlName: '#/components/schemas/RenameXmlName'
+          type: array
+          maxItems: 1000
+          minItems: 1
+          title: Operations
+      additionalProperties: false
+      type: object
+      required:
+      - clientMutationId
+      - baseRevision
+      - operations
+      title: ChangesetInput
+    DraftInput:
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Title
+        source:
+          $ref: '#/components/schemas/AnalysisSource'
+      additionalProperties: false
+      type: object
+      required:
+      - title
+      - source
+      title: DraftInput
+    ExpandedName:
+      properties:
+        namespaceUri:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Namespaceuri
+        localName:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Localname
+      additionalProperties: false
+      type: object
+      required:
+      - namespaceUri
+      - localName
+      title: ExpandedName
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    MoveMember:
+      properties:
+        kind:
+          type: string
+          const: moveMember
+          title: Kind
+        memberId:
+          type: string
+          title: Memberid
+        targetCollectionId:
+          type: string
+          title: Targetcollectionid
+        beforeMemberId:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Beforememberid
+      additionalProperties: false
+      type: object
+      required:
+      - kind
+      - memberId
+      - targetCollectionId
+      - beforeMemberId
+      title: MoveMember
+    RenameProperty:
+      properties:
+        kind:
+          type: string
+          const: renameProperty
+          title: Kind
+        memberId:
+          type: string
+          title: Memberid
+        name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - kind
+      - memberId
+      - name
+      title: RenameProperty
+    RenameXmlName:
+      properties:
+        kind:
+          type: string
+          const: renameXmlName
+          title: Kind
+        target:
+          $ref: '#/components/schemas/XmlTarget'
+        name:
+          $ref: '#/components/schemas/ExpandedName'
+      additionalProperties: false
+      type: object
+      required:
+      - kind
+      - target
+      - name
+      title: RenameXmlName
+    SessionCreated:
+      properties:
+        message:
+          type: string
+          title: Message
+          default: Файлы загружены, подключитесь к WebSocket для обработки
+        session_id:
+          type: string
+          title: Session Id
+      type: object
+      required:
+      - session_id
+      title: SessionCreated
+    SourceDocumentInput:
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Name
+        format:
+          type: string
+          enum:
+          - xml
+          - json
+          - yaml
+          title: Format
+        size:
+          type: integer
+          maximum: 5000000.0
+          minimum: 0.0
+          title: Size
+        content:
+          type: string
+          maxLength: 5000000
+          title: Content
+      additionalProperties: false
+      type: object
+      required:
+      - name
+      - format
+      - size
+      - content
+      title: SourceDocumentInput
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    XmlTarget:
+      properties:
+        kind:
+          type: string
+          enum:
+          - node
+          - member
+          title: Kind
+        id:
+          type: string
+          title: Id
+      additionalProperties: false
+      type: object
+      required:
+      - kind
+      - id
+      title: XmlTarget
