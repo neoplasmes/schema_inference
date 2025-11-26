@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
+from api.http.cache import CachePolicyMiddleware
 from api.http.metrics import expose_metrics
 from api.http.root import create_root_router
 from api.http.schema import create_schema_router
@@ -68,6 +69,7 @@ def create_http_server(
         allow_headers=["*"],
         expose_headers=["ETag", "Location"],
     )
+    server.add_middleware(CachePolicyMiddleware)
     server.include_router(create_root_router())
     server.include_router(
         create_schema_router(upload_documents, generate_schema, cleanup_job)
