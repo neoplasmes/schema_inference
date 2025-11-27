@@ -1,4 +1,4 @@
-const cutoff = Date.parse('2025-10-19T09:24:48Z');
+const cutoff = Date.parse('2025-11-26T09:24:48Z');
 
 module.exports = {
     hooks: {
