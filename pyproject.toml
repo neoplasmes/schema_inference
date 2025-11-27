@@ -2,7 +2,7 @@
 members = ["apps/server", "tools/documents-generator"]
 
 [tool.uv]
-exclude-newer = "2025-10-19T09:24:48Z"
+exclude-newer = "2025-11-01T09:24:48Z"
 python-downloads = "never"
 python-preference = "only-system"
 
