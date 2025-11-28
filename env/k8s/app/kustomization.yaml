@@ -12,4 +12,5 @@ resources:
   - server
   - editor
   - client
+  - cache
   - gateway
