@@ -14,16 +14,22 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
-        runAsUser: 101
+        runAsUser: 65532
+        runAsGroup: 65532
       containers:
-        - name: nginx
-          image: nginx:1.28.0-alpine@sha256:91786fc3554a00f445f9639d4f21a8564b6fd4f1ad39d17ed32f00faae24bc7c
-          args: [nginx, -g, daemon off;]
+        - name: caddy
+          image: schema-workspace-gateway:development
+          imagePullPolicy: IfNotPresent
           ports:
             - name: http
               containerPort: 8080
             - name: status
               containerPort: 8081
+            - name: metrics
+              containerPort: 2019
+          env:
+            - name: CACHE_REDIS_URL
+              value: valkey:6379
           readinessProbe:
             httpGet:
               path: /healthz
@@ -37,35 +43,22 @@ spec:
           resources:
             requests:
               cpu: 50m
-              memory: 32Mi
+              memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - name: config
-              mountPath: /etc/nginx/nginx.conf
-              subPath: nginx.conf
+              mountPath: /etc/caddy/Caddyfile
+              subPath: Caddyfile
               readOnly: true
             - name: tmp
               mountPath: /tmp
-        - name: exporter
-          image: nginx/nginx-prometheus-exporter:1.5.1
-          args:
-            - --nginx.scrape-uri=http://127.0.0.1:8081/stub_status
-          ports:
-            - name: metrics
-              containerPort: 9113
-          resources:
-            requests:
-              cpu: 10m
-              memory: 16Mi
-            limits:
-              memory: 32Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
       volumes:
         - name: config
           configMap:

@@ -4,9 +4,10 @@ kind: Kustomization
 configMapGenerator:
   - name: gateway
     files:
-      - nginx.conf
+      - Caddyfile
 
 resources:
   - deployment.yaml
   - service.yaml
   - service-monitor.yaml
+  - pod-disruption-budget.yaml

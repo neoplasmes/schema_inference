@@ -12,19 +12,25 @@ fileGroups:
     - k8s/**/*
   src:
     - docker/*.py
+    - cache/*.py
+  cache:
+    - cache/Caddyfile.template
+    - cache/Dockerfile
 
 tasks:
   lint:
-    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null
+    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null && uv run --no-sync python env/cache/caddyfile.py --spec apps/server/openapi.yaml --template env/cache/Caddyfile.template --output env/k8s/app/gateway/Caddyfile --check
     platform: system
     inputs:
       - '@group(cfg)'
       - '@group(k8s)'
+      - '@group(cache)'
+      - /apps/server/openapi.yaml
     options:
       runFromWorkspaceRoot: true
 
   lint-python:
-    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker
+    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker env/cache
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml
@@ -32,7 +38,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   lint-fix-python:
-    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker
+    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker env/cache
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml
@@ -42,7 +48,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   fmt:
-    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker
+    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker env/cache
     deps:
       - env:lint-fix-python
     inputs:
@@ -51,6 +57,27 @@ tasks:
     options:
       cache: false
       runInCI: false
+      runFromWorkspaceRoot: true
+
+  build-cache-config:
+    command: uv run --no-sync python env/cache/caddyfile.py --spec apps/server/openapi.yaml --template env/cache/Caddyfile.template --output env/k8s/app/gateway/Caddyfile
+    deps:
+      - server:build-openapi
+    inputs:
+      - /apps/server/openapi.yaml
+      - cache/Caddyfile.template
+      - cache/caddyfile.py
+    outputs:
+      - k8s/app/gateway/Caddyfile
+    options:
+      runFromWorkspaceRoot: true
+
+  image-gateway:
+    command: docker build -t schema-workspace-gateway:development -f env/cache/Dockerfile env/cache
+    platform: system
+    inputs:
+      - '@group(cache)'
+    options:
       runFromWorkspaceRoot: true
 
   compose-up:
@@ -124,15 +151,17 @@ tasks:
 
   deploy:
     script: >-
-      k3d image import -c schema-workspace schema-workspace-api:development schema-workspace-client:development schema-workspace-editor:development &&
+      k3d image import -c schema-workspace schema-workspace-api:development schema-workspace-client:development schema-workspace-editor:development schema-workspace-gateway:development &&
       kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app | kubectl --context k3d-schema-workspace apply -f - &&
-      kubectl --context k3d-schema-workspace -n schema-workspace rollout restart deployment/server deployment/client deployment/editor &&
+      kubectl --context k3d-schema-workspace -n schema-workspace rollout restart deployment/server deployment/client deployment/editor deployment/gateway &&
       kubectl --context k3d-schema-workspace -n schema-workspace rollout status deployment --timeout 300s
     platform: system
     deps:
       - client:image
       - editor:image
       - server:image
+      - env:image-gateway
+      - env:build-cache-config
       - env:deploy-monitoring
     inputs:
       - '@group(cfg)'
