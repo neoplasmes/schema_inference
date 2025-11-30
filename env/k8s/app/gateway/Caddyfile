@@ -1,0 +1,187 @@
+{
+	admin :2019
+	auto_https off
+	metrics
+
+	servers {
+		trusted_proxies static private_ranges
+	}
+
+	log {
+		output stderr
+		format json
+	}
+
+	order rate_limit before basicauth
+
+	cache {
+		ttl 120s
+		stale 60s
+		default_cache_control public
+		cache_name gateway
+		api {
+			prometheus
+		}
+		redis {
+			configuration {
+				InitAddress {$CACHE_REDIS_URL}
+				SelectDB 0
+				ClientName gateway
+				DisableRetry
+				ConnWriteTimeout 500ms
+			}
+		}
+	}
+}
+
+(upstream_defaults) {
+	lb_policy least_conn
+	lb_try_duration 3s
+	lb_try_interval 250ms
+	transport http {
+		dial_timeout 5s
+		response_header_timeout 1h
+		read_timeout 1h
+		write_timeout 1h
+	}
+}
+
+(server_upstream) {
+	reverse_proxy {
+		dynamic a server-pods.schema-workspace.svc.cluster.local 8000 {
+			refresh 5s
+			versions ipv4
+		}
+		import upstream_defaults
+	}
+}
+
+(access_log) {
+	log {
+		output stdout
+		format json
+	}
+	log_append upstream_addr {http.reverse_proxy.upstream.hostport}
+	log_append cache_status {http.response.header.Cache-Status}
+}
+
+http://:8080 {
+	import access_log
+	request_body {
+		max_size 20MB
+	}
+
+	handle /workspace-runtime.json {
+		header Cache-Control no-store
+		header Content-Type application/json
+		respond `{"mode":"api","apiBaseUrl":"","telemetryUrl":"/collect"}` 200
+	}
+
+	handle /api/* {
+		@get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get path_regexp get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get ^/api/v2/analyses/[^/]+/revisions/[^/]+/manifest$
+		handle @get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get {
+			cache {
+				ttl 31536000s
+			}
+			import server_upstream
+		}
+
+		@get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get path_regexp get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get ^/api/v2/schemas/[^/]+/changesets/[^/]+$
+		handle @get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get {
+			cache {
+				ttl 86400s
+			}
+			import server_upstream
+		}
+
+		@get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get path_regexp get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/collections/.+/items$
+		handle @get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get {
+			cache {
+				ttl 31536000s
+			}
+			import server_upstream
+		}
+
+		@get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get path_regexp get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/manifest$
+		handle @get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get {
+			cache {
+				ttl 31536000s
+			}
+			import server_upstream
+		}
+
+		@get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get path_regexp get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/nodes/.+$
+		handle @get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get {
+			cache {
+				ttl 31536000s
+			}
+			import server_upstream
+		}
+
+		handle {
+			import server_upstream
+		}
+	}
+
+	handle_path /editor/* {
+		reverse_proxy {
+			dynamic a editor-pods.schema-workspace.svc.cluster.local 8080 {
+				refresh 5s
+				versions ipv4
+			}
+			import upstream_defaults
+		}
+	}
+
+	handle /collect {
+		request_body {
+			max_size 1MB
+		}
+		rate_limit {
+			zone telemetry {
+				key {http.request.remote.host}
+				events 40
+				window 2s
+			}
+		}
+		reverse_proxy {
+			dynamic a alloy.monitoring.svc.cluster.local 12347 {
+				refresh 5s
+				versions ipv4
+			}
+			import upstream_defaults
+		}
+	}
+
+	handle {
+		reverse_proxy {
+			dynamic a client-pods.schema-workspace.svc.cluster.local 8080 {
+				refresh 5s
+				versions ipv4
+			}
+			import upstream_defaults
+		}
+	}
+}
+
+http://grafana.localhost:8080 {
+	import access_log
+
+	reverse_proxy {
+		dynamic a grafana.monitoring.svc.cluster.local 80 {
+			refresh 5s
+			versions ipv4
+		}
+		import upstream_defaults
+	}
+}
+
+http://:8081 {
+	handle /healthz {
+		respond "ok\n" 200
+	}
+
+	handle {
+		respond 404
+	}
+}

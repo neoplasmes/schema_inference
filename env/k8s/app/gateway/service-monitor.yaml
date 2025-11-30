@@ -9,3 +9,14 @@ spec:
   endpoints:
     - port: metrics
       interval: 15s
+      path: /metrics
+    - port: metrics
+      interval: 15s
+      path: /souin-api/metrics
+      relabelings:
+        - targetLabel: scrape
+          replacement: souin
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: souin_.*
+          action: keep

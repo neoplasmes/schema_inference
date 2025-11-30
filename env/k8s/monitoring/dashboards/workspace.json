@@ -16,7 +16,7 @@
       {
         "name": "container",
         "type": "custom",
-        "query": "server,nginx,exporter",
+        "query": "server,caddy,valkey,exporter,nginx",
         "current": {
           "text": "All",
           "value": "$__all"
@@ -41,19 +41,18 @@
     {
       "type": "row",
       "title": "Server",
-      "id": 1,
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 0
-      }
+      },
+      "id": 1
     },
     {
       "type": "timeseries",
       "title": "Requests per second by route",
-      "id": 2,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -81,12 +80,12 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 2
     },
     {
       "type": "timeseries",
       "title": "Latency p95 by route",
-      "id": 3,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -114,12 +113,12 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 3
     },
     {
       "type": "timeseries",
       "title": "5xx ratio",
-      "id": 4,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -147,12 +146,12 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 4
     },
     {
       "type": "timeseries",
       "title": "Memory",
-      "id": 5,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -180,12 +179,12 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 5
     },
     {
       "type": "timeseries",
       "title": "CPU",
-      "id": 6,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -213,12 +212,12 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 6
     },
     {
       "type": "timeseries",
       "title": "Errors in logs",
-      "id": 7,
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -244,38 +243,32 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 7
     },
     {
       "type": "row",
-      "title": "Nginx: gateway, client, editor",
-      "id": 8,
+      "title": "Gateway: Caddy",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 17
-      }
+      },
+      "id": 8
     },
     {
       "type": "timeseries",
       "title": "Requests per second",
-      "id": 9,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 18
-      },
       "targets": [
         {
-          "expr": "sum by (service) (rate(nginx_http_requests_total{namespace=\"schema-workspace\"}[1m]))",
-          "legendFormat": "{{service}}",
+          "expr": "sum by (code) (rate(caddy_http_request_duration_seconds_count{namespace=\"schema-workspace\", service=\"gateway\"}[1m]))",
+          "legendFormat": "{{code}}",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
@@ -289,26 +282,26 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 18
+      },
+      "id": 9
     },
     {
       "type": "timeseries",
-      "title": "Active connections",
-      "id": 10,
+      "title": "Latency p95",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 18
-      },
       "targets": [
         {
-          "expr": "sum by (service) (nginx_connections_active{namespace=\"schema-workspace\"})",
-          "legendFormat": "{{service}}",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(caddy_http_request_duration_seconds_bucket{namespace=\"schema-workspace\", service=\"gateway\"}[5m])))",
+          "legendFormat": "p95",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
@@ -317,28 +310,30 @@
         }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "unit": "s"
+        },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 18
+      },
+      "id": 10
     },
     {
       "type": "stat",
-      "title": "Exporter up",
-      "id": 11,
+      "title": "Gateway up",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 18
-      },
       "targets": [
         {
-          "expr": "nginx_up{namespace=\"schema-workspace\"}",
+          "expr": "up{namespace=\"schema-workspace\", service=\"gateway\", scrape=\"\"}",
           "legendFormat": "{{pod}}",
           "refId": "A",
           "datasource": {
@@ -351,25 +346,25 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 18
+      },
+      "id": 11
     },
     {
       "type": "timeseries",
       "title": "Gateway responses by status",
-      "id": 12,
       "datasource": {
         "type": "loki",
         "uid": "loki"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 26
-      },
       "targets": [
         {
-          "expr": "sum by (status) (count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"nginx\"} | json | __error__=\"\" [1m]))",
+          "expr": "sum by (status) (count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"caddy\"} | json | __error__=\"\" | status != \"\" [1m]))",
           "legendFormat": "{{status}}",
           "refId": "A",
           "datasource": {
@@ -382,25 +377,25 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 26
+      },
+      "id": 12
     },
     {
       "type": "timeseries",
       "title": "Gateway request time p95 by upstream",
-      "id": 13,
       "datasource": {
         "type": "loki",
         "uid": "loki"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 26
-      },
       "targets": [
         {
-          "expr": "quantile_over_time(0.95, {namespace=\"schema-workspace\", app=\"gateway\", container=\"nginx\"} | json | __error__=\"\" | upstream_addr != \"\" | unwrap request_time [5m]) by (upstream_addr)",
+          "expr": "quantile_over_time(0.95, {namespace=\"schema-workspace\", app=\"gateway\", container=\"caddy\"} | json | __error__=\"\" | upstream_addr != \"\" | unwrap duration [5m]) by (upstream_addr)",
           "legendFormat": "{{upstream_addr}}",
           "refId": "A",
           "datasource": {
@@ -415,25 +410,25 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 26
+      },
+      "id": 13
     },
     {
       "type": "timeseries",
       "title": "Requests per upstream pod",
-      "id": 14,
       "datasource": {
         "type": "loki",
         "uid": "loki"
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 26
-      },
       "targets": [
         {
-          "expr": "sum by (upstream_addr) (count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"nginx\"} | json | __error__=\"\" | upstream_addr != \"\" [1m]))",
+          "expr": "sum by (upstream_addr) (count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"caddy\"} | json | __error__=\"\" | upstream_addr != \"\" [1m]))",
           "legendFormat": "{{upstream_addr}}",
           "refId": "A",
           "datasource": {
@@ -446,24 +441,401 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "id": 14
     },
     {
       "type": "row",
-      "title": "Browser (Faro)",
-      "id": 15,
+      "title": "Gateway: cache",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 34
-      }
+      },
+      "id": 15
+    },
+    {
+      "type": "timeseries",
+      "title": "Cache hit ratio (Souin metrics)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "clamp_min(1 - sum(rate(souin_request_upstream_counter[5m])) / clamp_min(sum(rate(souin_avg_response_time_count[5m])), 1e-9), 0)",
+          "legendFormat": "hit ratio",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 35
+      },
+      "id": 16
+    },
+    {
+      "type": "timeseries",
+      "title": "Cache hit ratio (access logs)",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"caddy\"} |~ \"cache_status.:.gateway; hit\" [5m])) / clamp_min(sum(count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"caddy\"} |~ \"cache_status.:.gateway; (hit|fwd)\" [5m])), 1)",
+          "legendFormat": "hit ratio",
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        },
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 35
+      },
+      "id": 17
+    },
+    {
+      "type": "timeseries",
+      "title": "Cache outcomes per second",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (count_over_time({namespace=\"schema-workspace\", app=\"gateway\", container=\"caddy\"} | regexp \"cache_status.:.gateway; (?P<outcome>hit|fwd=[a-z-]+)\" | outcome != \"\" [1m]))",
+          "legendFormat": "{{outcome}}",
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 35
+      },
+      "id": 18
+    },
+    {
+      "type": "row",
+      "title": "Cache: Valkey",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 43
+      },
+      "id": 19
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory used",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes{namespace=\"schema-workspace\", service=\"valkey\"}",
+          "legendFormat": "used",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "redis_memory_max_bytes{namespace=\"schema-workspace\", service=\"valkey\"}",
+          "legendFormat": "max",
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 44
+      },
+      "id": 20
+    },
+    {
+      "type": "timeseries",
+      "title": "Keys",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(redis_db_keys{namespace=\"schema-workspace\", service=\"valkey\"})",
+          "legendFormat": "keys",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 44
+      },
+      "id": 21
+    },
+    {
+      "type": "timeseries",
+      "title": "Evictions per second",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(redis_evicted_keys_total{namespace=\"schema-workspace\", service=\"valkey\"}[1m])",
+          "legendFormat": "evicted",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 44
+      },
+      "id": 22
+    },
+    {
+      "type": "timeseries",
+      "title": "Operations per second",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total{namespace=\"schema-workspace\", service=\"valkey\"}[1m])",
+          "legendFormat": "commands",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 52
+      },
+      "id": 23
+    },
+    {
+      "type": "row",
+      "title": "Nginx: client, editor",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 60
+      },
+      "id": 24
+    },
+    {
+      "type": "timeseries",
+      "title": "Requests per second",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 61
+      },
+      "targets": [
+        {
+          "expr": "sum by (service) (rate(nginx_http_requests_total{namespace=\"schema-workspace\", service=~\"client-pods|editor-pods\"}[1m]))",
+          "legendFormat": "{{service}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "id": 25
+    },
+    {
+      "type": "timeseries",
+      "title": "Active connections",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 61
+      },
+      "targets": [
+        {
+          "expr": "sum by (service) (nginx_connections_active{namespace=\"schema-workspace\", service=~\"client-pods|editor-pods\"})",
+          "legendFormat": "{{service}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {},
+      "id": 26
+    },
+    {
+      "type": "stat",
+      "title": "Exporter up",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 61
+      },
+      "targets": [
+        {
+          "expr": "nginx_up{namespace=\"schema-workspace\", service=~\"client-pods|editor-pods\"}",
+          "legendFormat": "{{pod}}",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {},
+      "id": 27
+    },
+    {
+      "type": "row",
+      "title": "Browser (Faro)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "id": 28
     },
     {
       "type": "timeseries",
       "title": "JS errors",
-      "id": 16,
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -472,7 +844,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 35
+        "y": 70
       },
       "targets": [
         {
@@ -489,12 +861,12 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 29
     },
     {
       "type": "timeseries",
       "title": "Web Vitals p75: LCP, INP, FCP",
-      "id": 17,
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -503,7 +875,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 35
+        "y": 70
       },
       "targets": [
         {
@@ -540,12 +912,12 @@
         },
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 30
     },
     {
       "type": "timeseries",
       "title": "CLS p75",
-      "id": 18,
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -554,7 +926,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 35
+        "y": 70
       },
       "targets": [
         {
@@ -571,12 +943,12 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 31
     },
     {
       "type": "logs",
       "title": "Browser errors and warnings",
-      "id": 19,
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -585,7 +957,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 43
+        "y": 78
       },
       "targets": [
         {
@@ -601,24 +973,24 @@
         "defaults": {},
         "overrides": []
       },
-      "options": {}
+      "options": {},
+      "id": 32
     },
     {
       "type": "row",
       "title": "Logs",
-      "id": 20,
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
-      }
+        "y": 88
+      },
+      "id": 33
     },
     {
       "type": "logs",
       "title": "Workspace logs",
-      "id": 21,
       "datasource": {
         "type": "loki",
         "uid": "loki"
@@ -627,7 +999,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 54
+        "y": 89
       },
       "targets": [
         {
@@ -647,7 +1019,8 @@
         "showTime": true,
         "wrapLogMessage": true,
         "sortOrder": "Descending"
-      }
+      },
+      "id": 34
     }
   ]
 }

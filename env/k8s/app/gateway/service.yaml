@@ -13,5 +13,5 @@ spec:
       port: 80
       targetPort: http
     - name: metrics
-      port: 9113
+      port: 2019
       targetPort: metrics
