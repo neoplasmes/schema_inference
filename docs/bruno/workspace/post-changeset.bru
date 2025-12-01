@@ -1,0 +1,54 @@
+meta {
+  name: Post changeset
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/changesets
+  body: json
+  auth: none
+}
+
+headers {
+  If-Match: {{schemaEtag}}
+}
+
+body:json {
+  {
+    "clientMutationId": "{{mutationId}}",
+    "baseRevision": "{{schemaRevision}}",
+    "operations": [
+      {
+        "kind": "renameProperty",
+        "memberId": "{{memberId}}",
+        "name": "renamed_by_bruno"
+      }
+    ]
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    bru.setVar("nextRevision", res.getBody().result.revision);
+    bru.setVar("nextEtag", res.getHeader("etag"));
+  }
+}
+
+tests {
+  test("applies changeset", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().id).to.equal(bru.getVar("mutationId"));
+    expect(res.getBody().status).to.equal("applied");
+    expect(res.getBody().baseRevision).to.equal(bru.getVar("schemaRevision"));
+    expect(res.getBody().result.revision).to.equal("s2");
+    expect(res.getBody()._links.result.href).to.equal(res.getBody().result.manifestUrl);
+  });
+
+  test("has location and new etag", function () {
+    const id = bru.getVar("schemaId");
+
+    expect(res.getHeader("location")).to.equal("/api/v2/schemas/" + id + "/changesets/" + bru.getVar("mutationId"));
+    expect(res.getHeader("etag")).to.equal('"' + id + ':s2"');
+  });
+}

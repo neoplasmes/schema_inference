@@ -1,0 +1,62 @@
+meta {
+  name: Post analysis
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v2/analyses
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{analysisKey}}
+}
+
+body:json {
+  {
+    "title": "Bruno products",
+    "documents": [
+      {
+        "name": "sample.json",
+        "format": "json",
+        "size": 26,
+        "content": "{\"price\":12,\"name\":\"book\"}"
+      }
+    ]
+  }
+}
+
+script:pre-request {
+  const suffix = Date.now() + "-" + Math.random().toString(36).slice(2);
+
+  bru.setVar("analysisKey", "bruno-analysis-" + suffix);
+  bru.setVar("schemaKey", "bruno-schema-" + suffix);
+  bru.setVar("mutationId", "bruno-mutation-" + suffix);
+  bru.setVar("pollAttempts", 0);
+}
+
+script:post-response {
+  if (res.getStatus() === 202) {
+    bru.setVar("analysisId", res.getBody().id);
+    bru.setVar("analysisRevision", res.getBody().revision);
+  }
+}
+
+tests {
+  test("accepts analysis", function () {
+    expect(res.getStatus()).to.equal(202);
+    expect(res.getBody().id).to.be.a("string").and.not.empty;
+    expect(res.getBody().revision).to.be.a("string");
+    expect(res.getBody()._links.self.href).to.equal("/api/v2/analyses/" + res.getBody().id);
+  });
+
+  test("points to the new analysis", function () {
+    expect(res.getHeader("location")).to.equal("/api/v2/analyses/" + res.getBody().id);
+  });
+
+  test("hides document content", function () {
+    expect(res.getBody().documents[0]).to.not.have.property("content");
+  });
+}

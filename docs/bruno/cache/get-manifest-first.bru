@@ -1,0 +1,24 @@
+meta {
+  name: Manifest first read
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{nextRevision}}/manifest
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("manifest is served", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("cache-control")).to.equal("public, max-age=31536000, immutable");
+  });
+}

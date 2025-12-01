@@ -1,0 +1,40 @@
+meta {
+  name: Get analysis manifest
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v2/analyses/{{analysisId}}/revisions/{{analysisRevision}}/manifest
+  body: none
+  auth: none
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const draft = res.getBody().suggestedDraft;
+
+    bru.setVar("seedId", draft.seedId);
+    bru.setVar("rootAlternativeId", draft.suggestedRootAlternativeId);
+  }
+}
+
+tests {
+  test("returns manifest of completed analysis", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().suggestedDraft.seedId).to.be.a("string");
+    expect(res.getBody()._links.self.href).to.equal(
+      "/api/v2/analyses/" + bru.getVar("analysisId") + "/revisions/" + bru.getVar("analysisRevision") + "/manifest"
+    );
+    expect(res.getBody()._links.drafts.href).to.equal("/api/v2/schemas");
+  });
+
+  test("has etag", function () {
+    expect(res.getHeader("etag")).to.equal('"' + bru.getVar("analysisId") + ":" + bru.getVar("analysisRevision") + '"');
+  });
+
+  test("is immutable", function () {
+    expect(res.getHeader("cache-control")).to.equal("public, max-age=31536000, immutable");
+    expect(res.getHeader("surrogate-key")).to.equal("analysis:" + bru.getVar("analysisId"));
+  });
+}

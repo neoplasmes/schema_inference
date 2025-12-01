@@ -1,0 +1,22 @@
+meta {
+  name: Unknown schema
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/unknown-schema
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns not found", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getBody().code).to.equal("not_found");
+  });
+
+  test("error is never cached", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-store");
+  });
+}

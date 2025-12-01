@@ -1,0 +1,37 @@
+meta {
+  name: Get page
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{schemaRevision}}/collections/{{collectionId}}/items?limit=50
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 50
+}
+
+script:post-response {
+  if (res.getStatus() === 200 && res.getBody().items.length > 0) {
+    bru.setVar("memberId", res.getBody().items[0].member.id);
+  }
+}
+
+tests {
+  test("returns collection page", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().snapshot.id).to.equal(bru.getVar("schemaId"));
+    expect(res.getBody().items).to.be.an("array").and.not.empty;
+    expect(res.getBody().totalItems).to.be.at.least(1);
+    expect(res.getBody().items[0].member.id).to.be.a("string");
+    expect(res.getBody().items[0].valueSummary.kind).to.be.a("string");
+  });
+
+  test("is immutable", function () {
+    expect(res.getHeader("cache-control")).to.equal("public, max-age=31536000, immutable");
+    expect(res.getHeader("surrogate-key")).to.equal("schema:" + bru.getVar("schemaId"));
+  });
+}

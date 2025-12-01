@@ -1,0 +1,27 @@
+meta {
+  name: Manifest second read
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{nextRevision}}/manifest
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("manifest is served", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("second read is a cache hit", function () {
+    expect(String(res.getHeader("cache-status")).toLowerCase()).to.contain("hit");
+  });
+}

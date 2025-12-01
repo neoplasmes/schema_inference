@@ -1,0 +1,43 @@
+meta {
+  name: Get node
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{schemaRevision}}/nodes/{{rootNodePath}}
+  body: none
+  auth: none
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    const links = res.getBody()._links;
+    const link = links.properties || links.attributes || links.options || links.particles;
+
+    if (link) {
+      const href = link.href;
+      const start = href.indexOf("/collections/") + "/collections/".length;
+
+      bru.setVar("collectionId", href.slice(start, href.length - "/items".length));
+    }
+  }
+}
+
+tests {
+  test("returns root node", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().id).to.equal(bru.getVar("rootNodeId"));
+    expect(res.getBody().kind).to.be.a("string");
+    expect(res.getBody()._links.self.href).to.contain("/nodes/");
+  });
+
+  test("exposes a member collection", function () {
+    expect(bru.getVar("collectionId")).to.be.a("string").and.not.empty;
+  });
+
+  test("is immutable", function () {
+    expect(res.getHeader("cache-control")).to.equal("public, max-age=31536000, immutable");
+    expect(res.getHeader("surrogate-key")).to.equal("schema:" + bru.getVar("schemaId"));
+  });
+}

@@ -1,0 +1,23 @@
+meta {
+  name: Get workspace
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v2
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns entry links", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()._links.analyses.href).to.equal("/api/v2/analyses");
+    expect(res.getBody()._links.schemas.href).to.equal("/api/v2/schemas");
+  });
+
+  test("is not cached", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-store");
+  });
+}
