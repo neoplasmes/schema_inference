@@ -1,0 +1,29 @@
+meta {
+  name: Create session
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/schema/sessions
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  files: @file(fixtures/sample.json)
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("serverDirect")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("creates session", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().session_id).to.be.a("string").and.not.empty;
+    expect(res.getBody().message).to.be.a("string");
+  });
+}

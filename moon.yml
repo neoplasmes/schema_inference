@@ -19,6 +19,10 @@ fileGroups:
     - tools/**/*.py
   tools-cfg:
     - tools/**/pyproject.toml
+  bruno:
+    - docs/bruno/**/*
+    - tools/bruno/*.py
+    - /apps/server/openapi.yaml
 
 tasks:
   setup:
@@ -52,14 +56,22 @@ tasks:
       runInCI: false
 
   lint:
-    command: uv run --no-sync ruff check tools/documents-generator/src
+    command: uv run --no-sync ruff check tools/documents-generator/src tools/bruno
+    deps:
+      - ~:lint-bruno
     platform: system
     inputs: &tools-inputs
       - '@group(tools-src)'
       - '@group(tools-cfg)'
 
+  lint-bruno:
+    command: uv run --no-sync python tools/bruno/coverage.py --spec apps/server/openapi.yaml --collection docs/bruno
+    platform: system
+    inputs:
+      - '@group(bruno)'
+
   lint-fix:
-    command: uv run --no-sync ruff check --fix tools/documents-generator/src
+    command: uv run --no-sync ruff check --fix tools/documents-generator/src tools/bruno
     platform: system
     inputs: *tools-inputs
     options:
@@ -67,7 +79,7 @@ tasks:
       runInCI: false
 
   fmt:
-    script: pnpm exec biome format --write --files-ignore-unknown=true package.json biome.json && uv run --no-sync ruff format tools/documents-generator/src
+    script: pnpm exec biome format --write --files-ignore-unknown=true package.json biome.json && uv run --no-sync ruff format tools/documents-generator/src tools/bruno
     platform: system
     deps:
       - ~:lint-fix
@@ -92,6 +104,28 @@ tasks:
       - ~:lint-fix
       - ~:typecheck
     options:
+      runInCI: false
+
+  test-e2e-bruno:
+    script: pnpm exec sh -c 'cd docs/bruno && bru run --env local -r'
+    platform: system
+    deps:
+      - env:compose-up-server
+    inputs:
+      - '@group(bruno)'
+    options:
+      cache: false
+      runInCI: false
+
+  test-e2e-bruno-cluster:
+    script: pnpm exec sh -c 'cd docs/bruno && bru run --env cluster -r'
+    platform: system
+    deps:
+      - env:deploy
+    inputs:
+      - '@group(bruno)'
+    options:
+      cache: false
       runInCI: false
 
   build:

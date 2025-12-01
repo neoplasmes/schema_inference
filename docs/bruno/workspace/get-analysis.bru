@@ -1,0 +1,40 @@
+meta {
+  name: Get analysis
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v2/analyses/{{analysisId}}
+  body: none
+  auth: none
+}
+
+script:post-response {
+  const status = res.getBody().status;
+  const attempts = Number(bru.getVar("pollAttempts") || 0) + 1;
+
+  bru.setVar("pollAttempts", attempts);
+
+  if (status !== "completed" && status !== "failed" && attempts < 150) {
+    await bru.sleep(200);
+    bru.runner.setNextRequest("Get analysis");
+  }
+}
+
+tests {
+  test("returns analysis", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().id).to.equal(bru.getVar("analysisId"));
+    expect(res.getBody().revision).to.be.a("string");
+    expect(res.getBody()._links.self.href).to.equal("/api/v2/analyses/" + bru.getVar("analysisId"));
+  });
+
+  test("analysis does not fail", function () {
+    expect(res.getBody().status).to.not.equal("failed");
+  });
+
+  test("is not cached", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-store");
+  });
+}

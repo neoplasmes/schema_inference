@@ -1,0 +1,27 @@
+meta {
+  name: Analysis is never a cache hit
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v2/analyses/{{analysisId}}
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("analysis is served", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("analysis bypasses the cache", function () {
+    expect(String(res.getHeader("cache-status") || "").toLowerCase()).to.not.contain("hit");
+  });
+}

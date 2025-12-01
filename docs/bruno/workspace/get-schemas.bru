@@ -1,0 +1,29 @@
+meta {
+  name: Get schemas
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas
+  body: none
+  auth: none
+}
+
+tests {
+  test("lists created schema", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+
+    const item = res.getBody().find((entry) => entry.id === bru.getVar("schemaId"));
+
+    expect(item).to.exist;
+    expect(item._links.self.href).to.equal("/api/v2/schemas/" + bru.getVar("schemaId"));
+    expect(item.revision).to.be.a("string");
+  });
+
+  test("must be revalidated", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-cache");
+    expect(res.getHeader("surrogate-key")).to.equal("schemas");
+  });
+}

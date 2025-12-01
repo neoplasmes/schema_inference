@@ -10,6 +10,7 @@
     },
     "devDependencies": {
         "@biomejs/biome": "2.2.6",
+        "@usebruno/cli": "2.14.2",
         "lefthook": "1.13.6"
     },
     "packageManager": "pnpm@10.18.3"

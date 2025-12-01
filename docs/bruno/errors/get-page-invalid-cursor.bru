@@ -1,0 +1,26 @@
+meta {
+  name: Page with invalid cursor
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{nextRevision}}/collections/{{collectionId}}/items?cursor=bogus
+  body: none
+  auth: none
+}
+
+params:query {
+  cursor: bogus
+}
+
+tests {
+  test("rejects cursor", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getBody().code).to.equal("invalid_cursor");
+  });
+
+  test("error is never cached", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-store");
+  });
+}

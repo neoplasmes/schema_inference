@@ -1,0 +1,28 @@
+meta {
+  name: Get changeset
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/changesets/{{mutationId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns receipt", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().id).to.equal(bru.getVar("mutationId"));
+    expect(res.getBody().status).to.equal("applied");
+    expect(res.getBody().result.revision).to.equal(bru.getVar("nextRevision"));
+    expect(res.getBody()._links.self.href).to.equal(
+      "/api/v2/schemas/" + bru.getVar("schemaId") + "/changesets/" + bru.getVar("mutationId")
+    );
+  });
+
+  test("is cached for a day", function () {
+    expect(res.getHeader("cache-control")).to.equal("public, max-age=86400");
+    expect(res.getHeader("surrogate-key")).to.equal("schema:" + bru.getVar("schemaId"));
+  });
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Analysis manifest unknown revision
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v2/analyses/{{analysisId}}/revisions/a999/manifest
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns not found", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getBody().code).to.equal("not_found");
+    expect(res.getHeader("cache-control")).to.equal("no-store");
+  });
+}

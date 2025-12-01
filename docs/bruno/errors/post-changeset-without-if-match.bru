@@ -1,0 +1,32 @@
+meta {
+  name: Changeset without If-Match
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/changesets
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "clientMutationId": "{{mutationId}}-no-if-match",
+    "baseRevision": "{{nextRevision}}",
+    "operations": [
+      {
+        "kind": "renameProperty",
+        "memberId": "{{memberId}}",
+        "name": "never_applied"
+      }
+    ]
+  }
+}
+
+tests {
+  test("requires precondition", function () {
+    expect(res.getStatus()).to.equal(428);
+    expect(res.getBody().code).to.equal("precondition_required");
+  });
+}

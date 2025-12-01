@@ -1,0 +1,32 @@
+meta {
+  name: Analysis without Idempotency-Key
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/v2/analyses
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "No key",
+    "documents": [
+      {
+        "name": "sample.json",
+        "format": "json",
+        "size": 2,
+        "content": "{}"
+      }
+    ]
+  }
+}
+
+tests {
+  test("rejects missing header", function () {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getBody().detail).to.be.an("array").and.not.empty;
+  });
+}

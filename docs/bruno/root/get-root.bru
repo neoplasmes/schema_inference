@@ -1,0 +1,28 @@
+meta {
+  name: Get root
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("serverDirect")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("returns greeting", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().message).to.be.a("string");
+  });
+
+  test("is not cached", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-store");
+  });
+}

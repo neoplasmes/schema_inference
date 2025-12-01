@@ -1,0 +1,39 @@
+meta {
+  name: Create xsd
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/schema/xsd
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "book",
+    "chosenType": "string",
+    "minOccurs": 1,
+    "maxOccurs": 1,
+    "children": []
+  }
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("serverDirect")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("returns xsd attachment", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getHeader("content-type")).to.contain("application/xml");
+    expect(res.getHeader("content-disposition")).to.contain("schema.xsd");
+  });
+
+  test("body is a schema document", function () {
+    expect(String(res.getBody())).to.contain("schema");
+  });
+}

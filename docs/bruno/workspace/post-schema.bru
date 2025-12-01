@@ -1,0 +1,58 @@
+meta {
+  name: Post schema
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v2/schemas
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{schemaKey}}
+}
+
+body:json {
+  {
+    "title": "Bruno draft",
+    "source": {
+      "kind": "analysis",
+      "analysisId": "{{analysisId}}",
+      "revision": "{{analysisRevision}}",
+      "seedId": "{{seedId}}",
+      "rootAlternativeId": "{{rootAlternativeId}}"
+    }
+  }
+}
+
+script:post-response {
+  if (res.getStatus() === 201) {
+    const snapshot = res.getBody().snapshot;
+
+    bru.setVar("schemaId", snapshot.id);
+    bru.setVar("schemaRevision", snapshot.revision);
+    bru.setVar("schemaEtag", res.getHeader("etag"));
+    bru.setVar("rootNodeId", res.getBody().rootNodeId);
+    bru.setVar("rootNodePath", encodeURIComponent(res.getBody().rootNodeId));
+  }
+}
+
+tests {
+  test("creates draft", function () {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().snapshot.resource).to.equal("schema");
+    expect(res.getBody().snapshot.id).to.be.a("string").and.not.empty;
+    expect(res.getBody().snapshot.revision).to.equal("s1");
+    expect(res.getBody().rootNodeId).to.be.a("string");
+    expect(res.getBody()._links.self.href).to.contain("/manifest");
+  });
+
+  test("has location and etag", function () {
+    const id = res.getBody().snapshot.id;
+
+    expect(res.getHeader("location")).to.equal("/api/v2/schemas/" + id);
+    expect(res.getHeader("etag")).to.equal('"' + id + ':s1"');
+  });
+}

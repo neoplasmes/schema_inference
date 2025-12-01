@@ -1,0 +1,31 @@
+meta {
+  name: Get manifest
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{schemaRevision}}/manifest
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns schema manifest", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().snapshot.id).to.equal(bru.getVar("schemaId"));
+    expect(res.getBody().snapshot.revision).to.equal(bru.getVar("schemaRevision"));
+    expect(res.getBody().rootNodeId).to.equal(bru.getVar("rootNodeId"));
+    expect(res.getBody()._links.self.href).to.contain("/manifest");
+    expect(res.getBody()._links.root.href).to.contain("/nodes/");
+  });
+
+  test("has etag", function () {
+    expect(res.getHeader("etag")).to.equal('"' + bru.getVar("schemaId") + ":" + bru.getVar("schemaRevision") + '"');
+  });
+
+  test("is immutable", function () {
+    expect(res.getHeader("cache-control")).to.equal("public, max-age=31536000, immutable");
+    expect(res.getHeader("surrogate-key")).to.equal("schema:" + bru.getVar("schemaId"));
+  });
+}

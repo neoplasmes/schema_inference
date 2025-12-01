@@ -1,0 +1,36 @@
+meta {
+  name: Changeset with stale If-Match
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/changesets
+  body: json
+  auth: none
+}
+
+headers {
+  If-Match: {{schemaEtag}}
+}
+
+body:json {
+  {
+    "clientMutationId": "{{mutationId}}-stale",
+    "baseRevision": "{{schemaRevision}}",
+    "operations": [
+      {
+        "kind": "renameProperty",
+        "memberId": "{{memberId}}",
+        "name": "never_applied"
+      }
+    ]
+  }
+}
+
+tests {
+  test("rejects stale revision", function () {
+    expect(res.getStatus()).to.equal(412);
+    expect(res.getBody().code).to.equal("revision_conflict");
+  });
+}

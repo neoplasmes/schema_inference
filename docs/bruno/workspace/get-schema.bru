@@ -1,0 +1,31 @@
+meta {
+  name: Get schema
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns schema resource", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().id).to.equal(bru.getVar("schemaId"));
+    expect(res.getBody().revision).to.equal(bru.getVar("schemaRevision"));
+    expect(res.getBody()._links.self.href).to.equal("/api/v2/schemas/" + bru.getVar("schemaId"));
+    expect(res.getBody()._links.manifest.href).to.contain("/revisions/" + bru.getVar("schemaRevision") + "/manifest");
+    expect(res.getBody()._links.changesets.href).to.equal("/api/v2/schemas/" + bru.getVar("schemaId") + "/changesets");
+  });
+
+  test("has etag matching the revision", function () {
+    expect(res.getHeader("etag")).to.equal(bru.getVar("schemaEtag"));
+  });
+
+  test("must be revalidated", function () {
+    expect(res.getHeader("cache-control")).to.equal("no-cache");
+    expect(res.getHeader("surrogate-key")).to.equal("schema:" + bru.getVar("schemaId"));
+  });
+}

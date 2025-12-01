@@ -1,0 +1,35 @@
+meta {
+  name: Schema idempotency key reuse
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/v2/schemas
+  body: json
+  auth: none
+}
+
+headers {
+  Idempotency-Key: {{schemaKey}}
+}
+
+body:json {
+  {
+    "title": "Bruno draft with another title",
+    "source": {
+      "kind": "analysis",
+      "analysisId": "{{analysisId}}",
+      "revision": "{{analysisRevision}}",
+      "seedId": "{{seedId}}",
+      "rootAlternativeId": "{{rootAlternativeId}}"
+    }
+  }
+}
+
+tests {
+  test("rejects reused key with different body", function () {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getBody().code).to.equal("idempotency_conflict");
+  });
+}
