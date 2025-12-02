@@ -28,12 +28,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: server
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: database
-                  key: DATABASE_URL
+            - secretRef:
+                name: server
           startupProbe:
             httpGet:
               path: /metrics

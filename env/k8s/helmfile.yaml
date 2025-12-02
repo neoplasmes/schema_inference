@@ -13,6 +13,8 @@ helmDefaults:
 releases:
   - name: kube-prometheus-stack
     namespace: monitoring
+    labels:
+      group: monitoring
     chart: prometheus-community/kube-prometheus-stack
     version: 78.3.2
     values:
@@ -20,6 +22,8 @@ releases:
 
   - name: loki
     namespace: monitoring
+    labels:
+      group: monitoring
     chart: grafana/loki
     version: 6.43.0
     values:
@@ -27,6 +31,8 @@ releases:
 
   - name: alloy
     namespace: monitoring
+    labels:
+      group: monitoring
     chart: grafana/alloy
     version: 1.3.1
     needs:

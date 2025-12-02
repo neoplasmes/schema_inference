@@ -33,6 +33,11 @@ nltk_data/
 .env.*
 !.env.example
 
+/env/secrets/values.json
+/env/pgbouncer/userlist.txt
+/env/k8s/app/**/secret.yaml
+/env/k8s/monitoring/secret.yaml
+
 apps/server/**/fineTuning
 apps/server/**/FinetunedModel
 apps/server/**/generated_xml

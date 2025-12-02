@@ -21,26 +21,34 @@ spec:
       containers:
         - name: valkey
           image: valkey/valkey:9.0.0-alpine@sha256:bef37d06d4856710973ee31dd1eac1482e4c8e6e7b847f999ad25433e646587b
-          args:
-            - valkey-server
-            - --maxmemory
-            - 256mb
-            - --maxmemory-policy
-            - allkeys-lru
-            - --save
-            - ''
-            - --appendonly
-            - 'no'
+          command:
+            - sh
+            - -c
+            - |
+              exec valkey-server - --maxmemory 256mb --maxmemory-policy allkeys-lru --save '' --appendonly no <<EOF
+              requirepass $VALKEY_PASSWORD
+              EOF
+          env:
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: valkey
+                  key: VALKEY_PASSWORD
+            - name: REDISCLI_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: valkey
+                  key: VALKEY_PASSWORD
           ports:
             - name: redis
               containerPort: 6379
           readinessProbe:
             exec:
-              command: [valkey-cli, ping]
+              command: [sh, -c, valkey-cli ping | grep -q PONG]
             periodSeconds: 5
           livenessProbe:
             exec:
-              command: [valkey-cli, ping]
+              command: [sh, -c, valkey-cli ping | grep -q PONG]
             periodSeconds: 20
           resources:
             requests:
@@ -61,6 +69,12 @@ spec:
           image: oliver006/redis_exporter:v1.80.1@sha256:bac9872da2b48e6eebbffb11517a5dcda59958eda51e1e4231eeb5dd516b4a5f
           args:
             - --redis.addr=redis://127.0.0.1:6379
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: valkey
+                  key: VALKEY_PASSWORD
           ports:
             - name: metrics
               containerPort: 9121

@@ -6,7 +6,7 @@ services:
     init: true
     environment:
       POSTGRES_USER: workspace
-      POSTGRES_PASSWORD: REDACTED
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run moon run env:secrets}
       POSTGRES_DB: workspace
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
     volumes:
@@ -20,6 +20,8 @@ services:
   pgbouncer:
     image: edoburu/pgbouncer:v1.24.1-p1@sha256:3db3d7223e93af52b4116f642951a1a5fa44702a88c2a59cf7562cac19320c9e
     init: true
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?run moon run env:secrets}
     ports:
       - '127.0.0.1:6432:6432'
     volumes:
@@ -29,7 +31,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: [CMD, env, PGPASSWORD=REDACTED, psql, -h, 127.0.0.1, -p, '6432', -U, workspace, -d, workspace, -Atc, SELECT 1]
+      test: [CMD, psql, -h, 127.0.0.1, -p, '6432', -U, workspace, -d, workspace, -Atc, SELECT 1]
       interval: 2s
       timeout: 3s
       retries: 30

@@ -45,5 +45,12 @@ spec:
               readOnly: true
       volumes:
         - name: config
-          configMap:
-            name: pgbouncer
+          projected:
+            sources:
+              - configMap:
+                  name: pgbouncer
+              - secret:
+                  name: database
+                  items:
+                    - key: userlist.txt
+                      path: userlist.txt

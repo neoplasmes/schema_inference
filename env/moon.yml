@@ -4,23 +4,28 @@ type: configuration
 fileGroups:
   cfg:
     - local/docker-compose.database.yaml
+    - local/docker-compose.cache.yaml
     - local/docker-compose.server.yaml
     - local/docker-compose.client.yaml
+    - local/.env.example
     - pgbouncer/pgbouncer.ini
-    - pgbouncer/userlist.txt
+    - pgbouncer/userlist.example.txt
   k8s:
     - k8s/**/*
   src:
     - docker/*.py
     - cache/*.py
+    - secrets/*.py
   cache:
     - cache/Caddyfile.template
     - cache/Dockerfile
 
 tasks:
   lint:
-    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null && uv run --no-sync python env/cache/caddyfile.py --spec apps/server/openapi.yaml --template env/cache/Caddyfile.template --output env/k8s/app/gateway/Caddyfile --check
+    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null && uv run --no-sync python env/cache/caddyfile.py --spec apps/server/openapi.yaml --template env/cache/Caddyfile.template --output env/k8s/app/gateway/Caddyfile --check
     platform: system
+    deps:
+      - env:secrets
     inputs:
       - '@group(cfg)'
       - '@group(k8s)'
@@ -29,8 +34,19 @@ tasks:
     options:
       runFromWorkspaceRoot: true
 
+  secrets:
+    command: uv run --no-sync python env/secrets/generate.py
+    inputs:
+      - '@group(cfg)'
+      - '@group(k8s)'
+      - cache/Dockerfile
+      - secrets/generate.py
+    options:
+      cache: false
+      runFromWorkspaceRoot: true
+
   lint-python:
-    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker env/cache
+    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker env/cache env/secrets
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml
@@ -38,7 +54,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   lint-fix-python:
-    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker env/cache
+    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker env/cache env/secrets
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml
@@ -48,7 +64,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   fmt:
-    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker env/cache
+    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker env/cache env/secrets
     deps:
       - env:lint-fix-python
     inputs:
@@ -81,8 +97,9 @@ tasks:
       runFromWorkspaceRoot: true
 
   compose-up:
-    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml up -d --wait --wait-timeout 120
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml up -d --wait --wait-timeout 120
     deps:
+      - env:secrets
       - client:image
       - editor:image
       - server:image
@@ -95,17 +112,20 @@ tasks:
       mutex: workspace-compose
 
   compose-down:
-    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml down --remove-orphans
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml down --remove-orphans
     inputs:
       - '@group(cfg)'
     options: *compose-options
 
   compose-up-database:
     command: docker compose -f env/local/docker-compose.database.yaml up -d --wait --wait-timeout 120
+    deps:
+      - env:secrets
     inputs:
       - local/docker-compose.database.yaml
+      - local/.env.example
       - pgbouncer/pgbouncer.ini
-      - pgbouncer/userlist.txt
+      - pgbouncer/userlist.example.txt
     options: *compose-options
 
   compose-down-database:
@@ -115,15 +135,16 @@ tasks:
     options: *compose-options
 
   compose-up-server:
-    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml up -d --wait --wait-timeout 120
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml up -d --wait --wait-timeout 120
     deps:
+      - env:secrets
       - server:image
     inputs:
       - '@group(cfg)'
     options: *compose-options
 
   compose-down-server:
-    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.server.yaml down
+    command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml down
     inputs:
       - '@group(cfg)'
     options: *compose-options
@@ -143,8 +164,10 @@ tasks:
     options: *cluster-options
 
   deploy-monitoring:
-    script: helmfile -f env/k8s/helmfile.yaml sync && kubectl --context k3d-schema-workspace apply -k env/k8s/monitoring/dashboards
+    script: kubectl --context k3d-schema-workspace create namespace monitoring --dry-run=client -o yaml | kubectl --context k3d-schema-workspace apply -f - && kubectl --context k3d-schema-workspace apply -f env/k8s/monitoring/secret.yaml && helmfile -f env/k8s/helmfile.yaml -l group=monitoring sync && kubectl --context k3d-schema-workspace apply -k env/k8s/monitoring/dashboards
     platform: system
+    deps:
+      - env:secrets
     inputs:
       - '@group(k8s)'
     options: *cluster-options
@@ -157,6 +180,7 @@ tasks:
       kubectl --context k3d-schema-workspace -n schema-workspace rollout status deployment --timeout 300s
     platform: system
     deps:
+      - env:secrets
       - client:image
       - editor:image
       - server:image

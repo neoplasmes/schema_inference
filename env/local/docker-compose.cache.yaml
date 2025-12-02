@@ -1,0 +1,23 @@
+name: schema-workspace
+
+services:
+  valkey:
+    image: valkey/valkey:9.0.0-alpine@sha256:bef37d06d4856710973ee31dd1eac1482e4c8e6e7b847f999ad25433e646587b
+    init: true
+    command:
+      - sh
+      - -c
+      - |
+        exec valkey-server - --maxmemory 256mb --maxmemory-policy allkeys-lru --save '' --appendonly no <<EOF
+        requirepass $$VALKEY_PASSWORD
+        EOF
+    environment:
+      VALKEY_PASSWORD: ${VALKEY_PASSWORD:?run moon run env:secrets}
+      REDISCLI_AUTH: ${VALKEY_PASSWORD:?run moon run env:secrets}
+    ports:
+      - '127.0.0.1:6379:6379'
+    healthcheck:
+      test: [CMD-SHELL, valkey-cli ping | grep -q PONG]
+      interval: 2s
+      timeout: 3s
+      retries: 30
