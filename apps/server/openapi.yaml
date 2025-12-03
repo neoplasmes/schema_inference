@@ -58,6 +58,22 @@ paths:
       x-cache:
         mode: bypass
   /api/v2/analyses:
+    get:
+      tags:
+      - workspace
+      summary: Get Analyses
+      operationId: get_analyses_api_v2_analyses_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-cache:
+        mode: revalidate
+        tags:
+        - analyses
+        varyUser: true
     post:
       tags:
       - workspace
@@ -92,6 +108,8 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       x-cache:
         mode: bypass
+        invalidates:
+        - analyses
   /api/v2/analyses/{identifier}:
     get:
       tags:
@@ -119,6 +137,32 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
       x-cache:
         mode: bypass
+    delete:
+      tags:
+      - workspace
+      summary: Remove Analysis
+      operationId: remove_analysis_api_v2_analyses__identifier__delete
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
+        invalidates:
+        - analyses
+        - analysis:{identifier}
   /api/v2/analyses/{identifier}/revisions/{revision}/manifest:
     get:
       tags:
@@ -170,6 +214,7 @@ paths:
         mode: revalidate
         tags:
         - schemas
+        varyUser: true
     post:
       tags:
       - workspace
@@ -234,6 +279,40 @@ paths:
       x-cache:
         mode: revalidate
         tags:
+        - schema:{identifier}
+    delete:
+      tags:
+      - workspace
+      summary: Remove Schema
+      operationId: remove_schema_api_v2_schemas__identifier__delete
+      parameters:
+      - name: identifier
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Identifier
+      - name: if-match
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: If-Match
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
+        invalidates:
+        - schemas
         - schema:{identifier}
   /api/v2/schemas/{identifier}/revisions/{revision}/manifest:
     get:
@@ -416,6 +495,7 @@ paths:
       x-cache:
         mode: bypass
         invalidates:
+        - schemas
         - schema:{identifier}
   /api/v2/schemas/{identifier}/changesets/{mutation_id}:
     get:

@@ -1,5 +1,6 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from api.http.principal import current_principal
 from api.http.schema import register_sessions, register_xsd
 from api.jobs import SessionCleanupJob
 from app.use_cases.generate_schema import GenerateSchema
@@ -11,7 +12,7 @@ def create_schema_router(
     generate_schema: GenerateSchema,
     cleanup_job: SessionCleanupJob,
 ) -> APIRouter:
-    router = APIRouter(prefix="/schema")
+    router = APIRouter(prefix="/schema", dependencies=[Depends(current_principal)])
     register_sessions(router, upload_documents, cleanup_job)
     register_xsd(router, generate_schema)
     return router

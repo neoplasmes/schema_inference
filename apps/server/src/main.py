@@ -10,6 +10,8 @@ from app.ports.tools.xml_document import XmlDocumentTool
 from app.use_cases.apply_changeset import ApplyChangeset
 from app.use_cases.cleanup_session import CleanupSession
 from app.use_cases.create_draft import CreateDraft
+from app.use_cases.delete_analysis import DeleteAnalysis
+from app.use_cases.delete_schema import DeleteSchema
 from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.infer_schema import InferSchema
 from app.use_cases.process_documents import ProcessDocuments
@@ -118,6 +120,8 @@ def create_app(
             CreateDraft(store),
             ApplyChangeset(store),
             ReadWorkspace(store),
+            DeleteSchema(store),
+            DeleteAnalysis(store),
         )
     )
 

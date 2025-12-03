@@ -2,7 +2,13 @@ from typing import Any
 
 from app.ports.repos.workspace import WorkspaceError
 from app.ports.uow.workspace import WorkspaceUow
-from app.use_cases.workspace_support import digest, identifier, timestamp
+from app.use_cases.workspace_support import (
+    authorize,
+    digest,
+    identifier,
+    timestamp,
+)
+from core.entities import Principal
 from core.entities.schema_draft import SchemaGraph
 
 
@@ -12,16 +18,20 @@ class CreateDraft:
     def __init__(self, store: WorkspaceUow) -> None:
         self._store = store
 
-    def execute(self, body: dict[str, Any], key: str) -> dict[str, Any]:
+    def execute(
+        self, body: dict[str, Any], key: str, principal: Principal
+    ) -> dict[str, Any]:
         fingerprint = digest(body)
+        scope = f"schemas:{principal.subject}"
 
         with self._store.transaction() as repository:
-            replay = repository.replay("schemas", key, fingerprint)
+            replay = repository.replay(scope, key, fingerprint)
 
             if replay is not None:
                 return repository.manifest(replay, "s1")
 
             source = body["source"]
+            authorize(repository, principal, "analysis", source["analysisId"])
             analysis = repository.resource("analysis", source["analysisId"])
 
             if analysis["status"] != "completed":
@@ -58,8 +68,9 @@ class CreateDraft:
                     "updated_at": timestamp(),
                     "document_count": len(analysis["documents"]),
                 },
+                principal.subject,
             )
             repository.save_revision(manifest, graph)
-            repository.remember("schemas", key, fingerprint, schema_id)
+            repository.remember(scope, key, fingerprint, schema_id)
 
             return manifest

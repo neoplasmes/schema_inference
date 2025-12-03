@@ -2,7 +2,8 @@ from typing import Any
 
 from app.ports.repos.workspace import WorkspaceError
 from app.ports.uow.workspace import WorkspaceUow
-from app.use_cases.workspace_support import digest, timestamp
+from app.use_cases.workspace_support import authorize, digest, timestamp
+from core.entities import Principal
 from core.processes.apply_schema_changes import apply_schema_changes
 
 
@@ -13,13 +14,18 @@ class ApplyChangeset:
         self._store = store
 
     def execute(
-        self, identifier: str, body: dict[str, Any], if_match: str | None
+        self,
+        identifier: str,
+        body: dict[str, Any],
+        if_match: str | None,
+        principal: Principal,
     ) -> dict[str, Any]:
         mutation = body["clientMutationId"]
         fingerprint = digest(body)
         scope = f"changesets:{identifier}"
 
         with self._store.transaction() as repository:
+            authorize(repository, principal, "schema", identifier)
             replay = repository.replay(scope, mutation, fingerprint)
 
             if replay is not None:

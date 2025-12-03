@@ -1,3 +1,9 @@
-from .workspace_support import digest, identifier, timestamp
+from .workspace_support import (
+    authorize,
+    digest,
+    identifier,
+    timestamp,
+    visible_owner,
+)
 
-__all__ = ["digest", "identifier", "timestamp"]
+__all__ = ["authorize", "digest", "identifier", "timestamp", "visible_owner"]

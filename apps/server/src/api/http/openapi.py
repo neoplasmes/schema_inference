@@ -13,6 +13,8 @@ from api.jobs import SessionCleanupJob
 from app.use_cases.apply_changeset import ApplyChangeset
 from app.use_cases.cleanup_session import CleanupSession
 from app.use_cases.create_draft import CreateDraft
+from app.use_cases.delete_analysis import DeleteAnalysis
+from app.use_cases.delete_schema import DeleteSchema
 from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.process_documents import ProcessDocuments
 from app.use_cases.read_workspace import ReadWorkspace
@@ -70,6 +72,8 @@ def build_openapi() -> dict[str, Any]:
             inert(CreateDraft),
             inert(ApplyChangeset),
             inert(ReadWorkspace),
+            inert(DeleteSchema),
+            inert(DeleteAnalysis),
         )
     )
     annotate_path_params(server)

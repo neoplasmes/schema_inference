@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 
 import pytest
-from psycopg import connect
+from psycopg import connect, sql
 from psycopg.errors import UniqueViolation
 
 from app.ports.repos.workspace import WorkspaceError
@@ -51,7 +51,7 @@ def test_startup_rejects_an_unknown_migration_version(database_url):
     persistence = store(database_url)
 
     with connect(database_url, prepare_threshold=None) as connection:
-        connection.execute("UPDATE workspace_migrations SET version=2")
+        connection.execute("UPDATE workspace_migrations SET version=version + 100")
 
     with pytest.raises(RuntimeError, match="Unsupported workspace database migrations"):
         persistence.initialize()
@@ -238,3 +238,141 @@ def test_pending_analyses_returns_only_queued_and_processing_ids(database_url):
 
     with persistence.read() as repository:
         assert repository.pending_analyses() == ["a", "c"]
+
+
+def test_migrations_upgrade_a_database_left_at_the_first_version(database_url):
+    migration = PostgresWorkspaceUow._migrations()[0][1]
+
+    with connect(database_url, prepare_threshold=None) as connection:
+        connection.execute(
+            "CREATE TABLE workspace_migrations "
+            "(version INTEGER PRIMARY KEY, applied_at TIMESTAMPTZ NOT NULL DEFAULT now())"
+        )
+        connection.execute(migration.read_bytes())
+        connection.execute("INSERT INTO workspace_migrations (version) VALUES (1)")
+        connection.execute(
+            "INSERT INTO resources (kind, id, data) VALUES ('schema', 'old', '{}')"
+        )
+
+    persistence = store(database_url)
+    store(database_url)
+
+    with connect(database_url, prepare_threshold=None) as connection:
+        versions = connection.execute(
+            "SELECT version FROM workspace_migrations ORDER BY version"
+        ).fetchall()
+
+    assert versions == [(1,), (2,)]
+
+    with persistence.read() as repository:
+        assert repository.owner("schema", "old") == ""
+        assert repository.resources("schema", "someone") == []
+        assert repository.resources("schema") == [{}]
+
+
+def test_startup_rejects_a_gap_in_applied_migrations(database_url):
+    persistence = store(database_url)
+
+    with connect(database_url, prepare_threshold=None) as connection:
+        connection.execute("DELETE FROM workspace_migrations WHERE version=1")
+
+    with pytest.raises(RuntimeError, match="Unsupported workspace database migrations"):
+        persistence.initialize()
+
+
+def test_owner_filters_listing_and_survives_updates(database_url):
+    persistence = store(database_url)
+
+    with persistence.transaction() as repository:
+        repository.put_resource("schema", {"id": "a", "n": 1}, "alice")
+        repository.put_resource("schema", {"id": "b"}, "bob")
+        repository.put_resource("analysis", {"id": "c"}, "alice")
+        repository.put_resource("schema", {"id": "a", "n": 2})
+
+    with persistence.read() as repository:
+        assert repository.owner("schema", "a") == "alice"
+        assert repository.owner("schema", "missing") is None
+        assert repository.resources("schema", "alice") == [{"id": "a", "n": 2}]
+        assert repository.resources("schema", "bob") == [{"id": "b"}]
+        assert repository.resources("schema", "nobody") == []
+        assert [item["id"] for item in repository.resources("schema")] == ["a", "b"]
+
+
+def graph():
+    return SchemaGraph(
+        "root",
+        {"syntax": "json"},
+        {"root": {"id": "root", "kind": "object"}},
+        {"properties": [{"id": "p"}]},
+    )
+
+
+def schema_manifest(identifier, revision):
+    return {
+        "snapshot": {"id": identifier, "revision": revision},
+        "rootNodeId": "root",
+        "profile": {"syntax": "json"},
+        "title": identifier,
+    }
+
+
+def test_deleting_a_schema_cascades_and_keeps_other_resources(database_url):
+    persistence = store(database_url)
+
+    with persistence.transaction() as repository:
+        for identifier in ("keep", "drop"):
+            repository.put_resource("schema", {"id": identifier}, "alice")
+            repository.save_revision(schema_manifest(identifier, "s1"), graph())
+            repository.save_revision(schema_manifest(identifier, "s2"), graph())
+            repository.put_receipt(identifier, {"id": "m1"})
+            repository.replay(f"changesets:{identifier}", "m1", "d")
+            repository.remember(f"changesets:{identifier}", "m1", "d", "m1")
+            repository.remember("schemas:alice", f"key-{identifier}", "d", identifier)
+
+    with persistence.transaction() as repository:
+        repository.delete_resource("schema", "drop")
+
+    with persistence.read() as repository:
+        assert repository.owner("schema", "drop") is None
+
+        with pytest.raises(WorkspaceError):
+            repository.manifest("drop", "s1")
+
+        with pytest.raises(WorkspaceError):
+            repository.receipt("drop", "m1")
+
+        assert repository.replay("schemas:alice", "key-drop", "other") is None
+        assert repository.replay("changesets:drop", "m1", "other") is None
+        assert repository.manifest("keep", "s2")["title"] == "keep"
+        assert repository.page("keep", "s1", "properties", 0, 10)[1] == 1
+        assert repository.receipt("keep", "m1") == {"id": "m1"}
+
+        with pytest.raises(WorkspaceError):
+            repository.replay("schemas:alice", "key-keep", "other")
+
+    with connect(database_url, prepare_threshold=None) as connection:
+        for table in ("members", "collections", "nodes", "revisions", "changesets"):
+            query = sql.SQL("SELECT count(*) FROM {} WHERE schema_id='drop'").format(
+                sql.Identifier(table)
+            )
+
+            assert connection.execute(query).fetchone() == (0,)
+
+
+def test_deleting_an_analysis_removes_result_and_retry_key(database_url):
+    persistence = store(database_url)
+
+    with persistence.transaction() as repository:
+        repository.put_resource("analysis", {"id": "a1"}, "alice")
+        repository.put_analysis_result("a1", {"manifest": {}})
+        repository.remember("analyses:alice", "key", "d", "a1")
+
+    with persistence.transaction() as repository:
+        repository.delete_resource("analysis", "a1")
+
+    with persistence.read() as repository:
+        assert repository.owner("analysis", "a1") is None
+        assert repository.replay("analyses:alice", "key", "other") is None
+
+        with pytest.raises(WorkspaceError):
+            repository.analysis_result("a1")

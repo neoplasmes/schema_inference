@@ -74,6 +74,13 @@ def test_policy_shape_omits_empty_fields():
     assert cache_policy("immutable", ttl=5) == {"x-cache": {"mode": "immutable"}}
 
 
+def test_policy_marks_per_user_variation():
+    assert cache_policy("revalidate", tags=["a"], vary_user=True) == {
+        "x-cache": {"mode": "revalidate", "tags": ["a"], "varyUser": True}
+    }
+    assert "varyUser" not in cache_policy("revalidate")["x-cache"]
+
+
 def test_policy_rejects_invalid_arguments():
     with pytest.raises(ValueError):
         cache_policy("forever")
@@ -101,7 +108,7 @@ def test_cache_control_follows_mode(path: str, expected: str):
 def test_surrogate_key_substitutes_path_params():
     response = TestClient(server()).get("/tagged/abc/x/y")
 
-    assert response.headers["surrogate-key"] == "schema:abc schemas"
+    assert response.headers["surrogate-key"] == "schema:abc, schemas"
 
 
 def test_surrogate_key_is_absent_without_tags():
@@ -148,6 +155,31 @@ def test_openapi_records_invalidations():
     operation = document["paths"]["/api/v2/schemas"]["post"]
 
     assert operation["x-cache"] == {"mode": "bypass", "invalidates": ["schemas"]}
+
+
+def test_openapi_varies_lists_per_user():
+    paths = build_openapi()["paths"]
+
+    for path, tag in (("/api/v2/schemas", "schemas"), ("/api/v2/analyses", "analyses")):
+        assert paths[path]["get"]["x-cache"] == {
+            "mode": "revalidate",
+            "tags": [tag],
+            "varyUser": True,
+        }
+
+
+def test_openapi_declares_deletions_and_analysis_invalidation():
+    paths = build_openapi()["paths"]
+
+    assert paths["/api/v2/analyses"]["post"]["x-cache"]["invalidates"] == ["analyses"]
+    assert paths["/api/v2/schemas/{identifier}"]["delete"]["x-cache"] == {
+        "mode": "bypass",
+        "invalidates": ["schemas", "schema:{identifier}"],
+    }
+    assert paths["/api/v2/analyses/{identifier}"]["delete"]["x-cache"] == {
+        "mode": "bypass",
+        "invalidates": ["analyses", "analysis:{identifier}"],
+    }
 
 
 def test_committed_openapi_is_up_to_date():

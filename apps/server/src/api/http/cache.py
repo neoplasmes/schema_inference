@@ -16,12 +16,15 @@ def cache_policy(
     ttl: int | None = None,
     tags: Iterable[str] = (),
     invalidates: Iterable[str] = (),
+    vary_user: bool = False,
 ) -> dict[str, Any]:
     """Describe the caching contract of an operation for ``openapi_extra``.
 
     The result carries a single ``x-cache`` object: ``mode`` is one of
     ``immutable``, ``ttl``, ``revalidate`` or ``bypass``; ``ttl`` is present
     only for ``ttl``; ``tags`` and ``invalidates`` are omitted when empty.
+    ``varyUser`` is present only when responses differ per user, so a gateway
+    must include the user identity in the cache key.
     """
     if mode not in CACHE_MODES:
         raise ValueError(f"unknown cache mode: {mode}")
@@ -42,6 +45,9 @@ def cache_policy(
 
     if invalidated:
         policy["invalidates"] = invalidated
+
+    if vary_user:
+        policy["varyUser"] = True
 
     return {"x-cache": policy}
 
@@ -66,14 +72,14 @@ def cache_control(policy: dict[str, Any] | None) -> str:
 
 
 def surrogate_keys(policy: dict[str, Any] | None, path_params: dict[str, Any]) -> str:
-    """Render policy tags into a space-separated key list using path params."""
+    """Render policy tags into a comma-separated key list using path params."""
     if not policy:
         return ""
 
     def substitute(match: re.Match[str]) -> str:
         return str(path_params.get(match.group(1), match.group(0)))
 
-    return " ".join(PLACEHOLDER.sub(substitute, tag) for tag in policy.get("tags", ()))
+    return ", ".join(PLACEHOLDER.sub(substitute, tag) for tag in policy.get("tags", ()))
 
 
 class CachePolicyMiddleware:

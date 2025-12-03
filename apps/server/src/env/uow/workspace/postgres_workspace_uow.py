@@ -31,17 +31,29 @@ class PostgresWorkspaceUow:
                 )
             ]
 
-            if versions not in ([], [1]):
+            migrations = self._migrations()
+
+            if versions != [number for number, _ in migrations][: len(versions)]:
                 raise RuntimeError(
                     f"Unsupported workspace database migrations: {versions}"
                 )
 
-            if not versions:
-                migration = Path(__file__).with_name("001_workspace.sql")
-                connection.execute(migration.read_bytes())
+            for number, path in migrations[len(versions) :]:
+                connection.execute(path.read_bytes())
                 connection.execute(
-                    "INSERT INTO workspace_migrations (version) VALUES (1)"
+                    "INSERT INTO workspace_migrations (version) VALUES (%s)",
+                    (number,),
                 )
+
+    @staticmethod
+    def _migrations() -> list[tuple[int, Path]]:
+        """List numbered migration files next to this module in version order."""
+        found = [
+            (int(path.name.split("_", 1)[0]), path)
+            for path in Path(__file__).parent.glob("[0-9][0-9][0-9]_workspace.sql")
+        ]
+
+        return sorted(found)
 
     @contextmanager
     def _connection(self) -> Iterator[Connection]:

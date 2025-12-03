@@ -5,6 +5,8 @@ from typing import Any
 
 from app.ports.repos.workspace import WorkspaceError, WorkspaceRepository
 from app.ports.uow.workspace import WorkspaceUow
+from app.use_cases.workspace_support import authorize, visible_owner
+from core.entities import Principal
 
 
 class ReadWorkspace:
@@ -13,20 +15,35 @@ class ReadWorkspace:
     def __init__(self, store: WorkspaceUow) -> None:
         self._store = store
 
-    def resource(self, kind: str, identifier: str) -> dict[str, Any]:
+    def resource(
+        self, kind: str, identifier: str, principal: Principal
+    ) -> dict[str, Any]:
         with self._store.read() as repository:
+            authorize(repository, principal, kind, identifier)
+
             return repository.resource(kind, identifier)
 
-    def schemas(self) -> list[dict[str, Any]]:
+    def schemas(self, principal: Principal) -> list[dict[str, Any]]:
         with self._store.read() as repository:
             return sorted(
-                repository.resources("schema"),
+                repository.resources("schema", visible_owner(principal)),
                 key=lambda item: item["updated_at"],
                 reverse=True,
             )
 
-    def analysis_manifest(self, identifier: str, revision: str) -> dict[str, Any]:
+    def analyses(self, principal: Principal) -> list[dict[str, Any]]:
         with self._store.read() as repository:
+            return sorted(
+                repository.resources("analysis", visible_owner(principal)),
+                key=lambda item: item["created_at"],
+                reverse=True,
+            )
+
+    def analysis_manifest(
+        self, identifier: str, revision: str, principal: Principal
+    ) -> dict[str, Any]:
+        with self._store.read() as repository:
+            authorize(repository, principal, "analysis", identifier)
             resource = repository.resource("analysis", identifier)
 
             if resource["revision"] != revision:
@@ -37,16 +54,28 @@ class ReadWorkspace:
 
             return repository.analysis_result(identifier)["manifest"]
 
-    def manifest(self, identifier: str, revision: str) -> dict[str, Any]:
+    def manifest(
+        self, identifier: str, revision: str, principal: Principal
+    ) -> dict[str, Any]:
         with self._store.read() as repository:
+            authorize(repository, principal, "schema", identifier)
+
             return repository.manifest(identifier, revision)
 
-    def node(self, identifier: str, revision: str, node_id: str) -> dict[str, Any]:
+    def node(
+        self, identifier: str, revision: str, node_id: str, principal: Principal
+    ) -> dict[str, Any]:
         with self._store.read() as repository:
+            authorize(repository, principal, "schema", identifier)
+
             return repository.node(identifier, revision, node_id)
 
-    def receipt(self, identifier: str, mutation_id: str) -> dict[str, Any]:
+    def receipt(
+        self, identifier: str, mutation_id: str, principal: Principal
+    ) -> dict[str, Any]:
         with self._store.read() as repository:
+            authorize(repository, principal, "schema", identifier)
+
             return repository.receipt(identifier, mutation_id)
 
     def page(
@@ -56,6 +85,7 @@ class ReadWorkspace:
         collection_id: str,
         limit: int,
         cursor: str | None,
+        principal: Principal,
     ) -> dict[str, Any]:
         identity = [identifier, revision, collection_id, limit]
         offset = 0
@@ -80,6 +110,7 @@ class ReadWorkspace:
                 ) from error
 
         with self._store.read() as repository:
+            authorize(repository, principal, "schema", identifier)
             members, total = repository.page(
                 identifier, revision, collection_id, offset, limit
             )

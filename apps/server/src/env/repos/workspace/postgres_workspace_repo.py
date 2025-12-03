@@ -31,20 +31,65 @@ class PostgresWorkspaceRepository:
 
         return self._one(query, (kind, identifier))
 
-    def put_resource(self, kind: str, value: dict[str, Any]) -> None:
+    def owner(self, kind: str, identifier: str) -> str | None:
+        """Return the owning subject, an empty string for unowned rows, None if missing."""
+        row = self._db.execute(
+            "SELECT COALESCE(owner, '') FROM resources WHERE kind=%s AND id=%s",
+            (kind, identifier),
+        ).fetchone()
+
+        return row[0] if row else None
+
+    def put_resource(
+        self, kind: str, value: dict[str, Any], owner: str | None = None
+    ) -> None:
+        """Insert or update a payload, keeping the original owner on updates."""
         self._db.execute(
-            "INSERT INTO resources (kind, id, data) VALUES (%s, %s, %s) "
+            "INSERT INTO resources (kind, id, data, owner) VALUES (%s, %s, %s, %s) "
             "ON CONFLICT(kind, id) DO UPDATE SET data=excluded.data",
-            (kind, value["id"], Jsonb(value)),
+            (kind, value["id"], Jsonb(value), owner),
         )
 
-    def resources(self, kind: str) -> list[dict[str, Any]]:
-        return [
-            row[0]
-            for row in self._db.execute(
+    def resources(self, kind: str, owner: str | None = None) -> list[dict[str, Any]]:
+        """List payloads of one kind, restricted to one owner when given."""
+        if owner is None:
+            rows = self._db.execute(
                 "SELECT data FROM resources WHERE kind=%s ORDER BY id", (kind,)
             )
-        ]
+        else:
+            rows = self._db.execute(
+                "SELECT data FROM resources WHERE kind=%s AND owner=%s ORDER BY id",
+                (kind, owner),
+            )
+
+        return [row[0] for row in rows]
+
+    def delete_resource(self, kind: str, identifier: str) -> None:
+        """Remove a resource with everything stored for it, children first."""
+        if kind == "schema":
+            identity = (identifier,)
+
+            self._db.execute("DELETE FROM members WHERE schema_id=%s", identity)
+            self._db.execute("DELETE FROM collections WHERE schema_id=%s", identity)
+            self._db.execute("DELETE FROM nodes WHERE schema_id=%s", identity)
+            self._db.execute("DELETE FROM revisions WHERE schema_id=%s", identity)
+            self._db.execute("DELETE FROM changesets WHERE schema_id=%s", identity)
+            self._db.execute(
+                "DELETE FROM idempotency WHERE scope=%s "
+                "OR (resource_id=%s AND scope LIKE 'schemas%%')",
+                (f"changesets:{identifier}", identifier),
+            )
+        else:
+            self._db.execute("DELETE FROM analysis_results WHERE id=%s", (identifier,))
+            self._db.execute(
+                "DELETE FROM idempotency WHERE resource_id=%s "
+                "AND scope LIKE 'analyses%%'",
+                (identifier,),
+            )
+
+        self._db.execute(
+            "DELETE FROM resources WHERE kind=%s AND id=%s", (kind, identifier)
+        )
 
     def pending_analyses(self) -> list[str]:
         """List identifiers of analyses that are queued or processing."""
