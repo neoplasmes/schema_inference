@@ -6,6 +6,7 @@ from psycopg import connect, sql
 from psycopg.errors import UniqueViolation
 
 from app.ports.repos.workspace import WorkspaceError
+from core.entities import ResourceChange
 from core.entities.schema_draft import SchemaGraph
 from env.config import load_settings
 from env.uow.workspace import PostgresWorkspaceUow
@@ -376,3 +377,44 @@ def test_deleting_an_analysis_removes_result_and_retry_key(database_url):
 
         with pytest.raises(WorkspaceError):
             repository.analysis_result("a1")
+
+
+def test_changes_are_queued_transactionally_and_claimed_in_order(database_url):
+    persistence = store(database_url)
+
+    with pytest.raises(RuntimeError):
+        with persistence.transaction() as repository:
+            repository.record_change("schema", "lost")
+            raise RuntimeError("interrupted")
+
+    with persistence.transaction() as repository:
+        repository.record_change("schema", "s1")
+        repository.record_change("analysis", "a1", deleted=True)
+
+    with persistence.transaction() as repository:
+        claimed = repository.claim_changes(10)
+
+        assert [change for _, change in claimed] == [
+            ResourceChange("schema", "s1"),
+            ResourceChange("analysis", "a1", True),
+        ]
+        assert len(repository.claim_changes(1)) == 1
+        repository.delete_changes([claimed[0][0]])
+
+    with persistence.transaction() as repository:
+        assert [change for _, change in repository.claim_changes(10)] == [
+            ResourceChange("analysis", "a1", True)
+        ]
+
+
+def test_concurrent_dispatchers_skip_locked_changes(database_url):
+    persistence = store(database_url)
+
+    with persistence.transaction() as repository:
+        repository.record_change("schema", "s1")
+
+    with persistence.transaction() as first:
+        assert len(first.claim_changes(10)) == 1
+
+        with persistence.transaction() as second:
+            assert second.claim_changes(10) == []

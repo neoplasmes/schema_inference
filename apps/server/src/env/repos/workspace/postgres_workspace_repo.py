@@ -4,6 +4,7 @@ from psycopg import Connection
 from psycopg.types.json import Jsonb
 
 from app.ports.repos.workspace import WorkspaceError
+from core.entities import ResourceChange
 from core.entities.schema_draft import SchemaGraph
 
 
@@ -90,6 +91,27 @@ class PostgresWorkspaceRepository:
         self._db.execute(
             "DELETE FROM resources WHERE kind=%s AND id=%s", (kind, identifier)
         )
+
+    def record_change(self, kind: str, resource_id: str, deleted: bool = False) -> None:
+        """Queue a cache invalidation in the transaction that changed the resource."""
+        self._db.execute(
+            "INSERT INTO changes (kind, resource_id, deleted) VALUES (%s, %s, %s)",
+            (kind, resource_id, deleted),
+        )
+
+    def claim_changes(self, limit: int) -> list[tuple[int, ResourceChange]]:
+        """Lock the oldest queued changes that no other dispatcher holds."""
+        return [
+            (row[0], ResourceChange(row[1], row[2], row[3]))
+            for row in self._db.execute(
+                "SELECT id, kind, resource_id, deleted FROM changes "
+                "ORDER BY id LIMIT %s FOR UPDATE SKIP LOCKED",
+                (limit,),
+            )
+        ]
+
+    def delete_changes(self, identifiers: list[int]) -> None:
+        self._db.execute("DELETE FROM changes WHERE id = ANY(%s)", (identifiers,))
 
     def pending_analyses(self) -> list[str]:
         """List identifiers of analyses that are queued or processing."""

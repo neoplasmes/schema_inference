@@ -5,12 +5,14 @@ from unittest.mock import Mock
 import pytest
 
 from app.ports.repos.workspace import WorkspaceError, WorkspaceRepository
+from app.ports.tools.cache_invalidation import CacheInvalidationError
 from app.ports.uow.workspace import WorkspaceUow
 from app.use_cases.delete_analysis import DeleteAnalysis
 from app.use_cases.delete_schema import DeleteSchema
+from app.use_cases.dispatch_changes import DispatchChanges
 from app.use_cases.read_workspace import ReadWorkspace
 from app.use_cases.start_analysis import StartAnalysis
-from core.entities import Principal
+from core.entities import Principal, ResourceChange
 
 ALICE = Principal("alice", frozenset({"editor"}))
 BOB = Principal("bob", frozenset({"editor"}))
@@ -21,6 +23,9 @@ class FakeRepository:
     def __init__(self):
         self.rows = {}
         self.owners = {}
+        self.changes = []
+        self.queue = []
+        self.deleted_changes = []
 
     def owner(self, kind, identifier):
         return (
@@ -52,11 +57,20 @@ class FakeRepository:
     def delete_resource(self, kind, identifier):
         del self.rows[(kind, identifier)]
 
+    def record_change(self, kind, resource_id, deleted=False):
+        self.changes.append((kind, resource_id, deleted))
+
     def replay(self, scope, key, digest):
         return None
 
     def remember(self, scope, key, digest, identifier):
         return None
+
+    def claim_changes(self, limit):
+        return self.queue[:limit]
+
+    def delete_changes(self, identifiers):
+        self.deleted_changes.extend(identifiers)
 
 
 class FakeStore:
@@ -133,7 +147,7 @@ def test_foreign_revisions_are_not_readable():
     assert reads.manifest("s1", "s1", ALICE) == {"x": 1}
 
 
-def test_start_analysis_stores_owner():
+def test_start_analysis_stores_owner_and_records_change():
     store = FakeStore()
     jobs = Mock()
     body = {"title": "t", "documents": [{"format": "json", "content": "{}"}]}
@@ -141,6 +155,7 @@ def test_start_analysis_stores_owner():
     resource = StartAnalysis(uow(store), jobs).execute(body, "key", ALICE)
 
     assert store.repository.owners[("analysis", resource["id"])] == "alice"
+    assert store.repository.changes == [("analysis", resource["id"], False)]
     jobs.submit.assert_called_once_with(resource["id"])
 
 
@@ -161,6 +176,7 @@ def test_delete_schema_requires_matching_if_match():
     delete.execute("s1", '"s1:s3"', ALICE)
 
     assert ("schema", "s1") not in store.repository.rows
+    assert store.repository.changes == [("schema", "s1", True)]
 
 
 def test_delete_hides_foreign_resources_before_checking_preconditions():
@@ -189,3 +205,41 @@ def test_delete_analysis_refuses_unfinished_work():
     delete.execute("a1", ALICE)
 
     assert ("analysis", "a1") not in store.repository.rows
+    assert store.repository.changes == [("analysis", "a1", True)]
+
+
+def test_dispatch_deduplicates_and_deletes_after_success():
+    store = FakeStore()
+    change = ResourceChange("schema", "s1")
+    store.repository.queue = [
+        (1, change),
+        (2, change),
+        (3, ResourceChange("schema", "s1", True)),
+    ]
+    tool = Mock()
+
+    assert DispatchChanges(uow(store), tool).execute() == 3
+
+    tool.invalidate.assert_called_once_with(
+        [change, ResourceChange("schema", "s1", True)]
+    )
+    assert store.repository.deleted_changes == [1, 2, 3]
+
+
+def test_dispatch_keeps_rows_when_the_tool_fails():
+    store = FakeStore()
+    store.repository.queue = [(1, ResourceChange("schema", "s1"))]
+    tool = Mock()
+    tool.invalidate.side_effect = CacheInvalidationError("down")
+
+    with pytest.raises(CacheInvalidationError):
+        DispatchChanges(uow(store), tool).execute()
+
+    assert store.repository.deleted_changes == []
+
+
+def test_dispatch_with_nothing_queued_skips_the_tool():
+    tool = Mock()
+
+    assert DispatchChanges(uow(FakeStore()), tool).execute() == 0
+    tool.invalidate.assert_not_called()

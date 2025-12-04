@@ -9,7 +9,7 @@ from api.http.cache import CachePolicyMiddleware
 from api.http.metrics import expose_metrics
 from api.http.root import create_root_router
 from api.http.schema import create_schema_router
-from api.jobs import SessionCleanupJob
+from api.jobs import CacheInvalidationJob, SessionCleanupJob
 from api.websocket.schema import create_schema_socket
 from app.ports.repos.workspace import WorkspaceError
 from app.ports.tools.analysis_jobs import AnalysisJobs
@@ -28,15 +28,22 @@ def create_http_server(
     cleanup_job: SessionCleanupJob,
     allowed_origins: tuple[str, ...],
     analysis_jobs: AnalysisJobs | None = None,
+    invalidation_job: CacheInvalidationJob | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(server: FastAPI):
         if analysis_jobs is not None:
             analysis_jobs.start()
 
+        if invalidation_job is not None:
+            invalidation_job.start()
+
         try:
             yield
         finally:
+            if invalidation_job is not None:
+                await run_in_threadpool(invalidation_job.stop)
+
             await cleanup_job.shutdown()
 
             if analysis_jobs is not None:

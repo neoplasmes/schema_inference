@@ -74,6 +74,7 @@ def build_openapi() -> dict[str, Any]:
             inert(ReadWorkspace),
             inert(DeleteSchema),
             inert(DeleteAnalysis),
+            lambda: None,
         )
     )
     annotate_path_params(server)

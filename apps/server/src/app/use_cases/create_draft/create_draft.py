@@ -72,5 +72,6 @@ class CreateDraft:
             )
             repository.save_revision(manifest, graph)
             repository.remember(scope, key, fingerprint, schema_id)
+            repository.record_change("schema", schema_id)
 
             return manifest

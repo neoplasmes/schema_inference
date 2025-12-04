@@ -18,6 +18,9 @@ class Settings:
     cleanup_delay: float
     allowed_origins: tuple[str, ...]
     database_url: str = "postgresql://workspace:REDACTED@127.0.0.1:6432/workspace"
+    cache_purge_url: str = ""
+    cache_purge_user: str = ""
+    cache_purge_password: str = ""
 
     @property
     def is_development(self) -> bool:
@@ -48,6 +51,9 @@ def load_settings(env_file: Path = Path(".env")) -> Settings:
         database_url=os.environ.get(
             "DATABASE_URL", "postgresql://workspace:REDACTED@127.0.0.1:6432/workspace"
         ),
+        cache_purge_url=os.environ.get("CACHE_PURGE_URL", ""),
+        cache_purge_user=os.environ.get("CACHE_PURGE_USER", ""),
+        cache_purge_password=os.environ.get("CACHE_PURGE_PASSWORD", ""),
         cleanup_delay=float(os.environ.get("CLEANUP_DELAY", "300")),
         allowed_origins=tuple(
             origin.strip() for origin in origins.split(",") if origin.strip()

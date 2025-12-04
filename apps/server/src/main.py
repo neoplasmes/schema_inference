@@ -2,8 +2,9 @@ from fastapi import FastAPI
 
 from api.http import create_http_server
 from api.http.workspace import create_workspace_router
-from api.jobs import SessionCleanupJob
+from api.jobs import CacheInvalidationJob, SessionCleanupJob
 from app.ports.repos import SessionRepository
+from app.ports.tools.cache_invalidation import CacheInvalidationTool
 from app.ports.tools.document_reader import DocumentReaderTool
 from app.ports.tools.document_storage import DocumentStorageTool
 from app.ports.tools.xml_document import XmlDocumentTool
@@ -12,6 +13,7 @@ from app.use_cases.cleanup_session import CleanupSession
 from app.use_cases.create_draft import CreateDraft
 from app.use_cases.delete_analysis import DeleteAnalysis
 from app.use_cases.delete_schema import DeleteSchema
+from app.use_cases.dispatch_changes import DispatchChanges
 from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.infer_schema import InferSchema
 from app.use_cases.process_documents import ProcessDocuments
@@ -22,6 +24,11 @@ from app.use_cases.upload_documents import UploadDocuments
 from env.config import Settings, build_log_config, load_settings
 from env.repos.session import InMemorySessionRepository
 from env.tools.analysis_jobs import ThreadedAnalysisJobs
+from env.tools.cache_invalidation import (
+    CompositeCacheInvalidationTool,
+    NullCacheInvalidationTool,
+    SouinCacheInvalidationTool,
+)
 from env.tools.document_reader import StrategyDocumentReaderTool
 from env.tools.document_reader.strategies import (
     ElementTreeXmlDocumentTool,
@@ -58,6 +65,23 @@ def build_document_reader(
     return StrategyDocumentReaderTool({".xml": xml, ".yaml": yaml, ".yml": yaml})
 
 
+def build_cache_invalidation(
+    settings: Settings, listeners: tuple[CacheInvalidationTool, ...] = ()
+) -> CacheInvalidationTool:
+    """Purge the gateway cache when configured and notify any extra listeners."""
+    gateway: CacheInvalidationTool = (
+        SouinCacheInvalidationTool(
+            settings.cache_purge_url,
+            settings.cache_purge_user,
+            settings.cache_purge_password,
+        )
+        if settings.cache_purge_url
+        else NullCacheInvalidationTool()
+    )
+
+    return CompositeCacheInvalidationTool([gateway, *listeners])
+
+
 def create_app(
     *,
     settings: Settings | None = None,
@@ -67,6 +91,7 @@ def create_app(
     document_reader: DocumentReaderTool | None = None,
     infer_schema: InferSchema | None = None,
     generate_schema: GenerateSchema | None = None,
+    cache_invalidation: CacheInvalidationTool | None = None,
 ) -> FastAPI:
     configuration = settings if settings is not None else load_settings()
     sessions = (
@@ -102,9 +127,18 @@ def create_app(
             ".json": JsonDocumentStrategy(),
         }
     )
-    jobs = ThreadedAnalysisJobs(RunAnalysis(store, workspace_reader, inference))
+    invalidation = (
+        cache_invalidation
+        if cache_invalidation is not None
+        else build_cache_invalidation(configuration)
+    )
+    invalidation_job = CacheInvalidationJob(DispatchChanges(store, invalidation))
+    jobs = ThreadedAnalysisJobs(
+        RunAnalysis(store, workspace_reader, inference), invalidation_job.kick
+    )
     server = create_http_server(
         analysis_jobs=jobs,
+        invalidation_job=invalidation_job,
         upload_documents=UploadDocuments(sessions, documents),
         process_documents=ProcessDocuments(
             sessions, documents, reader, inference, cleanup
@@ -122,6 +156,7 @@ def create_app(
             ReadWorkspace(store),
             DeleteSchema(store),
             DeleteAnalysis(store),
+            invalidation_job.kick,
         )
     )
 

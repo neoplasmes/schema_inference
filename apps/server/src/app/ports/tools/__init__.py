@@ -1,3 +1,4 @@
+from .cache_invalidation import CacheInvalidationError, CacheInvalidationTool
 from .document_reader import (
     DocumentParserStrategy,
     DocumentReaderTool,
@@ -13,6 +14,8 @@ from .schema_writer import SchemaWriter
 from .xml_document import XmlDocumentTool
 
 __all__ = [
+    "CacheInvalidationError",
+    "CacheInvalidationTool",
     "DocumentParserStrategy",
     "DocumentReaderTool",
     "DocumentNotFoundError",

@@ -29,3 +29,4 @@ class DeleteSchema:
                 )
 
             repository.delete_resource("schema", identifier)
+            repository.record_change("schema", identifier, deleted=True)

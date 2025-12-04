@@ -15,12 +15,16 @@ from env.tools.analysis_jobs import ThreadedAnalysisJobs
 class FakeRepository:
     def __init__(self, resources):
         self.resources = resources
+        self.changes = []
 
     def resource(self, kind, identifier):
         return self.resources[identifier]
 
-    def put_resource(self, kind, value):
+    def put_resource(self, kind, value, owner=None):
         self.resources[value["id"]] = value
+
+    def record_change(self, kind, resource_id, deleted=False):
+        self.changes.append((kind, resource_id, deleted))
 
     def pending_analyses(self):
         return sorted(
@@ -68,6 +72,7 @@ def test_exhausted_attempts_fail_analysis_without_running():
 
     assert store.repository.resources["a1"]["status"] == "failed"
     assert store.repository.resources["a1"]["progress"] == 100
+    assert store.repository.changes == [("analysis", "a1", False)]
     reader.read.assert_not_called()
     inference.analyze.assert_not_called()
 

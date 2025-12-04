@@ -48,6 +48,7 @@ class StartAnalysis:
             }
             repository.put_resource("analysis", resource, principal.subject)
             repository.remember(scope, key, fingerprint, resource["id"])
+            repository.record_change("analysis", resource["id"])
 
         self._jobs.submit(resource["id"])
 

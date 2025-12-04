@@ -73,5 +73,6 @@ class ApplyChangeset:
             )
             repository.put_receipt(identifier, receipt)
             repository.remember(scope, mutation, fingerprint, mutation)
+            repository.record_change("schema", identifier)
 
             return receipt

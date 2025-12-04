@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Header, Query, Response
@@ -25,6 +26,7 @@ def create_workspace_router(
     reads: ReadWorkspace,
     delete_schema: DeleteSchema,
     delete_analysis: DeleteAnalysis,
+    notify: Callable[[], None],
 ) -> APIRouter:
     router = APIRouter(prefix="/api/v2", tags=["workspace"])
 
@@ -56,6 +58,7 @@ def create_workspace_router(
         principal: Actor,
     ):
         resource = start.execute(body.model_dump(), idempotency_key, principal)
+        notify()
         response.headers["Location"] = f"/api/v2/analyses/{resource['id']}"
 
         return resource_links("analysis", resource)
@@ -75,6 +78,7 @@ def create_workspace_router(
     )
     def remove_analysis(identifier: str, principal: Actor):
         delete_analysis.execute(identifier, principal)
+        notify()
 
         return Response(status_code=204)
 
@@ -109,6 +113,7 @@ def create_workspace_router(
         principal: Actor,
     ):
         manifest = drafts.execute(body.model_dump(), idempotency_key, principal)
+        notify()
         snapshot = manifest["snapshot"]
         response.headers["Location"] = f"/api/v2/schemas/{snapshot['id']}"
         response.headers["ETag"] = f'"{snapshot["id"]}:{snapshot["revision"]}"'
@@ -138,6 +143,7 @@ def create_workspace_router(
         if_match: Annotated[str | None, Header()] = None,
     ):
         delete_schema.execute(identifier, if_match, principal)
+        notify()
 
         return Response(status_code=204)
 
@@ -191,6 +197,7 @@ def create_workspace_router(
         if_match: Annotated[str | None, Header()] = None,
     ):
         receipt = changes.execute(identifier, body.model_dump(), if_match, principal)
+        notify()
         response.headers["Location"] = (
             f"/api/v2/schemas/{identifier}/changesets/{receipt['id']}"
         )

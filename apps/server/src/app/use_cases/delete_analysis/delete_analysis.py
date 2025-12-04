@@ -19,3 +19,4 @@ class DeleteAnalysis:
                 raise WorkspaceError("not_ready", "Analysis has not finished.")
 
             repository.delete_resource("analysis", identifier)
+            repository.record_change("analysis", identifier, deleted=True)

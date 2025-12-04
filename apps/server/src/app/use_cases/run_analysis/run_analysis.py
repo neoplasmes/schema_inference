@@ -51,11 +51,13 @@ class RunAnalysis:
                     progress=100,
                 )
                 repository.put_resource("analysis", resource)
+                repository.record_change("analysis", identifier)
 
                 return
 
             resource.update(status="processing", progress=10, attempts=attempts)
             repository.put_resource("analysis", resource)
+            repository.record_change("analysis", identifier)
 
         try:
             documents = resource["documents"]
@@ -122,6 +124,7 @@ class RunAnalysis:
                 repository.put_analysis_result(identifier, result)
                 resource.update(status="completed", progress=100)
                 repository.put_resource("analysis", resource)
+                repository.record_change("analysis", identifier)
         except (
             InvalidDocumentError,
             InferSchemaError,
@@ -144,6 +147,7 @@ class RunAnalysis:
                     return
 
                 repository.put_resource("analysis", resource)
+                repository.record_change("analysis", resource["id"])
         except Exception:
             logging.getLogger(__name__).exception(
                 "Analysis %s could not be marked as failed", resource["id"]
