@@ -11,7 +11,7 @@ from pathlib import Path
 PLACEHOLDER = re.compile(r"\$\{([a-z][a-z0-9_]*)\}")
 FROM_LINE = re.compile(r"^FROM\s+(caddy:\S+-alpine\S*)", re.MULTILINE)
 STORE_NAME = "values.json"
-DIRECTORIES: tuple[str, ...] = ()
+DIRECTORIES = ("env/local/identity-bootstrap",)
 EXAMPLE_GLOBS = (
     "env/**/secret.example.yaml",
     "env/**/.env.example",

@@ -35,6 +35,8 @@ nltk_data/
 
 /env/secrets/values.json
 /env/pgbouncer/userlist.txt
+/env/local/identity.env
+/env/local/identity-bootstrap/
 /env/k8s/app/**/secret.yaml
 /env/k8s/monitoring/secret.yaml
 

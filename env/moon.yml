@@ -5,6 +5,7 @@ fileGroups:
   cfg:
     - local/docker-compose.database.yaml
     - local/docker-compose.cache.yaml
+    - local/docker-compose.identity.yaml
     - local/docker-compose.server.yaml
     - local/docker-compose.client.yaml
     - local/.env.example
@@ -16,13 +17,14 @@ fileGroups:
     - docker/*.py
     - cache/*.py
     - secrets/*.py
+    - identity/*.py
   cache:
     - cache/Caddyfile.template
     - cache/Dockerfile
 
 tasks:
   lint:
-    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null && uv run --no-sync python env/cache/caddyfile.py --spec apps/server/openapi.yaml --template env/cache/Caddyfile.template --output env/k8s/app/gateway/Caddyfile --check
+    script: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.identity.yaml -f env/local/docker-compose.server.yaml -f env/local/docker-compose.client.yaml config --quiet && kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app > /dev/null && kubectl kustomize env/k8s/monitoring/dashboards > /dev/null && uv run --no-sync python env/cache/caddyfile.py --spec apps/server/openapi.yaml --template env/cache/Caddyfile.template --output env/k8s/app/gateway/Caddyfile --check
     platform: system
     deps:
       - env:secrets
@@ -46,7 +48,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   lint-python:
-    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker env/cache env/secrets
+    command: uv run --no-sync ruff check --config apps/server/pyproject.toml env/docker env/cache env/secrets env/identity
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml
@@ -54,7 +56,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   lint-fix-python:
-    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker env/cache env/secrets
+    command: uv run --no-sync ruff check --fix --config apps/server/pyproject.toml env/docker env/cache env/secrets env/identity
     inputs:
       - '@group(src)'
       - /apps/server/pyproject.toml
@@ -64,7 +66,7 @@ tasks:
       runFromWorkspaceRoot: true
 
   fmt:
-    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker env/cache env/secrets
+    command: uv run --no-sync ruff format --config apps/server/pyproject.toml env/docker env/cache env/secrets env/identity
     deps:
       - env:lint-fix-python
     inputs:
@@ -138,6 +140,7 @@ tasks:
     command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml up -d --wait --wait-timeout 120
     deps:
       - env:secrets
+      - env:bootstrap-identity-compose
       - server:image
     inputs:
       - '@group(cfg)'
@@ -147,6 +150,31 @@ tasks:
     command: docker compose -f env/local/docker-compose.database.yaml -f env/local/docker-compose.cache.yaml -f env/local/docker-compose.server.yaml down
     inputs:
       - '@group(cfg)'
+    options: *compose-options
+
+  compose-up-identity:
+    description: Start ZITADEL v4.7.0 with its own Postgres and the Login V2 UI; issuer http://localhost:8085, login UI http://localhost:8086/ui/v2/login
+    command: docker compose -f env/local/docker-compose.identity.yaml up -d --wait --wait-timeout 180
+    deps:
+      - env:secrets
+    inputs:
+      - local/docker-compose.identity.yaml
+      - local/.env.example
+    options: *compose-options
+
+  compose-down-identity:
+    command: docker compose -f env/local/docker-compose.identity.yaml down
+    inputs:
+      - local/docker-compose.identity.yaml
+    options: *compose-options
+
+  bootstrap-identity-compose:
+    description: Provision the compose ZITADEL (issuer http://localhost:8085) and write the server credentials to env/local/identity.env
+    command: uv run --no-sync python env/identity/bootstrap.py --target compose --output env/local/identity.env
+    deps:
+      - env:compose-up-identity
+    inputs:
+      - identity/bootstrap.py
     options: *compose-options
 
   cluster-up:
@@ -176,8 +204,9 @@ tasks:
     script: >-
       k3d image import -c schema-workspace schema-workspace-api:development schema-workspace-client:development schema-workspace-editor:development schema-workspace-gateway:development &&
       kubectl kustomize --load-restrictor LoadRestrictionsNone env/k8s/app | kubectl --context k3d-schema-workspace apply -f - &&
+      helmfile -f env/k8s/helmfile.yaml -l group=identity sync &&
       kubectl --context k3d-schema-workspace -n schema-workspace rollout restart deployment/server deployment/client deployment/editor deployment/gateway &&
-      kubectl --context k3d-schema-workspace -n schema-workspace rollout status deployment --timeout 300s
+      kubectl --context k3d-schema-workspace -n schema-workspace rollout status deployment/client deployment/editor deployment/gateway deployment/zitadel deployment/zitadel-login --timeout 300s
     platform: system
     deps:
       - env:secrets
@@ -192,3 +221,11 @@ tasks:
       - '@group(k8s)'
     options: *cluster-options
 
+  bootstrap-identity:
+    description: Provision ZITADEL in the cluster (project, OIDC apps, bruno machine user, webhook) through the gateway on auth.localhost:8080 and store the server credentials in the server-identity Secret
+    command: uv run --no-sync python env/identity/bootstrap.py --target cluster
+    deps:
+      - env:deploy
+    inputs:
+      - identity/bootstrap.py
+    options: *cluster-options

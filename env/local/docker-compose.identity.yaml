@@ -1,0 +1,85 @@
+name: schema-workspace
+
+services:
+  zitadel-db:
+    image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    init: true
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${ZITADEL_POSTGRES_PASSWORD:?run moon run env:secrets}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - zitadel-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD, pg_isready, -U, postgres]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:v4.7.0
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
+    user: ${HOST_UID:?run moon run env:secrets}:${HOST_GID:?run moon run env:secrets}
+    init: true
+    environment:
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:?run moon run env:secrets}
+      ZITADEL_EXTERNALDOMAIN: localhost
+      ZITADEL_EXTERNALPORT: '8085'
+      ZITADEL_EXTERNALSECURE: 'false'
+      ZITADEL_TLS_ENABLED: 'false'
+      ZITADEL_DATABASE_POSTGRES_HOST: zitadel-db
+      ZITADEL_DATABASE_POSTGRES_PORT: '5432'
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DATABASE_PASSWORD:?run moon run env:secrets}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: postgres
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${ZITADEL_POSTGRES_PASSWORD:?run moon run env:secrets}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: 'true'
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI: http://localhost:8086/ui/v2/login
+      ZITADEL_FIRSTINSTANCE_PATPATH: /bootstrap/iam-admin.pat
+      ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH: /bootstrap/login-client.pat
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: schema-workspace
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD:?run moon run env:secrets}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: 'false'
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: iam-admin
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: IAM Admin
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME: login-client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME: Login Client
+      ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE: '2029-01-01T00:00:00Z'
+    ports:
+      - '127.0.0.1:8085:8080'
+    volumes:
+      - ./identity-bootstrap:/bootstrap
+    depends_on:
+      zitadel-db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, /app/zitadel, ready]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+      start_period: 10s
+
+  zitadel-login:
+    image: ghcr.io/zitadel/zitadel-login:v4.7.0
+    user: ${HOST_UID:?run moon run env:secrets}:${HOST_GID:?run moon run env:secrets}
+    init: true
+    environment:
+      ZITADEL_API_URL: http://zitadel:8080
+      ZITADEL_SERVICE_USER_TOKEN_FILE: /bootstrap/login-client.pat
+      CUSTOM_REQUEST_HEADERS: Host:localhost:8085
+      NEXT_PUBLIC_BASE_PATH: /ui/v2/login
+    ports:
+      - '127.0.0.1:8086:3000'
+    volumes:
+      - ./identity-bootstrap:/bootstrap:ro
+    depends_on:
+      zitadel:
+        condition: service_healthy
+
+volumes:
+  zitadel-data:

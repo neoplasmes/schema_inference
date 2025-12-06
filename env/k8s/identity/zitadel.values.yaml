@@ -1,0 +1,130 @@
+image:
+  repository: ghcr.io/zitadel/zitadel
+  tag: v4.7.0
+
+replicaCount: 1
+
+envVarsSecret: zitadel-env
+
+zitadel:
+  masterkeySecretName: zitadel-masterkey
+  configmapConfig:
+    ExternalDomain: auth.localhost
+    ExternalPort: 8080
+    ExternalSecure: false
+    TLS:
+      Enabled: false
+    Database:
+      Postgres:
+        Host: zitadel-postgres
+        Port: 5432
+        Database: zitadel
+        MaxOpenConns: 10
+        MaxIdleConns: 5
+        MaxConnLifetime: 30m
+        MaxConnIdleTime: 5m
+        User:
+          Username: zitadel
+          SSL:
+            Mode: disable
+        Admin:
+          Username: postgres
+          SSL:
+            Mode: disable
+    FirstInstance:
+      Org:
+        Name: schema-workspace
+        Human:
+          UserName: admin
+          FirstName: Admin
+          LastName: Workspace
+          Email:
+            Address: admin@schema-workspace.localhost
+            Verified: true
+          PasswordChangeRequired: false
+        Machine:
+          Machine:
+            Username: iam-admin
+            Name: IAM Admin
+          Pat:
+            ExpirationDate: '2029-01-01T00:00:00Z'
+        LoginClient:
+          Machine:
+            Username: login-client
+            Name: Login Client
+          Pat:
+            ExpirationDate: '2029-01-01T00:00:00Z'
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+initJob:
+  initContainers:
+    - name: wait-for-postgres
+      image: wait4x/wait4x:3.6
+      command:
+        - wait4x
+        - tcp
+        - zitadel-postgres:5432
+        - --timeout
+        - 5m
+        - --interval
+        - 2s
+      securityContext:
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+setupJob:
+  initContainers:
+    - name: wait-for-postgres
+      image: wait4x/wait4x:3.6
+      command:
+        - wait4x
+        - tcp
+        - zitadel-postgres:5432
+        - --timeout
+        - 5m
+        - --interval
+        - 2s
+      securityContext:
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 1000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  machinekeyWriter:
+    image:
+      tag: 1.34.1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+
+login:
+  enabled: true
+  image:
+    repository: ghcr.io/zitadel/zitadel-login
+    tag: v4.7.0
+  customConfigmapConfig: |
+    ZITADEL_SERVICE_USER_TOKEN_FILE="/login-client/pat"
+    ZITADEL_API_URL="http://zitadel:8080"
+    CUSTOM_REQUEST_HEADERS="Host:auth.localhost:8080"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
