@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterator
 
 import httpx
 import pytest
-from support import DatabaseStack
+from support import TRUSTED_HEADERS, DatabaseStack
 
 
 @pytest.fixture(scope="session")
@@ -20,6 +20,9 @@ def api_stack(
 def api(api_stack: DatabaseStack) -> Iterator[httpx.Client]:
     """Send requests over the published HTTP port without an in-process app."""
     with httpx.Client(
-        base_url=api_stack.api_url, timeout=30, trust_env=False
+        base_url=api_stack.api_url,
+        timeout=30,
+        trust_env=False,
+        headers=TRUSTED_HEADERS,
     ) as client:
         yield client

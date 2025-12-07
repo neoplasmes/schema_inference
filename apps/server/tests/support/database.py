@@ -70,6 +70,8 @@ class DatabaseStack:
                     "    ports: !override []\n"
                     "  server:\n"
                     f"    ports: !override ['127.0.0.1:{self.api_port or ''}:8000']\n"
+                    "    environment:\n"
+                    "      AUTH_TRUST_GATEWAY: 'true'\n"
                 )
 
             if self.client:

@@ -1,4 +1,5 @@
 from .document_node import DocumentNode
+from .identity import Identity
 from .json_document_node import JsonDocumentNode
 from .principal import ADMIN_ROLE, Principal
 from .resource_change import ResourceChange
@@ -10,6 +11,7 @@ from .yaml_document_node import YamlDocumentNode
 __all__ = [
     "ADMIN_ROLE",
     "DocumentNode",
+    "Identity",
     "JsonDocumentNode",
     "Principal",
     "ResourceChange",

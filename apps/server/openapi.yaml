@@ -43,6 +43,133 @@ paths:
       responses:
         '200':
           description: Successful Response
+  /auth/login:
+    get:
+      tags:
+      - auth
+      summary: Login
+      operationId: login_auth_login_get
+      parameters:
+      - name: returnTo
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Returnto
+      responses:
+        '302':
+          description: Redirect to the identity provider.
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /auth/callback:
+    get:
+      tags:
+      - auth
+      summary: Callback
+      operationId: callback_auth_callback_get
+      parameters:
+      - name: code
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Code
+      - name: state
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: State
+      - name: error
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: Error
+      responses:
+        '302':
+          description: Session established; redirect to the return path.
+        '400':
+          description: The callback does not match a started login.
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v2/session:
+    get:
+      tags:
+      - auth
+      summary: Get Session
+      operationId: get_session_api_v2_session_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-cache:
+        mode: bypass
+    delete:
+      tags:
+      - auth
+      summary: Delete Session
+      operationId: delete_session_api_v2_session_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      x-cache:
+        mode: bypass
+  /api/v2/auth/check:
+    get:
+      tags:
+      - auth
+      summary: Check
+      operationId: check_api_v2_auth_check_get
+      parameters:
+      - name: X-Forwarded-Method
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Forwarded-Method
+      - name: X-Forwarded-Uri
+        in: header
+        required: false
+        schema:
+          type: string
+          default: ''
+          title: X-Forwarded-Uri
+      responses:
+        '204':
+          description: Successful Response
+        '401':
+          description: No active token.
+        '404':
+          description: The target resource does not exist for the caller.
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      x-cache:
+        mode: bypass
   /api/v2:
     get:
       tags:

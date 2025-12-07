@@ -7,12 +7,14 @@ from starlette.concurrency import run_in_threadpool
 
 from api.http.cache import CachePolicyMiddleware
 from api.http.metrics import expose_metrics
+from api.http.principal import AccessError, Authentication
 from api.http.root import create_root_router
 from api.http.schema import create_schema_router
 from api.jobs import CacheInvalidationJob, SessionCleanupJob
 from api.websocket.schema import create_schema_socket
 from app.ports.repos.workspace import WorkspaceError
 from app.ports.tools.analysis_jobs import AnalysisJobs
+from app.ports.tools.token_introspection import TokenIntrospectionError
 from app.use_cases.cleanup_session import CleanupSession
 from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.process_documents import ProcessDocuments
@@ -27,6 +29,7 @@ def create_http_server(
     cleanup_session: CleanupSession,
     cleanup_job: SessionCleanupJob,
     allowed_origins: tuple[str, ...],
+    authentication: Authentication,
     analysis_jobs: AnalysisJobs | None = None,
     invalidation_job: CacheInvalidationJob | None = None,
 ) -> FastAPI:
@@ -50,6 +53,19 @@ def create_http_server(
                 await run_in_threadpool(analysis_jobs.shutdown)
 
     server = FastAPI(lifespan=lifespan)
+    server.state.authentication = authentication
+
+    @server.exception_handler(AccessError)
+    async def access_error(request: Request, error: AccessError):
+        headers = {"WWW-Authenticate": "Bearer"} if error.status == 401 else None
+
+        return JSONResponse(
+            status_code=error.status, content={"code": error.code}, headers=headers
+        )
+
+    @server.exception_handler(TokenIntrospectionError)
+    async def identity_unavailable(request: Request, error: TokenIntrospectionError):
+        return JSONResponse(status_code=503, content={"code": "identity_unavailable"})
 
     @server.exception_handler(WorkspaceError)
     async def workspace_error(request: Request, error: WorkspaceError):
@@ -82,7 +98,9 @@ def create_http_server(
         create_schema_router(upload_documents, generate_schema, cleanup_job)
     )
     server.include_router(
-        create_schema_socket(process_documents, cleanup_job, cleanup_session)
+        create_schema_socket(
+            process_documents, cleanup_job, cleanup_session, authentication
+        )
     )
     expose_metrics(server)
 

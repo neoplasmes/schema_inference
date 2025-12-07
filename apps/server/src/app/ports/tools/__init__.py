@@ -9,8 +9,11 @@ from .document_storage import (
     DocumentStorageError,
     DocumentStorageTool,
 )
+from .identity_cache import IdentityCache, IdentityCacheError
 from .lexical_resource import LexicalResourceTool
+from .oidc_login import OidcLoginError, OidcLoginTool, TokenGrant
 from .schema_writer import SchemaWriter
+from .token_introspection import TokenIntrospectionError, TokenIntrospectionTool
 from .xml_document import XmlDocumentTool
 
 __all__ = [
@@ -21,8 +24,15 @@ __all__ = [
     "DocumentNotFoundError",
     "DocumentStorageError",
     "DocumentStorageTool",
+    "IdentityCache",
+    "IdentityCacheError",
     "InvalidDocumentError",
     "LexicalResourceTool",
+    "OidcLoginError",
+    "OidcLoginTool",
     "SchemaWriter",
+    "TokenGrant",
+    "TokenIntrospectionError",
+    "TokenIntrospectionTool",
     "XmlDocumentTool",
 ]

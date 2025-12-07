@@ -10,6 +10,13 @@ configMapGenerator:
       - UPLOAD_ROOT=/data/uploads
       - WORDNET_ROOT=/opt/wordnet
       - ALLOWED_ORIGINS=http://localhost:8080
+      - AUTH_TRUST_GATEWAY=true
+      - AUTH_CACHE_TTL=300
+      - AUTH_COOKIE_SECURE=false
+      - AUTH_ISSUER=http://auth.localhost:8080
+      - AUTH_INTERNAL_URL=http://zitadel:8080
+      - AUTH_REDIRECT_URI=http://localhost:8080/auth/callback
+      - AUTH_POST_LOGOUT_URI=http://localhost:8080/
 
 resources:
   - secret.yaml

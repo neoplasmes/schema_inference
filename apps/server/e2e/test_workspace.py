@@ -8,6 +8,7 @@ from flows import (
     rename_changeset,
     restart_server,
 )
+from support import TRUSTED_HEADERS
 
 
 @pytest.mark.parametrize(
@@ -53,7 +54,10 @@ def test_analysis_edit_and_immutable_revisions_survive_server_restart(
     restart_server(api_stack)
 
     with httpx.Client(
-        base_url=api_stack.api_url, timeout=30, trust_env=False
+        base_url=api_stack.api_url,
+        timeout=30,
+        trust_env=False,
+        headers=TRUSTED_HEADERS,
     ) as reopened:
         assert get_json(reopened, resource["_links"]["self"]["href"]) == resource
         assert get_json(reopened, analysis["_links"]["self"]["href"]) == analysis

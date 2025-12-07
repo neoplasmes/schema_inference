@@ -20,6 +20,13 @@ def settings(directory: Path, database_url: str) -> Settings:
         cleanup_delay=300,
         allowed_origins=("http://localhost:3000",),
         database_url=database_url,
+        auth_trust_gateway=True,
+    )
+
+
+def trusted(application) -> TestClient:
+    return TestClient(
+        application, headers={"X-User-Id": "root", "X-User-Roles": "admin"}
     )
 
 
@@ -103,7 +110,7 @@ def root_rows(client, manifest, limit=50):
 def test_analysis_draft_save_and_restart(tmp_path, database_url):
     configuration = settings(tmp_path, database_url)
 
-    with TestClient(create_app(settings=configuration)) as client:
+    with trusted(create_app(settings=configuration)) as client:
         resource, manifest, _ = analyze(client)
         schema, _ = draft(client, resource, manifest)
         path, _, page = root_rows(client, schema)
@@ -132,7 +139,7 @@ def test_analysis_draft_save_and_restart(tmp_path, database_url):
         )
         assert client.get(f"/api/v2/schemas/{schema_id}").json()["revision"] == "s2"
 
-    with TestClient(create_app(settings=configuration)) as restarted:
+    with trusted(create_app(settings=configuration)) as restarted:
         reopened = restarted.get(receipt["result"]["manifestUrl"]).json()
         _, _, rows = root_rows(restarted, reopened)
         assert rows["items"][0]["member"]["name"] == "cost"
@@ -144,7 +151,7 @@ def test_analysis_draft_save_and_restart(tmp_path, database_url):
 
 
 def test_idempotent_creation_and_independent_drafts(tmp_path, database_url):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, manifest, body = analyze(client)
         replay = client.post(
             "/api/v2/analyses", json=body, headers={"Idempotency-Key": "analysis-1"}
@@ -172,7 +179,7 @@ def test_idempotent_creation_and_independent_drafts(tmp_path, database_url):
 
 
 def test_atomic_changeset_replay_preconditions_and_pagination(tmp_path, database_url):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, manifest, _ = analyze(client)
         schema, _ = draft(client, resource, manifest)
         path, node, page = root_rows(client, schema, 1)
@@ -242,7 +249,7 @@ def test_atomic_changeset_replay_preconditions_and_pagination(tmp_path, database
 
 
 def test_move_updates_both_owners_and_rejects_cycles(tmp_path, database_url):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, manifest, _ = analyze(client, '{"left":{"a":1},"right":{}}')
         schema, _ = draft(client, resource, manifest)
         path, node, page = root_rows(client, schema)
@@ -307,7 +314,7 @@ def test_move_updates_both_owners_and_rejects_cycles(tmp_path, database_url):
 def test_concurrent_changesets_preserve_one_winner_and_immutable_base(
     tmp_path, database_url
 ):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client)
         schema, _ = draft(client, resource, analysis)
         path, _, page = root_rows(client, schema)
@@ -359,7 +366,7 @@ def test_concurrent_changesets_preserve_one_winner_and_immutable_base(
 
 
 def test_concurrent_changeset_retries_share_one_durable_receipt(tmp_path, database_url):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client)
         schema, _ = draft(client, resource, analysis)
         _, _, page = root_rows(client, schema)

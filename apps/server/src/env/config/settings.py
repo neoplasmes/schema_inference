@@ -21,10 +21,29 @@ class Settings:
     cache_purge_url: str = ""
     cache_purge_user: str = ""
     cache_purge_password: str = ""
+    valkey_url: str = ""
+    auth_issuer: str = ""
+    auth_internal_url: str = ""
+    auth_client_id: str = ""
+    auth_client_secret: str = ""
+    auth_api_client_id: str = ""
+    auth_api_client_secret: str = ""
+    auth_project_id: str = ""
+    auth_redirect_uri: str = ""
+    auth_post_logout_uri: str = "/"
+    auth_cookie_secure: bool = False
+    auth_cache_ttl: int = 300
+    auth_trust_gateway: bool = False
+    auth_webhook_signing_key: str = ""
 
     @property
     def is_development(self) -> bool:
         return self.environment == "development"
+
+
+def flag(name: str) -> bool:
+    """Read a boolean environment variable, false when unset."""
+    return os.environ.get(name, "false").strip().lower() in ("1", "true", "yes")
 
 
 def load_settings(env_file: Path = Path(".env")) -> Settings:
@@ -54,6 +73,20 @@ def load_settings(env_file: Path = Path(".env")) -> Settings:
         cache_purge_url=os.environ.get("CACHE_PURGE_URL", ""),
         cache_purge_user=os.environ.get("CACHE_PURGE_USER", ""),
         cache_purge_password=os.environ.get("CACHE_PURGE_PASSWORD", ""),
+        valkey_url=os.environ.get("VALKEY_URL", ""),
+        auth_issuer=os.environ.get("AUTH_ISSUER", ""),
+        auth_internal_url=os.environ.get("AUTH_INTERNAL_URL", ""),
+        auth_client_id=os.environ.get("AUTH_CLIENT_ID", ""),
+        auth_client_secret=os.environ.get("AUTH_CLIENT_SECRET", ""),
+        auth_api_client_id=os.environ.get("AUTH_API_CLIENT_ID", ""),
+        auth_api_client_secret=os.environ.get("AUTH_API_CLIENT_SECRET", ""),
+        auth_project_id=os.environ.get("AUTH_PROJECT_ID", ""),
+        auth_redirect_uri=os.environ.get("AUTH_REDIRECT_URI", ""),
+        auth_post_logout_uri=os.environ.get("AUTH_POST_LOGOUT_URI", "/"),
+        auth_cookie_secure=flag("AUTH_COOKIE_SECURE"),
+        auth_cache_ttl=int(os.environ.get("AUTH_CACHE_TTL", "300")),
+        auth_trust_gateway=flag("AUTH_TRUST_GATEWAY"),
+        auth_webhook_signing_key=os.environ.get("AUTH_WEBHOOK_SIGNING_KEY", ""),
         cleanup_delay=float(os.environ.get("CLEANUP_DELAY", "300")),
         allowed_origins=tuple(
             origin.strip() for origin in origins.split(",") if origin.strip()

@@ -30,6 +30,9 @@ spec:
                 name: server
             - secretRef:
                 name: server
+            - secretRef:
+                name: server-identity
+                optional: true
           startupProbe:
             httpGet:
               path: /metrics
@@ -38,7 +41,7 @@ spec:
             failureThreshold: 60
           readinessProbe:
             httpGet:
-              path: /api/v2/schemas
+              path: /metrics
               port: http
             periodSeconds: 10
           livenessProbe:

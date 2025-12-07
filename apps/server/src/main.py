@@ -1,30 +1,43 @@
 from fastapi import FastAPI
 
 from api.http import create_http_server
+from api.http.auth import create_auth_router
+from api.http.identity import create_identity_router
+from api.http.principal import Authentication
 from api.http.workspace import create_workspace_router
 from api.jobs import CacheInvalidationJob, SessionCleanupJob
 from app.ports.repos import SessionRepository
 from app.ports.tools.cache_invalidation import CacheInvalidationTool
 from app.ports.tools.document_reader import DocumentReaderTool
 from app.ports.tools.document_storage import DocumentStorageTool
+from app.ports.tools.identity_cache import IdentityCache
+from app.ports.tools.oidc_login import OidcLoginTool
+from app.ports.tools.token_introspection import TokenIntrospectionTool
 from app.ports.tools.xml_document import XmlDocumentTool
 from app.use_cases.apply_changeset import ApplyChangeset
+from app.use_cases.apply_identity_event import ApplyIdentityEvent
+from app.use_cases.authenticate_token import AuthenticateToken
+from app.use_cases.authorize_request import AuthorizeRequest
 from app.use_cases.cleanup_session import CleanupSession
+from app.use_cases.complete_login import CompleteLogin
 from app.use_cases.create_draft import CreateDraft
 from app.use_cases.delete_analysis import DeleteAnalysis
 from app.use_cases.delete_schema import DeleteSchema
 from app.use_cases.dispatch_changes import DispatchChanges
 from app.use_cases.generate_schema import GenerateSchema
 from app.use_cases.infer_schema import InferSchema
+from app.use_cases.logout import Logout
 from app.use_cases.process_documents import ProcessDocuments
 from app.use_cases.read_workspace import ReadWorkspace
 from app.use_cases.run_analysis import RunAnalysis
 from app.use_cases.start_analysis import StartAnalysis
+from app.use_cases.start_login import StartLogin
 from app.use_cases.upload_documents import UploadDocuments
 from env.config import Settings, build_log_config, load_settings
 from env.repos.session import InMemorySessionRepository
 from env.tools.analysis_jobs import ThreadedAnalysisJobs
 from env.tools.cache_invalidation import (
+    AclCacheInvalidationTool,
     CompositeCacheInvalidationTool,
     NullCacheInvalidationTool,
     SouinCacheInvalidationTool,
@@ -36,9 +49,12 @@ from env.tools.document_reader.strategies import (
     PyyamlDocumentStrategy,
 )
 from env.tools.document_storage import FilesystemDocumentStorageTool
+from env.tools.identity_cache import NullIdentityCache, ValkeyIdentityCache
 from env.tools.lexical import CorpusLexicalResourceTool
+from env.tools.oidc_login import ZitadelOidcLoginTool
 from env.tools.schema import ElementTreeSchemaWriterTool
 from env.tools.schema_expression import EditorSchemaExpressionWriter
+from env.tools.token_introspection import ZitadelTokenIntrospectionTool
 from env.uow.workspace import PostgresWorkspaceUow
 
 
@@ -82,6 +98,38 @@ def build_cache_invalidation(
     return CompositeCacheInvalidationTool([gateway, *listeners])
 
 
+def build_identity_cache(settings: Settings) -> IdentityCache:
+    """Use Valkey when configured, otherwise remember nothing."""
+    if settings.valkey_url:
+        return ValkeyIdentityCache.from_url(
+            settings.valkey_url, marker_ttl=settings.auth_cache_ttl * 2 + 60
+        )
+
+    return NullIdentityCache()
+
+
+def build_token_introspection(settings: Settings) -> TokenIntrospectionTool:
+    return ZitadelTokenIntrospectionTool(
+        settings.auth_internal_url,
+        settings.auth_issuer,
+        settings.auth_api_client_id,
+        settings.auth_api_client_secret,
+        settings.auth_project_id,
+    )
+
+
+def build_oidc_login(settings: Settings) -> OidcLoginTool:
+    return ZitadelOidcLoginTool(
+        settings.auth_issuer,
+        settings.auth_internal_url,
+        settings.auth_client_id,
+        settings.auth_client_secret,
+        settings.auth_project_id,
+        settings.auth_redirect_uri,
+        settings.auth_post_logout_uri,
+    )
+
+
 def create_app(
     *,
     settings: Settings | None = None,
@@ -92,6 +140,9 @@ def create_app(
     infer_schema: InferSchema | None = None,
     generate_schema: GenerateSchema | None = None,
     cache_invalidation: CacheInvalidationTool | None = None,
+    identity_cache: IdentityCache | None = None,
+    token_introspection: TokenIntrospectionTool | None = None,
+    oidc_login: OidcLoginTool | None = None,
 ) -> FastAPI:
     configuration = settings if settings is not None else load_settings()
     sessions = (
@@ -127,14 +178,32 @@ def create_app(
             ".json": JsonDocumentStrategy(),
         }
     )
+    identities = (
+        identity_cache
+        if identity_cache is not None
+        else build_identity_cache(configuration)
+    )
+    introspection = (
+        token_introspection
+        if token_introspection is not None
+        else build_token_introspection(configuration)
+    )
+    login = oidc_login if oidc_login is not None else build_oidc_login(configuration)
     invalidation = (
         cache_invalidation
         if cache_invalidation is not None
-        else build_cache_invalidation(configuration)
+        else build_cache_invalidation(
+            configuration, (AclCacheInvalidationTool(identities),)
+        )
     )
     invalidation_job = CacheInvalidationJob(DispatchChanges(store, invalidation))
     jobs = ThreadedAnalysisJobs(
         RunAnalysis(store, workspace_reader, inference), invalidation_job.kick
+    )
+    authentication = Authentication(
+        AuthenticateToken(introspection, identities, configuration.auth_cache_ttl),
+        configuration.auth_trust_gateway,
+        configuration.allowed_origins,
     )
     server = create_http_server(
         analysis_jobs=jobs,
@@ -147,6 +216,21 @@ def create_app(
         cleanup_session=cleanup,
         cleanup_job=cleanup_job,
         allowed_origins=configuration.allowed_origins,
+        authentication=authentication,
+    )
+    server.include_router(
+        create_auth_router(
+            StartLogin(login),
+            CompleteLogin(login),
+            Logout(introspection, identities, login, configuration.auth_client_id),
+            AuthorizeRequest(store, identities),
+            configuration.auth_cookie_secure,
+        )
+    )
+    server.include_router(
+        create_identity_router(
+            ApplyIdentityEvent(identities), configuration.auth_webhook_signing_key
+        )
     )
     server.include_router(
         create_workspace_router(

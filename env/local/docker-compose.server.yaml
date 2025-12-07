@@ -11,9 +11,18 @@ services:
       DATABASE_URL: postgresql://workspace:${POSTGRES_PASSWORD:?run moon run env:secrets}@pgbouncer:6432/workspace
       VALKEY_URL: redis://:${VALKEY_PASSWORD:?run moon run env:secrets}@valkey:6379/1
       CACHE_PURGE_PASSWORD: ${CACHE_PURGE_PASSWORD:?run moon run env:secrets}
+      AUTH_TRUST_GATEWAY: 'false'
+      AUTH_COOKIE_SECURE: 'false'
+      AUTH_ISSUER: http://localhost:8085
+      AUTH_INTERNAL_URL: http://zitadel:8080
+      AUTH_REDIRECT_URI: http://localhost:8000/auth/callback
+      AUTH_POST_LOGOUT_URI: http://localhost:8000/
       UPLOAD_ROOT: /data/uploads
       WORDNET_ROOT: /opt/wordnet
       ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:4173
+    env_file:
+      - path: identity.env
+        required: false
     ports:
       - '127.0.0.1:8000:8000'
     volumes:
@@ -24,7 +33,7 @@ services:
       valkey:
         condition: service_healthy
     healthcheck:
-      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/api/v2/schemas", timeout=2)']
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/metrics", timeout=2)']
       interval: 2s
       timeout: 3s
       retries: 30

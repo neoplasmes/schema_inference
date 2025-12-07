@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, WebSocket
 from starlette.websockets import WebSocketDisconnect, WebSocketState
 
+from api.http.principal import AccessError, Authentication, resolve_principal
 from api.jobs import SessionCleanupJob
 from api.schemas import (
     ProcessingCompletedMessage,
@@ -25,11 +26,27 @@ def create_schema_socket(
     process_documents: ProcessDocuments,
     cleanup_job: SessionCleanupJob,
     cleanup_session: CleanupSession,
+    authentication: Authentication,
 ) -> APIRouter:
     router = APIRouter(prefix="/schema")
 
     @router.websocket("/sessions/{session_id}/events")
     async def process_session(websocket: WebSocket, session_id: str):
+        try:
+            await complete_in_thread(
+                resolve_principal,
+                authentication,
+                websocket.headers,
+                websocket.cookies,
+                "GET",
+                authentication.trust_gateway,
+                True,
+            )
+        except AccessError:
+            await websocket.close(code=1008)
+
+            return
+
         await websocket.accept()
         events = process_documents.execute(session_id)
         try:

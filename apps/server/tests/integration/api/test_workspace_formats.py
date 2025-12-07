@@ -1,19 +1,18 @@
 import time
 
 import pytest
-from fastapi.testclient import TestClient
 
 from env.uow.workspace import PostgresWorkspaceUow
 from main import create_app
 
-from .test_workspace import analyze, draft, root_rows, settings
+from .test_workspace import analyze, draft, root_rows, settings, trusted
 
 
 @pytest.mark.parametrize(
     "content,format", [("[]", "json"), ("{}", "json"), ("[]", "yaml"), ("{}", "yaml")]
 )
 def test_empty_container_is_not_a_null_scalar(tmp_path, database_url, content, format):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, content, format)
         schema, _ = draft(client, resource, analysis)
         snapshot = schema["snapshot"]
@@ -31,7 +30,7 @@ def test_empty_container_is_not_a_null_scalar(tmp_path, database_url, content, f
 
 
 def test_yaml_single_mapping_keeps_the_document_root(tmp_path, database_url):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, "product:\n  price: 12\n", "yaml")
         schema, _ = draft(client, resource, analysis)
         _, root, page = root_rows(client, schema)
@@ -43,7 +42,7 @@ def test_yaml_single_mapping_keeps_the_document_root(tmp_path, database_url):
 def test_xml_namespaces_attributes_and_typed_simple_content_survive_rename(
     tmp_path, database_url
 ):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(
             client, '<p:price xmlns:p="urn:shop" currency="USD">12.5</p:price>', "xml"
         )
@@ -101,7 +100,7 @@ def test_malformed_documents_have_durable_failed_status(
 ):
     configuration = settings(tmp_path, database_url)
 
-    with TestClient(create_app(settings=configuration)) as client:
+    with trusted(create_app(settings=configuration)) as client:
         response = client.post(
             "/api/v2/analyses",
             json={
@@ -134,7 +133,7 @@ def test_malformed_documents_have_durable_failed_status(
         assert resource["error"]
         assert client.get(f"{location}/revisions/a1/manifest").status_code == 409
 
-    with TestClient(create_app(settings=configuration)) as restarted:
+    with trusted(create_app(settings=configuration)) as restarted:
         assert restarted.get(location).json()["status"] == "failed"
 
 
@@ -168,7 +167,7 @@ def test_restart_resumes_unfinished_analysis(tmp_path, database_url, status):
             },
         )
 
-    with TestClient(create_app(settings=configuration)) as client:
+    with trusted(create_app(settings=configuration)) as client:
         deadline = time.monotonic() + 30
 
         while time.monotonic() < deadline:
@@ -198,7 +197,7 @@ def test_restart_resumes_unfinished_analysis(tmp_path, database_url, status):
 def test_nested_xml_and_array_summaries_expose_members_behind_wrappers(
     tmp_path, database_url, content, format, count
 ):
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, content, format)
         schema, _ = draft(client, resource, analysis)
         schema_id = schema["snapshot"]["id"]
@@ -220,7 +219,7 @@ def test_deep_array_summary_reaches_the_observed_object(tmp_path, database_url):
     for _ in range(12):
         content = f"[{content}]"
 
-    with TestClient(create_app(settings=settings(tmp_path, database_url))) as client:
+    with trusted(create_app(settings=settings(tmp_path, database_url))) as client:
         resource, analysis, _ = analyze(client, '{"items":' + content + "}")
         schema, _ = draft(client, resource, analysis)
         _, _, page = root_rows(client, schema)

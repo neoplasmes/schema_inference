@@ -7,18 +7,24 @@ import yaml
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
+from api.http.auth import create_auth_router
 from api.http.http_server import create_http_server
+from api.http.principal import Authentication
 from api.http.workspace import create_workspace_router
 from api.jobs import SessionCleanupJob
 from app.use_cases.apply_changeset import ApplyChangeset
+from app.use_cases.authorize_request import AuthorizeRequest
 from app.use_cases.cleanup_session import CleanupSession
+from app.use_cases.complete_login import CompleteLogin
 from app.use_cases.create_draft import CreateDraft
 from app.use_cases.delete_analysis import DeleteAnalysis
 from app.use_cases.delete_schema import DeleteSchema
 from app.use_cases.generate_schema import GenerateSchema
+from app.use_cases.logout import Logout
 from app.use_cases.process_documents import ProcessDocuments
 from app.use_cases.read_workspace import ReadWorkspace
 from app.use_cases.start_analysis import StartAnalysis
+from app.use_cases.start_login import StartLogin
 from app.use_cases.upload_documents import UploadDocuments
 
 TITLE = "Schema Workspace API"
@@ -63,6 +69,16 @@ def build_openapi() -> dict[str, Any]:
         cleanup_session=inert(CleanupSession),
         cleanup_job=inert(SessionCleanupJob),
         allowed_origins=(),
+        authentication=inert(Authentication),
+    )
+    server.include_router(
+        create_auth_router(
+            inert(StartLogin),
+            inert(CompleteLogin),
+            inert(Logout),
+            inert(AuthorizeRequest),
+            False,
+        )
     )
     server.title = TITLE
     server.version = VERSION

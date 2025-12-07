@@ -3,7 +3,7 @@ from contextlib import closing
 
 import docker
 import httpx
-from support import DatabaseStack
+from support import TRUSTED_HEADERS, DatabaseStack
 
 
 def restart_server(stack: DatabaseStack) -> None:
@@ -21,7 +21,12 @@ def restart_server(stack: DatabaseStack) -> None:
         stack.api_url = f"http://{host}:{port}"
         deadline = time.monotonic() + 60
 
-        with httpx.Client(base_url=stack.api_url, timeout=2, trust_env=False) as client:
+        with httpx.Client(
+            base_url=stack.api_url,
+            timeout=2,
+            trust_env=False,
+            headers=TRUSTED_HEADERS,
+        ) as client:
             while time.monotonic() < deadline:
                 try:
                     response = client.get("/api/v2/schemas")
