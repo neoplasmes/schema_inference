@@ -16,6 +16,26 @@ spec:
         runAsNonRoot: true
         runAsUser: 65532
         runAsGroup: 65532
+      initContainers:
+        - name: wait-valkey
+          image: schema-workspace-gateway:development
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - until nc -z valkey 6379; do sleep 1; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
       containers:
         - name: caddy
           image: schema-workspace-gateway:development
@@ -23,22 +43,23 @@ spec:
           ports:
             - name: http
               containerPort: 8080
-            - name: status
+            - name: internal
               containerPort: 8081
-            - name: metrics
-              containerPort: 2019
           env:
             - name: CACHE_REDIS_URL
               value: valkey:6379
+          envFrom:
+            - secretRef:
+                name: gateway
           readinessProbe:
             httpGet:
               path: /healthz
-              port: status
+              port: internal
             periodSeconds: 5
           livenessProbe:
             httpGet:
               path: /healthz
-              port: status
+              port: internal
             periodSeconds: 20
           resources:
             requests:

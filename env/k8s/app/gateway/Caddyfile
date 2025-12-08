@@ -1,5 +1,7 @@
 {
-	admin :2019
+	admin localhost:2019 {
+		origins localhost:2019
+	}
 	auto_https off
 	metrics
 
@@ -21,10 +23,12 @@
 		cache_name gateway
 		api {
 			prometheus
+			souin
 		}
 		redis {
 			configuration {
 				InitAddress {$CACHE_REDIS_URL}
+				Password {$CACHE_REDIS_PASSWORD}
 				SelectDB 0
 				ClientName gateway
 				DisableRetry
@@ -77,49 +81,127 @@ http://:8080 {
 		respond `{"mode":"api","apiBaseUrl":"","telemetryUrl":"/collect"}` 200
 	}
 
+	handle /auth/* {
+		import server_upstream
+	}
+
+	handle /internal/* {
+		respond "not found" 404
+	}
+
 	handle /api/* {
-		@get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get path_regexp get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get ^/api/v2/analyses/[^/]+/revisions/[^/]+/manifest$
-		handle @get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get {
-			cache {
-				ttl 31536000s
+		route {
+			request_header -X-User-Id
+			request_header -X-User-Roles
+			forward_auth server-pods:8000 {
+				uri /api/v2/auth/check
+				copy_headers X-User-Id X-User-Roles
 			}
-			import server_upstream
-		}
-
-		@get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get path_regexp get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get ^/api/v2/schemas/[^/]+/changesets/[^/]+$
-		handle @get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get {
-			cache {
-				ttl 86400s
+			handle /api/v2/auth/check {
+				import server_upstream
 			}
-			import server_upstream
-		}
 
-		@get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get path_regexp get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/collections/.+/items$
-		handle @get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get {
-			cache {
-				ttl 31536000s
+			handle /api/v2/session {
+				import server_upstream
 			}
-			import server_upstream
-		}
 
-		@get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get path_regexp get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/manifest$
-		handle @get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get {
-			cache {
-				ttl 31536000s
+			request_header -Authorization
+			request_header -Cookie
+
+			@get_analyses_api_v2_analyses_get {
+				method GET
+				path_regexp get_analyses_api_v2_analyses_get ^/api/v2/analyses$
 			}
-			import server_upstream
-		}
-
-		@get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get path_regexp get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/nodes/.+$
-		handle @get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get {
-			cache {
-				ttl 31536000s
+			handle @get_analyses_api_v2_analyses_get {
+				cache {
+					key {
+						headers X-User-Id
+					}
+				}
+				import server_upstream
 			}
-			import server_upstream
-		}
 
-		handle {
-			import server_upstream
+			@get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get {
+				method GET
+				path_regexp get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get ^/api/v2/analyses/[^/]+/revisions/[^/]+/manifest$
+			}
+			handle @get_analysis_manifest_api_v2_analyses_identifier_revisions_revision_manifest_get {
+				cache {
+					ttl 31536000s
+				}
+				import server_upstream
+			}
+
+			@get_schemas_api_v2_schemas_get {
+				method GET
+				path_regexp get_schemas_api_v2_schemas_get ^/api/v2/schemas$
+			}
+			handle @get_schemas_api_v2_schemas_get {
+				cache {
+					key {
+						headers X-User-Id
+					}
+				}
+				import server_upstream
+			}
+
+			@get_schema_api_v2_schemas_identifier_get {
+				method GET
+				path_regexp get_schema_api_v2_schemas_identifier_get ^/api/v2/schemas/[^/]+$
+			}
+			handle @get_schema_api_v2_schemas_identifier_get {
+				cache {
+				}
+				import server_upstream
+			}
+
+			@get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get {
+				method GET
+				path_regexp get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get ^/api/v2/schemas/[^/]+/changesets/[^/]+$
+			}
+			handle @get_changeset_api_v2_schemas_identifier_changesets_mutation_id_get {
+				cache {
+					ttl 86400s
+				}
+				import server_upstream
+			}
+
+			@get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get {
+				method GET
+				path_regexp get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/collections/.+/items$
+			}
+			handle @get_page_api_v2_schemas_identifier_revisions_revision_collections_collection_id_items_get {
+				cache {
+					ttl 31536000s
+				}
+				import server_upstream
+			}
+
+			@get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get {
+				method GET
+				path_regexp get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/manifest$
+			}
+			handle @get_manifest_api_v2_schemas_identifier_revisions_revision_manifest_get {
+				cache {
+					ttl 31536000s
+				}
+				import server_upstream
+			}
+
+			@get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get {
+				method GET
+				path_regexp get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get ^/api/v2/schemas/[^/]+/revisions/[^/]+/nodes/.+$
+			}
+			handle @get_node_api_v2_schemas_identifier_revisions_revision_nodes_node_id_get {
+				cache {
+					ttl 31536000s
+				}
+				import server_upstream
+			}
+
+			handle {
+				import server_upstream
+			}
 		}
 	}
 
@@ -176,9 +258,68 @@ http://grafana.localhost:8080 {
 	}
 }
 
+http://auth.localhost:8080 {
+	import access_log
+
+	@login path /ui/v2/login /ui/v2/login/*
+
+	handle @login {
+		reverse_proxy {
+			dynamic a zitadel-login.schema-workspace.svc.cluster.local 3000 {
+				refresh 5s
+				versions ipv4
+			}
+			import upstream_defaults
+		}
+	}
+
+	handle {
+		reverse_proxy {
+			dynamic a zitadel.schema-workspace.svc.cluster.local 8080 {
+				refresh 5s
+				versions ipv4
+			}
+			lb_policy least_conn
+			transport http {
+				versions h2c
+				dial_timeout 5s
+				response_header_timeout 1h
+				read_timeout 1h
+				write_timeout 1h
+			}
+		}
+	}
+}
+
 http://:8081 {
 	handle /healthz {
 		respond "ok\n" 200
+	}
+
+	@metrics {
+		method GET
+		path /metrics /souin-api/metrics
+		remote_ip private_ranges
+	}
+
+	handle @metrics {
+		reverse_proxy localhost:2019 {
+			header_up Host localhost:2019
+		}
+	}
+
+	@purge {
+		method PURGE POST
+		path /souin-api/souin /souin-api/souin/*
+		remote_ip private_ranges
+	}
+
+	handle @purge {
+		basic_auth {
+			purger {$CACHE_PURGE_HASH}
+		}
+
+		cache
 	}
 
 	handle {

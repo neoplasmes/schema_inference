@@ -12,6 +12,17 @@ spec:
     - name: http
       port: 80
       targetPort: http
-    - name: metrics
-      port: 2019
-      targetPort: metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-internal
+  labels:
+    app.kubernetes.io/name: gateway
+spec:
+  selector:
+    app.kubernetes.io/name: gateway
+  ports:
+    - name: internal
+      port: 8081
+      targetPort: internal

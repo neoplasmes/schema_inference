@@ -18,6 +18,26 @@ spec:
         runAsNonRoot: true
         runAsUser: 10001
         fsGroup: 10001
+      initContainers:
+        - name: wait-pgbouncer
+          image: schema-workspace-gateway:development
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - until nc -z pgbouncer 6432; do sleep 1; done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
       containers:
         - name: server
           image: schema-workspace-api:development

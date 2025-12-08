@@ -7,10 +7,10 @@ spec:
     matchLabels:
       app.kubernetes.io/name: gateway
   endpoints:
-    - port: metrics
+    - port: internal
       interval: 15s
       path: /metrics
-    - port: metrics
+    - port: internal
       interval: 15s
       path: /souin-api/metrics
       relabelings:

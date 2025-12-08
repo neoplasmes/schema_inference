@@ -1,5 +1,7 @@
 {
-	admin :2019
+	admin localhost:2019 {
+		origins localhost:2019
+	}
 	auto_https off
 	metrics
 
@@ -21,10 +23,12 @@
 		cache_name gateway
 		api {
 			prometheus
+			souin
 		}
 		redis {
 			configuration {
 				InitAddress {$CACHE_REDIS_URL}
+				Password {$CACHE_REDIS_PASSWORD}
 				SelectDB 0
 				ClientName gateway
 				DisableRetry
@@ -75,6 +79,14 @@ http://:8080 {
 		header Cache-Control no-store
 		header Content-Type application/json
 		respond `{"mode":"api","apiBaseUrl":"","telemetryUrl":"/collect"}` 200
+	}
+
+	handle /auth/* {
+		import server_upstream
+	}
+
+	handle /internal/* {
+		respond "not found" 404
 	}
 
 	# @generated-api-routes
@@ -132,9 +144,68 @@ http://grafana.localhost:8080 {
 	}
 }
 
+http://auth.localhost:8080 {
+	import access_log
+
+	@login path /ui/v2/login /ui/v2/login/*
+
+	handle @login {
+		reverse_proxy {
+			dynamic a zitadel-login.schema-workspace.svc.cluster.local 3000 {
+				refresh 5s
+				versions ipv4
+			}
+			import upstream_defaults
+		}
+	}
+
+	handle {
+		reverse_proxy {
+			dynamic a zitadel.schema-workspace.svc.cluster.local 8080 {
+				refresh 5s
+				versions ipv4
+			}
+			lb_policy least_conn
+			transport http {
+				versions h2c
+				dial_timeout 5s
+				response_header_timeout 1h
+				read_timeout 1h
+				write_timeout 1h
+			}
+		}
+	}
+}
+
 http://:8081 {
 	handle /healthz {
 		respond "ok\n" 200
+	}
+
+	@metrics {
+		method GET
+		path /metrics /souin-api/metrics
+		remote_ip private_ranges
+	}
+
+	handle @metrics {
+		reverse_proxy localhost:2019 {
+			header_up Host localhost:2019
+		}
+	}
+
+	@purge {
+		method PURGE POST
+		path /souin-api/souin /souin-api/souin/*
+		remote_ip private_ranges
+	}
+
+	handle @purge {
+		basic_auth {
+			purger {$CACHE_PURGE_HASH}
+		}
+
+		cache
 	}
 
 	handle {

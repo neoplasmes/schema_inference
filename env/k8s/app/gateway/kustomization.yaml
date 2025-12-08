@@ -7,7 +7,9 @@ configMapGenerator:
       - Caddyfile
 
 resources:
+  - secret.yaml
   - deployment.yaml
   - service.yaml
   - service-monitor.yaml
   - pod-disruption-budget.yaml
+  - network-policy.yaml

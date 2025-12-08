@@ -8,6 +8,7 @@ import yaml
 
 MARKER = "@generated-api-routes"
 IMMUTABLE_TTL = 31536000
+CREDENTIAL_PATHS = ("/session", "/auth/check")
 PARAMETER = re.compile(r"\{([^}/]+)\}")
 
 
@@ -53,7 +54,13 @@ def matcher_name(operation: dict, path: str, used: set[str]) -> str:
 
 
 def cached_operations(spec: dict) -> list[dict]:
-    """Collect GET operations with an immutable or ttl cache mode."""
+    """Collect GET operations the gateway cache must serve.
+
+    ``immutable`` and ``ttl`` operations get an explicit ttl. ``revalidate``
+    operations are cached under the global ttl only when they declare cache
+    tags, so a purge by surrogate key can invalidate them. Operations whose
+    ``x-cache`` sets ``varyUser`` get a per-user cache key.
+    """
     prefix = api_prefix(spec)
     used: set[str] = set()
     result = []
@@ -74,6 +81,8 @@ def cached_operations(spec: dict) -> list[dict]:
                 raise ValueError(f"GET {path}: ttl mode requires ttl")
 
             ttl = int(policy["ttl"])
+        elif mode == "revalidate" and policy.get("tags"):
+            ttl = None
         elif mode in ("revalidate", "bypass"):
             continue
         else:
@@ -85,6 +94,7 @@ def cached_operations(spec: dict) -> list[dict]:
                 "name": matcher_name(operation, path, used),
                 "pattern": path_pattern(prefix + path, slashed),
                 "ttl": ttl,
+                "vary_user": bool(policy.get("varyUser")),
                 "route": prefix + path,
             }
         )
@@ -92,25 +102,80 @@ def cached_operations(spec: dict) -> list[dict]:
     return result
 
 
+def render_cache_block(item: dict) -> list[str]:
+    """Render the cache directive of one cached operation."""
+    lines = ["\t\t\tcache {"]
+
+    if item["ttl"] is not None:
+        lines.append(f"\t\t\t\tttl {item['ttl']}s")
+
+    if item["vary_user"]:
+        lines.extend(["\t\t\t\tkey {", "\t\t\t\t\theaders X-User-Id", "\t\t\t\t}"])
+
+    lines.append("\t\t\t}")
+
+    return lines
+
+
+def render_credential_routes(spec: dict) -> list[str]:
+    """Render routes that keep client credentials for the upstream."""
+    prefix = api_prefix(spec)
+    lines = []
+
+    for path in sorted(spec.get("paths") or {}):
+        if path.endswith(CREDENTIAL_PATHS):
+            lines.extend(
+                [
+                    f"\t\thandle {prefix}{path} {{",
+                    "\t\t\timport server_upstream",
+                    "\t\t}",
+                    "",
+                ]
+            )
+
+    return lines
+
+
 def render_routes(spec: dict) -> list[str]:
-    """Render the generated /api route block as Caddyfile lines."""
-    lines = ["handle /api/* {"]
+    """Render the generated /api route block as Caddyfile lines.
+
+    Every request first drops client supplied identity headers, passes through
+    forward auth, and loses its credentials before it can reach the cache or
+    the upstream. Only the session resource and the auth check keep them, because
+    logout has to revoke the token at the identity provider and the check has to
+    read it.
+    """
+    lines = [
+        "handle /api/* {",
+        "\troute {",
+        "\t\trequest_header -X-User-Id",
+        "\t\trequest_header -X-User-Roles",
+        "\t\tforward_auth server-pods:8000 {",
+        "\t\t\turi /api/v2/auth/check",
+        "\t\t\tcopy_headers X-User-Id X-User-Roles",
+        "\t\t}",
+        *render_credential_routes(spec),
+        "\t\trequest_header -Authorization",
+        "\t\trequest_header -Cookie",
+        "",
+    ]
 
     for item in cached_operations(spec):
         lines.extend(
             [
-                f"\t@{item['name']} path_regexp {item['name']} {item['pattern']}",
-                f"\thandle @{item['name']} {{",
-                "\t\tcache {",
-                f"\t\t\tttl {item['ttl']}s",
+                f"\t\t@{item['name']} {{",
+                "\t\t\tmethod GET",
+                f"\t\t\tpath_regexp {item['name']} {item['pattern']}",
                 "\t\t}",
-                "\t\timport server_upstream",
-                "\t}",
+                f"\t\thandle @{item['name']} {{",
+                *render_cache_block(item),
+                "\t\t\timport server_upstream",
+                "\t\t}",
                 "",
             ]
         )
 
-    lines.extend(["\thandle {", "\t\timport server_upstream", "\t}", "}"])
+    lines.extend(["\t\thandle {", "\t\t\timport server_upstream", "\t\t}", "\t}", "}"])
 
     return lines
 

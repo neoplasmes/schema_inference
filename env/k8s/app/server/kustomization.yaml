@@ -13,6 +13,8 @@ configMapGenerator:
       - AUTH_TRUST_GATEWAY=true
       - AUTH_CACHE_TTL=300
       - AUTH_COOKIE_SECURE=false
+      - CACHE_PURGE_URL=http://gateway-internal:8081/souin-api/souin
+      - CACHE_PURGE_USER=purger
       - AUTH_ISSUER=http://auth.localhost:8080
       - AUTH_INTERNAL_URL=http://zitadel:8080
       - AUTH_REDIRECT_URI=http://localhost:8080/auth/callback
@@ -24,3 +26,4 @@ resources:
   - service.yaml
   - uploads.yaml
   - service-monitor.yaml
+  - network-policy.yaml

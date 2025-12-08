@@ -10,3 +10,4 @@ resources:
   - secret.yaml
   - postgres.yaml
   - pgbouncer.yaml
+  - network-policy.yaml
