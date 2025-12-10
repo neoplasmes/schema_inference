@@ -117,6 +117,7 @@ export function RemoteEditorPage(): React.JSX.Element {
                         resource={controller.resource}
                         apiBaseUrl={controller.apiBaseUrl}
                         request={controller.editorRequest}
+                        onUnauthenticated={controller.onUnauthenticated}
                         onExit={controller.onExit}
                         onCreated={controller.onCreated}
                         onSaved={controller.onSaved}

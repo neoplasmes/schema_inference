@@ -531,6 +531,35 @@ export function createMockEditorBackend(
                     return response(summary(id, schema));
                 }
 
+                if (parts.length === 4 && method === 'DELETE') {
+                    const match = new Headers(options?.headers).get('If-Match');
+
+                    if (!match) {
+                        return response(
+                            {
+                                code: 'precondition_required',
+                            },
+                            428
+                        );
+                    }
+
+                    if (match !== JSON.stringify(`${id}:${schema.current}`)) {
+                        return response(
+                            {
+                                code: 'precondition_failed',
+                            },
+                            412
+                        );
+                    }
+
+                    delete state.schemas[id];
+                    persist();
+
+                    return new Response(null, {
+                        status: 204,
+                    });
+                }
+
                 if (parts[4] === 'changesets' && method === 'POST') {
                     const body = object(JSON.parse(String(options?.body)));
                     const mutation = text(body.clientMutationId);

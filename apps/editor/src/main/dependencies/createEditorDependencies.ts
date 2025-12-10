@@ -16,7 +16,8 @@ import type { EditorDependencies } from '../../ui/di';
 export function createEditorDependencies(
     apiBaseUrl: string,
     fixture: FixtureData | null,
-    request?: MockRequest
+    request?: MockRequest,
+    onUnauthenticated?: () => void
 ): EditorDependencies {
     if (apiBaseUrl === 'fixture://standalone' && fixture === null) {
         throw new Error('The explicit demo repository requires fixture data.');
@@ -29,7 +30,7 @@ export function createEditorDependencies(
                   new HttpSchemaRepository(
                       request
                           ? new MockHttpTransport(request)
-                          : new HttpTransport(apiBaseUrl)
+                          : new HttpTransport(apiBaseUrl, onUnauthenticated)
                   )
               );
 

@@ -6,10 +6,16 @@ import { createEditorDependencies } from '../dependencies';
 export function Editor(props: EditorProps): React.JSX.Element {
     const dependencies = useMemo<EditorDependenciesFactory>(
         () => fixture =>
-            createEditorDependencies(props.apiBaseUrl, fixture, props.request),
+            createEditorDependencies(
+                props.apiBaseUrl,
+                fixture,
+                props.request,
+                props.onUnauthenticated
+            ),
         [
             props.apiBaseUrl,
             props.request,
+            props.onUnauthenticated,
         ]
     );
 

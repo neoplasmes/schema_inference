@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { TransportSchemaRepo } from '.';
+import { SchemaRevisionConflictError } from '../../../app/ports/repos/schema';
+import { HttpError } from '../../transport';
 import type { HttpTransport } from '../../transport';
 
 describe('workspace schema synchronization', () => {
@@ -33,5 +35,33 @@ describe('workspace schema synchronization', () => {
             })
         );
         expect(request.mock.calls[0][1]).not.toHaveProperty('method', 'PUT');
+    });
+});
+
+describe('schema deletion', () => {
+    it('sends the schema ETag in If-Match and maps precondition failures', async () => {
+        const request = vi.fn<HttpTransport['request']>(async () => null);
+        const repo = new TransportSchemaRepo({
+            request,
+        });
+
+        await repo.remove({
+            schemaId: 'orders',
+            revision: 's2',
+        });
+        expect(request).toHaveBeenCalledWith('/api/v2/schemas/orders', {
+            method: 'DELETE',
+            headers: {
+                'If-Match': '"orders:s2"',
+            },
+        });
+
+        request.mockRejectedValueOnce(new HttpError(412, null));
+        await expect(
+            repo.remove({
+                schemaId: 'orders',
+                revision: 's1',
+            })
+        ).rejects.toBeInstanceOf(SchemaRevisionConflictError);
     });
 });

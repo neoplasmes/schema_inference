@@ -160,4 +160,47 @@ describe('mock workspace flow', () => {
         });
         expect(remote.request).not.toHaveBeenCalled();
     });
+
+    it('serves a fixed session, lists analyses and refuses deleting unfinished ones', async () => {
+        vi.useFakeTimers();
+        const backend = new MockWorkspaceBackend(editor());
+        const send = async (path: string, options?: RequestInit) => {
+            const pending = backend.request(path, options);
+            await vi.runAllTimersAsync();
+
+            return pending;
+        };
+
+        expect(await (await send('/api/v2/session')).json()).toEqual({
+            sub: 'demo-user',
+            roles: [
+                'user',
+            ],
+        });
+        expect(
+            await (
+                await send('/api/v2/session', {
+                    method: 'DELETE',
+                })
+            ).json()
+        ).toEqual({
+            endSessionUrl: '/',
+        });
+
+        const created = await (await send('/api/v2/analyses', upload)).json();
+        const listed = await (await send('/api/v2/analyses')).json();
+        expect(listed).toHaveLength(1);
+
+        const early = await send(`/api/v2/analyses/${created.id}`, {
+            method: 'DELETE',
+        });
+        expect(early.status).toBe(409);
+
+        vi.setSystemTime(Date.now() + 10_000);
+        const removed = await send(`/api/v2/analyses/${created.id}`, {
+            method: 'DELETE',
+        });
+        expect(removed.status).toBe(204);
+        expect(await (await send('/api/v2/analyses')).json()).toEqual([]);
+    });
 });

@@ -4,3 +4,10 @@ export class AnalysisNotFoundError extends Error {
         this.name = 'AnalysisNotFoundError';
     }
 }
+
+export class AnalysisNotReadyError extends Error {
+    constructor(id: string) {
+        super(`Analysis ${id} has not finished yet.`);
+        this.name = 'AnalysisNotReadyError';
+    }
+}

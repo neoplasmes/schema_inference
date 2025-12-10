@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { TransportAnalysisRepo } from '.';
-import { AnalysisNotFoundError } from '../../../app/ports/repos/analysis';
+import {
+    AnalysisNotFoundError,
+    AnalysisNotReadyError,
+} from '../../../app/ports/repos/analysis';
 import { ContractViolationError } from '../contract';
-import { MockHttpTransport } from '../../transport';
+import { HttpError, MockHttpTransport } from '../../transport';
+import type { HttpTransport } from '../../transport';
 
 const dto = {
     id: 'a1',
@@ -122,5 +126,51 @@ describe('analysis repository boundary', () => {
         expect(options.signal).toBeUndefined();
         expect(new Headers(options.headers).get('Idempotency-Key')).toBe('attempt');
         expect(JSON.parse(String(options.body)).documents[0].content).toBe('{}');
+    });
+});
+
+describe('analysis deletion and listing', () => {
+    it('lists analyses and maps delete conflicts', async () => {
+        const item = {
+            id: 'a1',
+            title: 'Catalog',
+            status: 'completed',
+            progress: 100,
+            revision: 'analysis-1',
+            created_at: '2025-08-20T10:00:00Z',
+            error: null,
+            documents: [
+                {
+                    id: 'd1',
+                    name: 'a.json',
+                    format: 'json',
+                    size: 2,
+                },
+            ],
+        };
+        const request = vi.fn<HttpTransport['request']>(async (_path, options) => {
+            if (options?.method === 'DELETE') {
+                throw new HttpError(409, {
+                    code: 'not_ready',
+                });
+            }
+
+            return [
+                item,
+            ];
+        });
+        const repo = new TransportAnalysisRepo({
+            request,
+        });
+
+        expect(await repo.list()).toMatchObject([
+            {
+                id: 'a1',
+            },
+        ]);
+        await expect(repo.remove('a1')).rejects.toBeInstanceOf(AnalysisNotReadyError);
+        expect(request).toHaveBeenLastCalledWith('/api/v2/analyses/a1', {
+            method: 'DELETE',
+        });
     });
 });

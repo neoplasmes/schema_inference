@@ -101,6 +101,7 @@ export function useRemoteEditorController() {
         loadEditor: dependencies.loadEditor,
         editorRequest: dependencies.editorRequest,
         apiBaseUrl: dependencies.apiBaseUrl,
+        onUnauthenticated: dependencies.redirectToLogin,
         isLoadingResource:
             Boolean(resource) && (schemaId ? schema.isPending : analysis.isPending),
         resourceError: schemaId ? schema.error : analysis.error,

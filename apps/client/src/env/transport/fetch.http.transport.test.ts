@@ -59,3 +59,45 @@ describe('fetch HTTP transport', () => {
         } satisfies Partial<HttpError>);
     });
 });
+
+describe('fetch HTTP transport credentials and interceptors', () => {
+    it('sends cookies with every request', async () => {
+        const fetch = vi.fn<typeof globalThis.fetch>(async () => Response.json({}));
+        vi.stubGlobal('fetch', fetch);
+
+        await new FetchHttpTransport('https://api.example.test').request(
+            '/api/v2/session'
+        );
+
+        expect(fetch).toHaveBeenCalledWith(
+            'https://api.example.test/api/v2/session',
+            expect.objectContaining({
+                credentials: 'include',
+            })
+        );
+    });
+
+    it('notifies error interceptors before rejecting', async () => {
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(
+                async () =>
+                    new Response('{"code":"unauthenticated"}', {
+                        status: 401,
+                    })
+            )
+        );
+        const interceptor = vi.fn();
+        const transport = new FetchHttpTransport('');
+        transport.addErrorInterceptor(interceptor);
+
+        await expect(transport.request('/api/v2/schemas')).rejects.toMatchObject({
+            status: 401,
+        });
+        expect(interceptor).toHaveBeenCalledWith(
+            expect.objectContaining({
+                status: 401,
+            })
+        );
+    });
+});

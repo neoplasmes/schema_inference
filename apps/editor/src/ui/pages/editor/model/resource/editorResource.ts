@@ -6,6 +6,7 @@ export type EditorProps = {
     resource: EditorResource;
     apiBaseUrl: string;
     request?: (path: string, options?: RequestInit) => Promise<Response>;
+    onUnauthenticated?: () => void;
     onExit?: () => void;
     onCreated?: (result: { schemaId: string; revision: string }) => void;
     onSaved?: (result: { schemaId: string; revision: string; savedAt: string }) => void;

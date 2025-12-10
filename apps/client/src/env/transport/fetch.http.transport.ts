@@ -1,11 +1,16 @@
-import type { HttpTransport } from './http.transport';
+import type { HttpErrorInterceptor, InterceptableHttpTransport } from './http.transport';
 import { HttpError } from './http.error';
 
-export class FetchHttpTransport implements HttpTransport {
+export class FetchHttpTransport implements InterceptableHttpTransport {
     private readonly base: string;
+    private readonly interceptors: HttpErrorInterceptor[] = [];
 
     constructor(baseUrl: string) {
         this.base = baseUrl.replace(/\/$/, '');
+    }
+
+    addErrorInterceptor(interceptor: HttpErrorInterceptor): void {
+        this.interceptors.push(interceptor);
     }
 
     async request(path: string, options: RequestInit = {}): Promise<unknown> {
@@ -18,6 +23,7 @@ export class FetchHttpTransport implements HttpTransport {
 
         const response = await fetch(`${this.base}${path}`, {
             ...options,
+            credentials: 'include',
             headers,
         });
         const text = await response.text();
@@ -36,7 +42,13 @@ export class FetchHttpTransport implements HttpTransport {
         }
 
         if (!response.ok) {
-            throw new HttpError(response.status, body);
+            const error = new HttpError(response.status, body);
+
+            for (const interceptor of this.interceptors) {
+                interceptor(error);
+            }
+
+            throw error;
         }
 
         return body;

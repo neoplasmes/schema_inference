@@ -9,8 +9,14 @@ export interface RecordSchemaSavedInput {
     documentCount?: number;
 }
 
+export interface RemoveSchemaInput {
+    schemaId: string;
+    revision: string;
+}
+
 export interface SchemaRepo {
     list(options?: ReadOptions): Promise<SchemaSummary[]>;
     getById(id: string, options?: ReadOptions): Promise<SchemaSummary>;
     recordSaved(input: RecordSchemaSavedInput): Promise<SchemaSummary>;
+    remove(input: RemoveSchemaInput): Promise<void>;
 }

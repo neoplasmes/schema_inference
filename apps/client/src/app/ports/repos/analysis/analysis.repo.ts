@@ -9,5 +9,7 @@ export interface CreateAnalysisInput {
 
 export interface AnalysisRepo {
     create(input: CreateAnalysisInput): Promise<Analysis>;
+    list(options?: ReadOptions): Promise<Analysis[]>;
     getById(id: string, options?: ReadOptions): Promise<Analysis>;
+    remove(id: string): Promise<void>;
 }

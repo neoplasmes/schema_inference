@@ -5,6 +5,11 @@ import { useCommand, useRead } from '../../../../env/cache';
 import { useDependencies } from '../../../di';
 import { readDocument } from '../lib';
 
+export interface PendingDeletion {
+    kind: 'schema' | 'analysis';
+    id: string;
+}
+
 function messageFor(error: unknown): string {
     return error instanceof Error
         ? error.message
@@ -30,7 +35,14 @@ export function useWorkspaceController() {
                     : 500,
         }
     );
+    const analyses = useRead(dependencies.listAnalyses, {});
+    const session = useRead(dependencies.getSession, {});
     const create = useCommand(dependencies.createAnalysis);
+    const removeSchema = useCommand(dependencies.deleteSchema);
+    const removeAnalysis = useCommand(dependencies.deleteAnalysis);
+    const endSession = useCommand(dependencies.endSession);
+    const [pendingDeletion, setPendingDeletion] = useState<PendingDeletion | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
     const [title, setTitle] = useState('');
     const [documents, setDocuments] = useState<DocumentInput[]>([]);
     const [selectionError, setSelectionError] = useState<string | null>(null);
@@ -122,9 +134,85 @@ export function useWorkspaceController() {
         title,
     ]);
 
+    const requestDeletion = useCallback((deletion: PendingDeletion) => {
+        setActionError(null);
+        setPendingDeletion(deletion);
+    }, []);
+
+    const cancelDeletion = useCallback(() => setPendingDeletion(null), []);
+
+    const confirmDeletion = useCallback(async () => {
+        if (!pendingDeletion) {
+            return;
+        }
+
+        setActionError(null);
+
+        try {
+            if (pendingDeletion.kind === 'schema') {
+                const schema = schemas.data?.find(item => item.id === pendingDeletion.id);
+
+                if (!schema) {
+                    throw new Error(
+                        'The schema is no longer available. Refresh the list.'
+                    );
+                }
+
+                await removeSchema.execute({
+                    schemaId: schema.id,
+                    revision: schema.revision,
+                });
+            } else {
+                await removeAnalysis.execute({
+                    analysisId: pendingDeletion.id,
+                });
+
+                if (pendingDeletion.id === analysisId) {
+                    setParameters({});
+                }
+            }
+
+            setPendingDeletion(null);
+        } catch (error) {
+            setPendingDeletion(null);
+            setActionError(messageFor(error));
+        }
+    }, [
+        analysisId,
+        pendingDeletion,
+        removeAnalysis.execute,
+        removeSchema.execute,
+        schemas.data,
+        setParameters,
+    ]);
+
+    const logout = useCallback(async () => {
+        setActionError(null);
+
+        try {
+            const ended = await endSession.execute({});
+            dependencies.navigate(ended.endSessionUrl);
+        } catch (error) {
+            setActionError(messageFor(error));
+        }
+    }, [
+        dependencies,
+        endSession.execute,
+    ]);
+
     return {
         mode: dependencies.mode,
         schemas,
+        analyses,
+        user: session.data ?? null,
+        pendingDeletion,
+        isDeleting: removeSchema.isPending || removeAnalysis.isPending,
+        isLoggingOut: endSession.isPending,
+        actionError,
+        requestDeletion,
+        cancelDeletion,
+        confirmDeletion,
+        logout,
         analysis,
         analysisId,
         title,

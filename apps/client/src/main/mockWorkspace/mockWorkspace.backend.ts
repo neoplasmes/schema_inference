@@ -100,7 +100,7 @@ function initialSnapshot(): WorkspaceSnapshot {
 }
 
 export class MockWorkspaceBackend {
-    private readonly snapshot: WorkspaceSnapshot;
+    private snapshot: WorkspaceSnapshot;
 
     constructor(
         private readonly editor: MockEditorBackend,
@@ -130,6 +130,59 @@ export class MockWorkspaceBackend {
         const method = options.method ?? 'GET';
         const route = new URL(path, 'http://mock.local').pathname;
 
+        if (route === '/api/v2/session') {
+            return method === 'DELETE'
+                ? json({
+                      endSessionUrl: '/',
+                  })
+                : json({
+                      sub: 'demo-user',
+                      roles: [
+                          'user',
+                      ],
+                  });
+        }
+
+        if (route === '/api/v2/analyses' && method === 'GET') {
+            return json(
+                this.snapshot.analyses.map(item =>
+                    representation(this.currentAnalysis(item))
+                )
+            );
+        }
+
+        if (/^\/api\/v2\/analyses\/[^/]+$/.test(route) && method === 'DELETE') {
+            const id = decodeURIComponent(route.slice('/api/v2/analyses/'.length));
+            const analysis = this.snapshot.analyses.find(item => item.id === id);
+
+            if (!analysis) {
+                return json(
+                    {
+                        code: 'not_found',
+                    },
+                    404
+                );
+            }
+
+            if (this.currentAnalysis(analysis).status !== 'completed') {
+                return json(
+                    {
+                        code: 'not_ready',
+                    },
+                    409
+                );
+            }
+
+            this.snapshot.analyses = this.snapshot.analyses.filter(
+                item => item.id !== id
+            );
+            this.persist();
+
+            return new Response(null, {
+                status: 204,
+            });
+        }
+
         if (route === '/api/v2/analyses' && method === 'POST') {
             return this.createAnalysis(options);
         }
@@ -150,8 +203,17 @@ export class MockWorkspaceBackend {
             return json(representation(this.currentAnalysis(analysis)));
         }
 
+        const forwarded = await this.editor.request(path, options);
+        const removed = /^\/api\/v2\/schemas\/([^/]+)$/.exec(route);
+
+        if (method === 'DELETE' && removed && forwarded?.status === 204) {
+            const id = decodeURIComponent(removed[1]);
+            this.snapshot.schemas = this.snapshot.schemas.filter(item => item.id !== id);
+            this.persist();
+        }
+
         return (
-            (await this.editor.request(path, options)) ??
+            forwarded ??
             json(
                 {
                     error: 'not_found',

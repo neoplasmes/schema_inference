@@ -2,6 +2,59 @@ import { Link } from 'react-router';
 import { useWorkspaceController } from '../model';
 import styles from './workspace.page.module.css';
 
+function DeleteControl(props: {
+    controller: ReturnType<typeof useWorkspaceController>;
+    kind: 'schema' | 'analysis';
+    id: string;
+    label: string;
+    disabled?: boolean;
+}): React.JSX.Element {
+    const { controller, kind, id, label } = props;
+    const confirming =
+        controller.pendingDeletion?.kind === kind && controller.pendingDeletion.id === id;
+
+    if (confirming) {
+        return (
+            <span className={styles.confirm} role="group" aria-label={`Delete ${label}`}>
+                <button
+                    type="button"
+                    className={styles.danger}
+                    disabled={controller.isDeleting}
+                    onClick={() => {
+                        void controller.confirmDeletion();
+                    }}
+                >
+                    Confirm delete
+                </button>
+                <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={controller.cancelDeletion}
+                >
+                    Cancel
+                </button>
+            </span>
+        );
+    }
+
+    return (
+        <button
+            type="button"
+            className={styles.secondaryButton}
+            aria-label={`Delete ${label}`}
+            disabled={props.disabled || controller.isDeleting}
+            onClick={() =>
+                controller.requestDeletion({
+                    kind,
+                    id,
+                })
+            }
+        >
+            Delete
+        </button>
+    );
+}
+
 export function WorkspacePage(): React.JSX.Element {
     const controller = useWorkspaceController();
 
@@ -11,10 +64,32 @@ export function WorkspacePage(): React.JSX.Element {
                 <Link className={styles.brand} to="/" aria-label="Schema workspace home">
                     <span className={styles.mark}>S</span> Schema Studio
                 </Link>
-                <span className={styles.badge}>
-                    {controller.mode === 'mock' ? 'Local demo' : 'Your workspace'}
-                </span>
+                <div className={styles.account}>
+                    <span className={styles.badge}>
+                        {controller.mode === 'mock' ? 'Local demo' : 'Your workspace'}
+                    </span>
+                    {controller.user && (
+                        <span className={styles.user} aria-label="Signed in user">
+                            {controller.user.sub}
+                        </span>
+                    )}
+                    <button
+                        type="button"
+                        className={styles.refresh}
+                        disabled={controller.isLoggingOut}
+                        onClick={() => {
+                            void controller.logout();
+                        }}
+                    >
+                        Log out
+                    </button>
+                </div>
             </header>
+            {controller.actionError && (
+                <p role="alert" className={styles.error}>
+                    {controller.actionError}
+                </p>
+            )}
             <section className={styles.introduction}>
                 <p className={styles.eyebrow}>Your schema workspace</p>
                 <h1>Give your documents a structure.</h1>
@@ -212,43 +287,82 @@ export function WorkspacePage(): React.JSX.Element {
                     )}
                     <div className={styles.cards}>
                         {controller.schemas.data?.map(schema => (
-                            <Link
-                                key={schema.id}
-                                className={styles.card}
-                                to={`/edit?${new URLSearchParams({
-                                    schemaId: schema.id,
-                                })}`}
-                            >
-                                <span className={styles.schemaIcon} aria-hidden="true">
-                                    ⋈
-                                </span>
-                                <div>
-                                    <h3>{schema.title}</h3>
-                                    <p>
-                                        {schema.documentCount} source{' '}
-                                        {schema.documentCount === 1
-                                            ? 'document'
-                                            : 'documents'}{' '}
-                                        · {schema.revision}
-                                    </p>
-                                    <small>
-                                        Updated{' '}
-                                        {new Date(schema.updatedAt).toLocaleDateString(
-                                            'en-GB',
-                                            {
+                            <div key={schema.id} className={styles.cardRow}>
+                                <Link
+                                    className={styles.card}
+                                    to={`/edit?${new URLSearchParams({
+                                        schemaId: schema.id,
+                                    })}`}
+                                >
+                                    <span
+                                        className={styles.schemaIcon}
+                                        aria-hidden="true"
+                                    >
+                                        ⋈
+                                    </span>
+                                    <div>
+                                        <h3>{schema.title}</h3>
+                                        <p>
+                                            {schema.documentCount} source{' '}
+                                            {schema.documentCount === 1
+                                                ? 'document'
+                                                : 'documents'}{' '}
+                                            · {schema.revision}
+                                        </p>
+                                        <small>
+                                            Updated{' '}
+                                            {new Date(
+                                                schema.updatedAt
+                                            ).toLocaleDateString('en-GB', {
                                                 day: 'numeric',
                                                 month: 'short',
                                                 year: 'numeric',
-                                            }
-                                        )}
-                                    </small>
-                                </div>
-                                <span className={styles.arrow} aria-hidden="true">
-                                    ↗
-                                </span>
-                            </Link>
+                                            })}
+                                        </small>
+                                    </div>
+                                    <span className={styles.arrow} aria-hidden="true">
+                                        ↗
+                                    </span>
+                                </Link>
+                                <DeleteControl
+                                    controller={controller}
+                                    kind="schema"
+                                    id={schema.id}
+                                    label={schema.title}
+                                />
+                            </div>
                         ))}
                     </div>
+                    {controller.analyses.data && controller.analyses.data.length > 0 && (
+                        <div className={styles.analyses}>
+                            <span className={styles.step}>ANALYSES</span>
+                            <ul className={styles.analysisList}>
+                                {controller.analyses.data.map(analysis => (
+                                    <li key={analysis.id}>
+                                        <div>
+                                            <strong>{analysis.title}</strong>
+                                            <small>
+                                                {analysis.status}
+                                                {analysis.status === 'completed'
+                                                    ? ''
+                                                    : ` · ${analysis.progress}%`}
+                                            </small>
+                                        </div>
+                                        <DeleteControl
+                                            controller={controller}
+                                            kind="analysis"
+                                            id={analysis.id}
+                                            label={analysis.title}
+                                            disabled={
+                                                analysis.status === 'queued' ||
+                                                analysis.status === 'processing'
+                                            }
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     {controller.mode === 'mock' && (
                         <Link className={styles.demoLink} to="/edit?demo=1">
                             Open the sample editor <span aria-hidden="true">→</span>

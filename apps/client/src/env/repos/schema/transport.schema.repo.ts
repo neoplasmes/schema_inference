@@ -1,5 +1,12 @@
-import { SchemaNotFoundError } from '../../../app/ports/repos/schema';
-import type { RecordSchemaSavedInput, SchemaRepo } from '../../../app/ports/repos/schema';
+import {
+    SchemaNotFoundError,
+    SchemaRevisionConflictError,
+} from '../../../app/ports/repos/schema';
+import type {
+    RecordSchemaSavedInput,
+    RemoveSchemaInput,
+    SchemaRepo,
+} from '../../../app/ports/repos/schema';
 import type { ReadOptions } from '../../../app/ports/repos';
 import type { SchemaSummary } from '../../../core/entities';
 import { HttpError } from '../../transport';
@@ -44,5 +51,32 @@ export class TransportSchemaRepo implements SchemaRepo {
 
     recordSaved(input: RecordSchemaSavedInput): Promise<SchemaSummary> {
         return this.getById(input.schemaId);
+    }
+
+    async remove(input: RemoveSchemaInput): Promise<void> {
+        try {
+            await this.http.request(
+                `/api/v2/schemas/${encodeURIComponent(input.schemaId)}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'If-Match': `"${input.schemaId}:${input.revision}"`,
+                    },
+                }
+            );
+        } catch (error) {
+            if (error instanceof HttpError && error.status === 404) {
+                throw new SchemaNotFoundError(input.schemaId);
+            }
+
+            if (
+                error instanceof HttpError &&
+                (error.status === 412 || error.status === 428)
+            ) {
+                throw new SchemaRevisionConflictError(input.schemaId);
+            }
+
+            throw error;
+        }
     }
 }

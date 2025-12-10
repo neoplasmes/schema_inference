@@ -49,7 +49,11 @@ describe('workspace application contracts', () => {
     it('accepts an interchangeable repository and propagates read cancellation', async () => {
         const repo: AnalysisRepo = {
             create: vi.fn(async () => analysis),
+            list: vi.fn(async () => [
+                analysis,
+            ]),
             getById: vi.fn(async () => analysis),
+            remove: vi.fn(async () => undefined),
         };
         const command = new CreateAnalysis(repo);
         const query = new GetAnalysis(repo);
@@ -93,7 +97,9 @@ describe('workspace application contracts', () => {
         const create = vi.fn(async () => analysis);
         const command = new CreateAnalysis({
             create,
+            list: async () => [],
             getById: async () => analysis,
+            remove: async () => undefined,
         });
 
         expect(() =>
@@ -123,6 +129,7 @@ describe('workspace application contracts', () => {
             ]),
             getById: vi.fn(async () => schema),
             recordSaved: vi.fn(async () => schema),
+            remove: vi.fn(async () => undefined),
         };
         const command = new RecordSchemaSaved(repo);
         const list = new ListSchemas(repo);

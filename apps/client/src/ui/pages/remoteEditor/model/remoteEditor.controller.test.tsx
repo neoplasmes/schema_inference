@@ -64,10 +64,34 @@ async function mount(url: string) {
             reads: () => [],
             execute: vi.fn(),
         },
+        listAnalyses: {
+            name: 'analyses',
+            reads: () => [],
+            execute: async () => [],
+        },
+        getSession: {
+            name: 'session',
+            reads: () => [],
+            execute: vi.fn(),
+        },
         createAnalysis: {
             execute: vi.fn(),
             writes: () => [],
         },
+        deleteAnalysis: {
+            execute: vi.fn(),
+            writes: () => [],
+        },
+        deleteSchema: {
+            execute: vi.fn(),
+            writes: () => [],
+        },
+        endSession: {
+            execute: vi.fn(),
+            writes: () => [],
+        },
+        navigate: vi.fn(),
+        redirectToLogin: vi.fn(),
         recordSchemaSaved: {
             execute: refreshed,
             writes: () => [

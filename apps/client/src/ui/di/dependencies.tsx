@@ -3,8 +3,14 @@ import type { ComponentType } from 'react';
 import type { EditorProps } from 'schema_editor/Editor';
 import type { Command } from '../../app/commands';
 import type { Query } from '../../app/queries';
-import type { CreateAnalysisInput, RecordSchemaSavedInput } from '../../app/ports/repos';
-import type { Analysis, SchemaSummary } from '../../core/entities';
+import type { DeleteAnalysisInput } from '../../app/commands/deleteAnalysis';
+import type {
+    CreateAnalysisInput,
+    EndedSession,
+    RecordSchemaSavedInput,
+    RemoveSchemaInput,
+} from '../../app/ports/repos';
+import type { Analysis, SchemaSummary, Session } from '../../core/entities';
 
 export interface Dependencies {
     mode: 'mock' | 'api';
@@ -21,7 +27,12 @@ export interface Dependencies {
         },
         Analysis
     >;
+    listAnalyses: Query<Record<string, never>, Analysis[]>;
+    getSession: Query<Record<string, never>, Session>;
     createAnalysis: Command<CreateAnalysisInput, Analysis>;
+    deleteAnalysis: Command<DeleteAnalysisInput, void>;
+    deleteSchema: Command<RemoveSchemaInput, void>;
+    endSession: Command<Record<string, never>, EndedSession>;
     recordSchemaSaved: Command<RecordSchemaSavedInput, SchemaSummary>;
     loadEditor(): Promise<{
         default: ComponentType<EditorProps>;
@@ -29,6 +40,8 @@ export interface Dependencies {
     editorRequest?: EditorProps['request'];
     apiBaseUrl: string;
     createId(): string;
+    navigate(url: string): void;
+    redirectToLogin(): void;
 }
 
 export const DependenciesContext = createContext<Dependencies | null>(null);
