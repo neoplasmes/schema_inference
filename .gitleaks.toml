@@ -1,0 +1,38 @@
+title = "repository secrets"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "configuration-password"
+description = "Literal configuration credentials, including short passwords"
+path = '''(?i)(?:\.(?:ya?ml|toml|ini|json)|(?:^|/)\.env(?:\.[^/]*)?)$'''
+regex = '''(?i)(?:[a-z0-9_]*(?:password|passwd|masterkey|client_secret|api_key|auth_token|access_token|secret_key)|adminPassword)["']?[ \t]*[:=][ \t]*["']?([a-z0-9+/!@#%^&*=_-]{4,})'''
+secretGroup = 1
+
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''^(?:REDACTED|CHANGEME|placeholder|null|true|false)$''']
+
+[[rules]]
+id = "database-url-password"
+description = "Database connection strings with literal passwords"
+regex = '''(?i)(?:postgres(?:ql)?|redis|rediss|amqp|amqps)://[^\s:/@]+:([^\s/@${}]+)@'''
+secretGroup = 1
+
+[[rules.allowlists]]
+regexTarget = "secret"
+regexes = ['''^(?:REDACTED|CHANGEME)$''']
+
+[[rules]]
+id = "password-hash"
+description = "Bcrypt password hashes"
+regex = '''\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}'''
+
+[[rules]]
+id = "private-file"
+description = "Local credential files must not be committed"
+path = '''(?i)(?:^|/)(?:\.env(?:\.[^/]+)?|\.netrc|\.pypirc|kubeconfig|secret\.ya?ml|userlist\.txt|credentials\.(?:json|ya?ml)|id_rsa|id_ed25519|[^/]+\.(?:pem|key|p12|pfx|jks|keystore|pat|kubeconfig)|terraform\.tfstate(?:\.[^/]*)?|[^/]+\.tfvars(?:\.json)?)$|(?:^|/)(?:\.secrets|\.kube|\.terraform|identity-bootstrap)/|(?:^|/)env/secrets/values\.json$|(?:^|/)env/local/identity\.env$'''
+
+[[rules.allowlists]]
+paths = ['''\.example(?:\.[^/]*)?$''']

@@ -25,6 +25,33 @@ fileGroups:
     - /apps/server/openapi.yaml
 
 tasks:
+  setup-secrets:
+    command: proto install gitleaks
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+
+  lint-secrets:
+    command: proto run gitleaks -- git --staged --pre-commit --config .gitleaks.toml --ignore-gitleaks-allow --redact=100 --no-banner
+    platform: system
+    deps:
+      - ~:lint-secrets-paths
+    options:
+      cache: false
+
+  lint-secrets-paths:
+    command: uv run --no-sync python tools/secrets/check_paths.py
+    platform: system
+    options:
+      cache: false
+
+  lint-secrets-history:
+    command: proto run gitleaks -- git --log-opts=--all --config .gitleaks.toml --ignore-gitleaks-allow --redact=100 --no-banner
+    platform: system
+    options:
+      cache: false
+
   setup:
     script: proto install && pnpm install --frozen-lockfile --ignore-scripts && uv sync --all-packages --locked --no-python-downloads
     platform: system
@@ -56,9 +83,10 @@ tasks:
       runInCI: false
 
   lint:
-    command: uv run --no-sync ruff check tools/documents-generator/src tools/bruno
+    command: uv run --no-sync ruff check tools/documents-generator/src tools/bruno tools/secrets
     deps:
       - ~:lint-bruno
+      - ~:lint-secrets-history
     platform: system
     inputs: &tools-inputs
       - '@group(tools-src)'
@@ -71,7 +99,7 @@ tasks:
       - '@group(bruno)'
 
   lint-fix:
-    command: uv run --no-sync ruff check --fix tools/documents-generator/src tools/bruno
+    command: uv run --no-sync ruff check --fix tools/documents-generator/src tools/bruno tools/secrets
     platform: system
     inputs: *tools-inputs
     options:
@@ -79,7 +107,7 @@ tasks:
       runInCI: false
 
   fmt:
-    script: pnpm exec biome format --write --files-ignore-unknown=true package.json biome.json && uv run --no-sync ruff format tools/documents-generator/src tools/bruno
+    script: pnpm exec biome format --write --files-ignore-unknown=true package.json biome.json && uv run --no-sync ruff format tools/documents-generator/src tools/bruno tools/secrets
     platform: system
     deps:
       - ~:lint-fix

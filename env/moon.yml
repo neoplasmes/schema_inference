@@ -191,6 +191,34 @@ tasks:
     platform: system
     options: *cluster-options
 
+  cluster-start:
+    description: Start the stopped cluster; agents whose container IP changed on restart fail the kube-router network policy controller once, so they are restarted when nodes stay NotReady
+    script: >-
+      k3d cluster start schema-workspace --wait &&
+      (kubectl --context k3d-schema-workspace wait --for=condition=Ready nodes --all --timeout 90s ||
+      (docker restart $(docker ps -q --filter label=k3d.cluster=schema-workspace --filter label=k3d.role=agent) &&
+      kubectl --context k3d-schema-workspace wait --for=condition=Ready nodes --all --timeout 180s))
+    platform: system
+    options: *cluster-options
+
+  cluster-stop:
+    command: k3d cluster stop schema-workspace
+    platform: system
+    options: *cluster-options
+
+  cluster-status:
+    script: k3d cluster list schema-workspace && (kubectl --context k3d-schema-workspace get nodes --request-timeout 5s 2>/dev/null || echo "cluster schema-workspace is stopped")
+    platform: system
+    options: *cluster-options
+
+  cluster-monitor:
+    command: k9s --context k3d-schema-workspace -n schema-workspace
+    platform: system
+    options:
+      cache: false
+      runInCI: false
+      interactive: true
+
   deploy-monitoring:
     script: kubectl --context k3d-schema-workspace create namespace monitoring --dry-run=client -o yaml | kubectl --context k3d-schema-workspace apply -f - && kubectl --context k3d-schema-workspace apply -f env/k8s/monitoring/secret.yaml && helmfile -f env/k8s/helmfile.yaml -l group=monitoring sync && kubectl --context k3d-schema-workspace apply -k env/k8s/monitoring/dashboards
     platform: system

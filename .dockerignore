@@ -5,6 +5,12 @@
 .zed
 .proto
 .moon/cache
+.secrets
+.cache
+.local
+.direnv
+.kube
+.terraform
 
 **/node_modules
 **/dist
@@ -18,6 +24,29 @@
 .env.*
 **/.env
 **/.env.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.jks
+**/*.keystore
+**/*.pat
+**/.netrc
+**/.pypirc
+**/kubeconfig
+**/credentials.json
+**/credentials.yaml
+**/credentials.yml
+**/secret.yaml
+**/secret.yml
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfvars
+**/*.tfvars.json
+env/secrets/values.json
+env/pgbouncer/userlist.txt
+env/local/identity.env
+env/local/identity-bootstrap
 
 artifacts
 test-results

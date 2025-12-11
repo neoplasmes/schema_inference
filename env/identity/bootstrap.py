@@ -241,6 +241,46 @@ def ensure_roles(client: Client, project_id: str) -> None:
                 raise
 
 
+def disable_passkeys(client: Client) -> None:
+    """Forbid passwordless login in the instance policy, keeping the rest intact.
+
+    Passkey sign-up creates the user before the browser registers a key, and over
+    plain HTTP on ``auth.localhost`` that registration fails, leaving an account
+    with no way to sign in.
+    """
+    policy = client.call("GET", "/admin/v1/policies/login").get("policy", {})
+
+    if policy.get("passwordlessType", "PASSWORDLESS_TYPE_NOT_ALLOWED") == (
+        "PASSWORDLESS_TYPE_NOT_ALLOWED"
+    ):
+        return
+
+    flags = (
+        "allowUsernamePassword",
+        "allowRegister",
+        "allowExternalIdp",
+        "forceMfa",
+        "hidePasswordReset",
+        "ignoreUnknownUsernames",
+        "allowDomainDiscovery",
+        "disableLoginWithEmail",
+        "disableLoginWithPhone",
+        "forceMfaLocalOnly",
+    )
+    lifetimes = (
+        "passwordCheckLifetime",
+        "externalLoginCheckLifetime",
+        "mfaInitSkipLifetime",
+        "secondFactorCheckLifetime",
+        "multiFactorCheckLifetime",
+    )
+    body: dict = {flag: policy.get(flag, False) for flag in flags}
+    body |= {name: policy[name] for name in lifetimes if name in policy}
+    body["defaultRedirectUri"] = policy.get("defaultRedirectUri", "")
+    body["passwordlessType"] = "PASSWORDLESS_TYPE_NOT_ALLOWED"
+    client.call("PUT", "/admin/v1/policies/login", body)
+
+
 def find_application(client: Client, project_id: str, name: str) -> dict | None:
     """Return the application of the project with the given name."""
     listing = client.call(
@@ -494,6 +534,7 @@ def main() -> int:
     root = arguments.root.resolve()
     client = Client(target, read_pat(target, root))
     client.wait_ready()
+    disable_passkeys(client)
 
     stored = load_existing(target, root / arguments.output)
     organization_id = find_organization(client)

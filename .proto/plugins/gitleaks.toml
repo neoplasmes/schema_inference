@@ -1,0 +1,26 @@
+name = "gitleaks"
+type = "cli"
+
+[install]
+download-url = "https://github.com/gitleaks/gitleaks/releases/download/v{version}/{download_file}"
+checksum-url = "https://github.com/gitleaks/gitleaks/releases/download/v{version}/{checksum_file}"
+unpack = true
+
+[install.arch]
+x86_64 = "x64"
+aarch64 = "arm64"
+
+[platform.linux]
+download-file = "gitleaks_{version}_linux_{arch}.tar.gz"
+checksum-file = "gitleaks_{version}_checksums.txt"
+
+[platform.macos]
+download-file = "gitleaks_{version}_darwin_{arch}.tar.gz"
+checksum-file = "gitleaks_{version}_checksums.txt"
+
+[platform.windows]
+download-file = "gitleaks_{version}_windows_{arch}.zip"
+checksum-file = "gitleaks_{version}_checksums.txt"
+
+[resolve]
+git-url = "https://github.com/gitleaks/gitleaks"

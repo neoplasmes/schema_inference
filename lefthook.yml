@@ -3,6 +3,9 @@ assert_lefthook_installed: true
 pre-commit:
   parallel: false
   jobs:
+    - name: secrets
+      run: moon run root:lint-secrets
+
     - name: fmt and typecheck
       run: moon run :fmt :typecheck --affected --status staged
       stage_fixed: true
