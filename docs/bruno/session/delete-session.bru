@@ -1,0 +1,26 @@
+meta {
+  name: Delete session
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/session
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  const { fetchToken } = require("./lib/token.js");
+  const token = await fetchToken(bru, "primary");
+
+  bru.setVar("logoutToken", token);
+  req.setHeader("Authorization", "Bearer " + token);
+}
+
+tests {
+  test("ends the session", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().endSessionUrl).to.be.a("string");
+  });
+}

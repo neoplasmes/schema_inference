@@ -2,4 +2,10 @@ vars {
   baseUrl: http://localhost:8080
   cacheChecks: true
   serverDirect: false
+  idpUrl: http://127.0.0.1:8080
+  tokenUrl: http://127.0.0.1:8080/oauth/v2/token
+  idpHost: auth.localhost:8080
+  clientId: {{process.env.BRUNO_CLIENT_ID}}
+  clientSecret: {{process.env.BRUNO_CLIENT_SECRET}}
+  projectId: {{process.env.AUTH_PROJECT_ID}}
 }

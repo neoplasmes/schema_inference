@@ -1,0 +1,22 @@
+meta {
+  name: Delete schema with a wrong If-Match
+  type: http
+  seq: 15
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  If-Match: "{{schemaId}}:s999"
+}
+
+tests {
+  test("rejects a stale precondition", function () {
+    expect(res.getStatus()).to.equal(412);
+    expect(res.getBody().code).to.equal("revision_conflict");
+  });
+}

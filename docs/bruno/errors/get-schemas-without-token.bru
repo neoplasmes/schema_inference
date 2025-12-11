@@ -1,0 +1,21 @@
+meta {
+  name: Schemas without a token
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas
+  body: none
+  auth: none
+}
+
+tests {
+  test("refuses an anonymous request", function () {
+    expect(res.getStatus()).to.equal(401);
+  });
+
+  test("error is never cached", function () {
+    expect(String(res.getHeader("cache-status") || "").toLowerCase()).to.not.contain("hit");
+  });
+}

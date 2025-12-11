@@ -7,7 +7,7 @@ meta {
 get {
   url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{nextRevision}}/manifest
   body: none
-  auth: none
+  auth: inherit
 }
 
 script:pre-request {

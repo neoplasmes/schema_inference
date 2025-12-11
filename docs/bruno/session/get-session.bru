@@ -1,0 +1,19 @@
+meta {
+  name: Get session
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v2/session
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("describes the caller", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().sub).to.be.a("string").and.not.empty;
+    expect(res.getBody().roles).to.include("editor");
+  });
+}

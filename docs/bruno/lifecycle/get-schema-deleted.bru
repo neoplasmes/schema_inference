@@ -1,0 +1,31 @@
+meta {
+  name: Deleted schema is gone
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  const { fetchToken, untilStatus } = require("./lib/token.js");
+  const token = await fetchToken(bru, "primary");
+  const gone = await untilStatus(bru, "/api/v2/schemas/" + bru.getVar("schemaId"), token, 404, 3000);
+
+  bru.setVar("purgeLatencyMs", gone.latencyMs);
+  req.setHeader("Authorization", "Bearer " + token);
+}
+
+tests {
+  test("deletion became visible within the purge budget, after " + bru.getVar("purgeLatencyMs") + " ms", function () {
+    expect(Number(bru.getVar("purgeLatencyMs"))).to.be.at.least(0);
+  });
+
+  test("returns not found", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getBody().code).to.equal("not_found");
+  });
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Schema list of the owner
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas
+  body: none
+  auth: inherit
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+  }
+}
+
+tests {
+  test("owner sees the schema", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().some((entry) => entry.id === bru.getVar("schemaId"))).to.equal(true);
+  });
+}

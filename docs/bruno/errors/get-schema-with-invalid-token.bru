@@ -1,0 +1,21 @@
+meta {
+  name: Schema with an invalid token
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer not-a-real-token
+}
+
+tests {
+  test("refuses an unknown token", function () {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

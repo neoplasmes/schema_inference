@@ -1,0 +1,41 @@
+meta {
+  name: Session after revocation
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/v2/session
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+
+    return;
+  }
+
+  const { untilRefused } = require("./lib/token.js");
+  const refused = await untilRefused(bru, "/api/v2/session", bru.getVar("revocationToken"), 2000);
+
+  bru.setVar("revocationLatencyMs", Date.now() - Number(bru.getVar("revokedAt")));
+  bru.setVar("revocationAttempts", refused.attempts);
+  bru.setVar("revocationRefused", refused.latencyMs >= 0);
+  req.setHeader("Authorization", "Bearer " + bru.getVar("revocationToken"));
+}
+
+tests {
+  test("revoked token is refused", function () {
+    expect(res.getStatus()).to.equal(401);
+  });
+
+  test("webhook flush beats the retry budget", function () {
+    expect(bru.getVar("revocationRefused")).to.equal(true);
+  });
+
+  test("measured latency " + bru.getVar("revocationLatencyMs") + " ms in " + bru.getVar("revocationAttempts") + " attempts", function () {
+    expect(Number(bru.getVar("revocationLatencyMs"))).to.be.below(2500);
+  });
+}

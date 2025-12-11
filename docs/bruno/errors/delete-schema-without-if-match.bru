@@ -1,0 +1,18 @@
+meta {
+  name: Delete schema without If-Match
+  type: http
+  seq: 14
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("requires a precondition", function () {
+    expect(res.getStatus()).to.equal(428);
+    expect(res.getBody().code).to.equal("precondition_required");
+  });
+}

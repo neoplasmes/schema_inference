@@ -1,0 +1,36 @@
+meta {
+  name: Deactivate the user at the identity provider
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{idpUrl}}/v2/users/{{revocationSubject}}/deactivate
+  body: json
+  auth: none
+}
+
+headers {
+  Host: {{idpHost}}
+  Authorization: Bearer {{process.env.ZITADEL_ADMIN_PAT}}
+}
+
+body:json {
+  {}
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+
+    return;
+  }
+
+  bru.setVar("revokedAt", Date.now());
+}
+
+tests {
+  test("identity provider deactivates the user", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

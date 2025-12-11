@@ -1,0 +1,30 @@
+meta {
+  name: Schema list is per user
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+
+    return;
+  }
+
+  const { fetchToken } = require("./lib/token.js");
+
+  req.setHeader("Authorization", "Bearer " + (await fetchToken(bru, "other")));
+}
+
+tests {
+  test("another user does not receive the cached list of the owner", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().some((entry) => entry.id === bru.getVar("schemaId"))).to.equal(false);
+  });
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Start login
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/auth/login?returnTo=/
+  body: none
+  auth: none
+}
+
+settings {
+  followRedirects: false
+}
+
+tests {
+  test("redirects to the identity provider", function () {
+    expect(res.getStatus()).to.equal(302);
+    expect(res.getHeader("location")).to.contain("/oauth/v2/authorize");
+  });
+
+  test("keeps the login flow in a cookie", function () {
+    expect(String(res.getHeader("set-cookie"))).to.contain("auth_flow=");
+    expect(String(res.getHeader("set-cookie")).toLowerCase()).to.contain("httponly");
+  });
+}

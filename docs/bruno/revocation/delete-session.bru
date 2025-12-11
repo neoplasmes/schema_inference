@@ -1,0 +1,27 @@
+meta {
+  name: Delete session with a bearer token
+  type: http
+  seq: 7
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/session
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+
+    return;
+  }
+
+  req.setHeader("Authorization", "Bearer " + bru.getVar("logoutRevocationToken"));
+}
+
+tests {
+  test("logout answers", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

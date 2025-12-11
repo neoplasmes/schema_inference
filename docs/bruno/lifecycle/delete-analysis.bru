@@ -1,0 +1,17 @@
+meta {
+  name: Delete analysis
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/analyses/{{analysisId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("deletes the analysis", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

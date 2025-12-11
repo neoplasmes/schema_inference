@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 METHODS = ("get", "post", "put", "patch", "delete", "head", "options")
-EXCLUDED_FOLDERS = ("errors", "cache", "environments")
+EXCLUDED_FOLDERS = ("errors", "cache", "purge", "revocation", "environments", "lib")
 TEMPLATE_PARAMETER = re.compile(r"\{\{[^{}]+\}\}|\{[^{}]+\}")
 REQUEST_BLOCK = re.compile(
     r"^(" + "|".join(METHODS) + r")\s*\{[^}]*?^\s*url:\s*(\S+)",

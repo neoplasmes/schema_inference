@@ -1,0 +1,37 @@
+meta {
+  name: Session with a fresh token
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v2/session
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+
+    return;
+  }
+
+  const { fetchToken } = require("./lib/token.js");
+  const token = await fetchToken(bru, "other");
+
+  bru.setVar("revocationToken", token);
+  req.setHeader("Authorization", "Bearer " + token);
+}
+
+script:post-response {
+  if (res.getStatus() === 200) {
+    bru.setVar("revocationSubject", res.getBody().sub);
+  }
+}
+
+tests {
+  test("fresh token is accepted", function () {
+    expect(res.getStatus()).to.equal(200);
+  });
+}

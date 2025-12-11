@@ -1,0 +1,18 @@
+meta {
+  name: Delete unknown analysis
+  type: http
+  seq: 16
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/analyses/unknown-analysis
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("returns not found", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getBody().code).to.equal("not_found");
+  });
+}

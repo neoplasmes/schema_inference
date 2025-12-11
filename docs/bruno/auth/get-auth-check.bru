@@ -1,0 +1,27 @@
+meta {
+  name: Auth check
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v2/auth/check
+  body: none
+  auth: inherit
+}
+
+headers {
+  X-Forwarded-Method: GET
+  X-Forwarded-Uri: /api/v2/schemas/{{schemaId}}
+}
+
+tests {
+  test("authorises the owner", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+
+  test("hands the identity to the gateway", function () {
+    expect(res.getHeader("x-user-id")).to.be.a("string").and.not.empty;
+    expect(res.getHeader("x-user-roles")).to.contain("editor");
+  });
+}

@@ -1,0 +1,18 @@
+meta {
+  name: Deleted analysis is gone
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/v2/analyses/{{analysisId}}
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("returns not found", function () {
+    expect(res.getStatus()).to.equal(404);
+    expect(res.getBody().code).to.equal("not_found");
+  });
+}

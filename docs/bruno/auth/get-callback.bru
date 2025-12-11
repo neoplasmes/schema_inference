@@ -1,0 +1,26 @@
+meta {
+  name: Login callback without a started login
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/auth/callback?error=access_denied
+  body: none
+  auth: none
+}
+
+settings {
+  followRedirects: false
+}
+
+tests {
+  test("refuses a callback that carries an error", function () {
+    expect(res.getStatus()).to.equal(400);
+    expect(res.getBody().code).to.equal("login_failed");
+  });
+
+  test("sets no session", function () {
+    expect(String(res.getHeader("set-cookie") || "")).to.not.contain("session=");
+  });
+}

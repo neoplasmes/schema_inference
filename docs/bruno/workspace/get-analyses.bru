@@ -1,0 +1,27 @@
+meta {
+  name: Get analyses
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/api/v2/analyses
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("lists own analysis", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody()).to.be.an("array");
+
+    const item = res.getBody().find((entry) => entry.id === bru.getVar("analysisId"));
+
+    expect(item).to.exist;
+    expect(item._links.self.href).to.equal("/api/v2/analyses/" + bru.getVar("analysisId"));
+  });
+
+  test("is not cached", function () {
+    expect(String(res.getHeader("cache-status") || "").toLowerCase()).to.not.contain("hit");
+  });
+}

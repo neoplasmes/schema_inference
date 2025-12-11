@@ -1,0 +1,27 @@
+meta {
+  name: Delete schema of another user
+  type: http
+  seq: 13
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: none
+}
+
+headers {
+  If-Match: {{nextEtag}}
+}
+
+script:pre-request {
+  const { fetchToken } = require("./lib/token.js");
+
+  req.setHeader("Authorization", "Bearer " + (await fetchToken(bru, "other")));
+}
+
+tests {
+  test("refuses to delete a foreign schema", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

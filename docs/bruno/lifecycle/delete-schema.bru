@@ -1,0 +1,21 @@
+meta {
+  name: Delete schema
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  If-Match: {{nextEtag}}
+}
+
+tests {
+  test("deletes the schema", function () {
+    expect(res.getStatus()).to.equal(204);
+  });
+}

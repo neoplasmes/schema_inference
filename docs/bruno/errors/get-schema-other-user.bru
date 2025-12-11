@@ -1,0 +1,23 @@
+meta {
+  name: Schema of another user
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  const { fetchToken } = require("./lib/token.js");
+
+  req.setHeader("Authorization", "Bearer " + (await fetchToken(bru, "other")));
+}
+
+tests {
+  test("hides the resource of an owner", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

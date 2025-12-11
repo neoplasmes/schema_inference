@@ -1,3 +1,26 @@
 headers {
   Accept: application/json
 }
+
+auth {
+  mode: oauth2
+}
+
+auth:oauth2 {
+  grant_type: client_credentials
+  access_token_url: {{tokenUrl}}
+  refresh_token_url: 
+  client_id: {{clientId}}
+  client_secret: {{clientSecret}}
+  scope: openid urn:zitadel:iam:org:project:id:{{projectId}}:aud urn:zitadel:iam:org:project:roles
+  credentials_placement: basic_auth_header
+  credentials_id: credentials
+  token_placement: header
+  token_header_prefix: Bearer
+  auto_fetch_token: true
+  auto_refresh_token: false
+}
+
+auth:oauth2:additional_params:access_token_req:headers {
+  Host: {{idpHost}}
+}

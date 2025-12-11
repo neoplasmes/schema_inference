@@ -1,0 +1,29 @@
+meta {
+  name: Cached manifest after delete for another user
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas/{{schemaId}}/revisions/{{nextRevision}}/manifest
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  if (String(bru.getEnvVar("cacheChecks")) !== "true") {
+    bru.runner.skipRequest();
+
+    return;
+  }
+
+  const { fetchToken } = require("./lib/token.js");
+
+  req.setHeader("Authorization", "Bearer " + (await fetchToken(bru, "other")));
+}
+
+tests {
+  test("is not found", function () {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

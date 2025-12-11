@@ -1,0 +1,18 @@
+meta {
+  name: Deleted schema leaves the list
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v2/schemas
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("does not list the deleted schema", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().some((entry) => entry.id === bru.getVar("schemaId"))).to.equal(false);
+  });
+}

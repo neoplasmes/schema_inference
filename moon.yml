@@ -107,7 +107,7 @@ tasks:
       runInCI: false
 
   test-e2e-bruno:
-    script: pnpm exec sh -c 'cd docs/bruno && bru run --env local -r'
+    script: eval "$(uv run --no-sync python tools/bruno/credentials.py --target compose)" && pnpm exec sh -c 'cd docs/bruno && bru run --env local -r'
     platform: system
     deps:
       - env:compose-up-server
@@ -118,10 +118,10 @@ tasks:
       runInCI: false
 
   test-e2e-bruno-cluster:
-    script: pnpm exec sh -c 'cd docs/bruno && bru run --env cluster -r'
+    script: eval "$(uv run --no-sync python tools/bruno/credentials.py --target cluster)" && pnpm exec sh -c 'cd docs/bruno && bru run --env cluster -r'
     platform: system
     deps:
-      - env:deploy
+      - env:bootstrap-identity
     inputs:
       - '@group(bruno)'
     options:
